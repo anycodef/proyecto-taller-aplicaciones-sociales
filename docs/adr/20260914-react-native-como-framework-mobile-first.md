@@ -1,6 +1,6 @@
 # 001 - Elección de React Native como framework Mobile-First
 
-- Status: accepted
+- Status: superseded by 20260914-pwa-en-lugar-de-react-native
 - Date: 2026-09-14
 - Tags: frontend mobile
 
