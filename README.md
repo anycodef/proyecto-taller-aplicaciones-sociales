@@ -38,6 +38,19 @@ que manda: **cualquier herramienta que agregue pasos sera abandonada.**
 Sobre esa base se aplican principios de **minimizacion y retencion de datos de
 menores**, con captura de consentimiento informado en la inscripcion.
 
+## Decisiones registradas
+
+Las decisiones de arquitectura viven en [`docs/adr`](docs/adr) como ADRs
+gestionados con Log4brains. La tabla de arriba resume el resultado; los ADRs
+guardan el razonamiento, las opciones descartadas y los cambios de rumbo — por
+ejemplo, el ADR 008 revierte la elección de React Native del ADR 001 y vuelve a
+la PWA.
+
+```bash
+npm run adr:preview   # sitio navegable en local
+npm run adr:new       # crear un ADR
+```
+
 ## Estructura
 
 ```
