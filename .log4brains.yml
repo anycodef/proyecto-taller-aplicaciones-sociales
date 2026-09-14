@@ -1,0 +1,5 @@
+project:
+  name: proyecto-taller-aplicaciones-sociales
+  tz: America/Lima
+  adrFolder: ./docs/adr
+  packages: []
