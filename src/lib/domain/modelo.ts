@@ -10,12 +10,29 @@ import type { Rol } from "./roles";
 
 export type Usuario = {
   id: string;
-  nombre: string;
   rol: Rol;
+  /**
+   * Nombre con el que el usuario aparece en toda vista, reporte y
+   * exportacion. Para catequistas menores de edad es un seudonimo
+   * institucional; para el resto coincide con su nombre real.
+   */
+  identidadOperativa: string;
   /** Canal de contacto real del publico objetivo. */
   telefono?: string;
   correo?: string;
   activo: boolean;
+};
+
+/**
+ * Identidad real de un usuario, guardada aparte de la operativa desde el
+ * diseno y no como una capa de presentacion anadida. Solo la coordinacion
+ * la consulta, y nunca sale en reportes ni auditorias.
+ */
+export type IdentidadReal = {
+  usuarioId: string;
+  nombres: string;
+  apellidos: string;
+  fechaNacimiento: string;
 };
 
 export type CicloCatequetico = {
@@ -43,6 +60,20 @@ export type Catequizando = {
   fechaNacimiento: string;
   apoderadoIds: string[];
   consentimiento: Consentimiento;
+};
+
+/**
+ * Categoria de acceso restringido: se recaba solo para la conformacion de
+ * grupos y la ven unicamente la coordinacion y el catequista responsable
+ * (ver puedeVerDatosRestringidos). Vive en su propia entidad para que un
+ * listado de catequizandos nunca la arrastre por accidente, y no se
+ * sincroniza al cache offline del dispositivo.
+ */
+export type DatosRestringidos = {
+  catequizandoId: string;
+  condicionesDeSalud?: string;
+  neurodivergencia?: string;
+  actualizadoEn: string;
 };
 
 /** Captura de consentimiento informado en el proceso de inscripcion. */
