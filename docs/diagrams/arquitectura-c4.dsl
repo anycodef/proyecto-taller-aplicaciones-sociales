@@ -127,7 +127,7 @@ workspace "SIGECAT" "Diagrama de Contexto del Sistema (Nivel 1 - C1)" {
 
         cmpSyncSvc -> dbRelacional "Aplica mutaciones en lote" "SQL"
         cmpInscripciones -> dbRelacional "Inserta y consulta inscripciones" "SQL"
-        cmpCatequizandos -> dbRelacional "Consulta y actualiza fichas de salud/perfil" "SQL"
+        cmpCatequizandosBack -> dbRelacional "Consulta y actualiza fichas de salud/perfil" "SQL"
         cmpAsistenciaSvc -> dbRelacional "Persiste asistencias y faltas" "SQL"
         cmpJustificacionesSvc -> dbRelacional "Persiste justificaciones vinculadas al niño" "SQL"
         cmpSeguimientoSvc -> dbRelacional "Actualiza estado de oraciones y doctrina" "SQL"
