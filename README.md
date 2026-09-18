@@ -1,7 +1,8 @@
-# Gestion de catequesis
+# SIGECAT
 
-Aplicacion web progresiva (PWA) mobile-first para el registro de asistencia y
-el seguimiento de catequizandos en una parroquia.
+Sistema Integrado de Gestion y Seguimiento Catequetico Parroquial: registro de
+asistencia, justificaciones y seguimiento del avance sacramental de
+catequizandos, disenado para operar sin conexion desde el celular.
 
 Trabajo del curso **Taller de Aplicaciones Sociales** — Universidad Nacional
 Mayor de San Marcos, Facultad de Ingenieria de Sistemas e Informatica, E.P. de
@@ -66,6 +67,9 @@ src/
     offline/         Cola de sincronizacion diferida
 public/
   sw.js              Service worker (cascaron cache-first)
+docs/
+  adr/               Registros de decisiones de arquitectura (Log4brains)
+  diagrams/          Modelo C4 en Structurizr DSL (C1 a C3)
 ```
 
 ## Stack
@@ -95,7 +99,8 @@ autenticacion y almacenamiento de archivos para los adjuntos de justificacion.
 
 ## Equipo
 
-- Bruno Pumapillo Sarmiento — Project Manager
-- anycodef — Mobile Developer
+- Bruno Pumapillo Sarmiento
+- Pedro Josue Sota Rios
 - Calderon Matias Diego Alonso
 - Espinoza Aponte Wilson Fabrizzio
+- Montenegro Cajahuaman Carlos Andres
