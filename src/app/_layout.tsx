@@ -12,6 +12,9 @@ export default function LayoutRaiz() {
         }}
       >
         <Stack.Screen name="index" options={{ title: "SIGECAT" }} />
+        <Stack.Screen name="asistencia" options={{ title: "Pasar lista" }} />
+        <Stack.Screen name="coordinacion" options={{ title: "Panel del ciclo" }} />
+        <Stack.Screen name="familia" options={{ title: "Mi hijo o hija" }} />
       </Stack>
     </>
   );
