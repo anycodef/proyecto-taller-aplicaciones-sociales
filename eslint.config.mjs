@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Sitio estatico generado por `npm run adr:build`.
+    ".log4brains/**",
   ]),
 ]);
 
