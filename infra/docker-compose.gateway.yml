@@ -1,0 +1,27 @@
+# Plan B (SPEC sección 8): gateway local que sustituye al APIM.
+# Se suma al docker-compose.yml de la raíz (paquete 5):
+#   docker compose -f docker-compose.yml -f infra/docker-compose.gateway.yml up --build
+# Los nombres de servicio `catequizandos` y `asistencia` y sus puertos 3001/3002 deben
+# coincidir con el compose de la raíz. Con el gateway delante, los servicios corren con
+# NODE_ENV=production para no duplicar cabeceras CORS.
+services:
+  catequizandos:
+    environment:
+      NODE_ENV: production
+  asistencia:
+    environment:
+      NODE_ENV: production
+  gateway:
+    build: ./infra/gateway
+    ports:
+      - "8080:8080"
+    environment:
+      GATEWAY_KEY: ${GATEWAY_KEY:-demo-key}
+      ALLOWED_ORIGIN: ${ALLOWED_ORIGIN:-http://localhost:5500}
+      RATE_LIMIT: "30"
+      RATE_WINDOW_S: "60"
+      CAT_UPSTREAM: http://catequizandos:3001
+      ASIS_UPSTREAM: http://asistencia:3002
+    depends_on:
+      - catequizandos
+      - asistencia

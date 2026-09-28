@@ -1,0 +1,16 @@
+<!-- Política de entrada del APIM (SPEC sección 4). NO PROBADA: no hubo acceso a Azure. -->
+<policies>
+  <inbound>
+    <base />
+    <cors allow-credentials="false">
+      <allowed-origins><origin>http://localhost:5500</origin></allowed-origins>
+      <allowed-methods><method>GET</method><method>POST</method><method>OPTIONS</method></allowed-methods>
+      <allowed-headers><header>*</header></allowed-headers>
+    </cors>
+    <rate-limit calls="30" renewal-period="60" />
+  </inbound>
+  <backend><base /></backend>
+  <outbound><base /></outbound>
+  <on-error><base /></on-error>
+</policies>
+<!-- La clave de suscripción (401) no es una política: se exige con el producto "subscription-required=true". -->
