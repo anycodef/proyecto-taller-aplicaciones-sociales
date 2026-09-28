@@ -6,6 +6,7 @@ module.exports = defineConfig([
   expoConfig,
   {
     // dist: salida de `expo export`. .log4brains: sitio de ADRs generado.
-    ignores: ["dist/*", ".log4brains/*"],
+    // services, infra, web: Tarea 2 (microservicios, gateway y demo), con su propio toolchain.
+    ignores: ["dist/*", ".log4brains/*", "services/*", "infra/*", "web/*"],
   },
 ]);
