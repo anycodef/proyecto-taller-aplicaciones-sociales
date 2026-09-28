@@ -1,0 +1,50 @@
+# SIGECAT — Tarea 2. Levanta los dos microservicios en local:
+#
+#   docker compose up --build
+#
+#   Catequizandos -> http://localhost:3001/health
+#   Asistencia    -> http://localhost:3002/health
+#
+# La web (web/index.html) no va aquí: se sirve aparte en http://localhost:5500,
+# que es el origen que permiten tanto el CORS local como el del gateway.
+#
+# Para la demo con gateway (puerto 8080, clave demo-key), sumar el fragmento
+# del paquete 3, que además pone los servicios en production:
+#
+#   docker compose -f docker-compose.yml -f infra/docker-compose.gateway.yml up --build
+
+services:
+  catequizandos:
+    build: ./services/catequizandos
+    container_name: sigecat-catequizandos
+    environment:
+      PORT: "3001"
+      # CORS solo si NODE_ENV != production (SPEC §3). En local lo maneja el
+      # servicio; con el gateway delante lo maneja el gateway (y el fragmento
+      # infra/docker-compose.gateway.yml pone "production"). No ponerlo aquí.
+      NODE_ENV: development
+    ports:
+      - "3001:3001"
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3001/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
+  # Sin depends_on hacia catequizandos, a propósito: Asistencia solo guarda
+  # catequizandoId y grupoId, nunca llama al otro contexto (SPEC §1).
+  asistencia:
+    build: ./services/asistencia
+    container_name: sigecat-asistencia
+    environment:
+      PORT: "3002"
+      NODE_ENV: development
+    ports:
+      - "3002:3002"
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3002/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
