@@ -14,6 +14,9 @@ COPY package.json package-lock.json ./
 RUN npm ci --omit=dev && npm cache clean --force
 COPY --from=build /app/dist ./dist
 
+# Solo se usa con ALMACEN=sqlite: directorio escribible para el archivo de la base.
+RUN mkdir -p /app/data && chown node:node /app/data
+
 # En la nube el CORS lo maneja el gateway (SPEC §3): por defecto "production".
 # docker-compose.yml lo sobrescribe con "development" para la demo local.
 ENV NODE_ENV=production \

@@ -4,7 +4,9 @@
   "description": "SIGECAT — microservicio Asistencia: sesiones, registros y señal de riesgo",
   "private": true,
   "main": "dist/main.js",
-  "engines": { "node": ">=20" },
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "dev": "tsx watch src/main.ts",
     "build": "tsc -p tsconfig.build.json",
@@ -13,10 +15,12 @@
     "test": "tsx --test \"test/**/*.test.ts\""
   },
   "dependencies": {
+    "better-sqlite3": "12.8.0",
     "cors": "^2.8.5",
     "express": "^5.1.0"
   },
   "devDependencies": {
+    "@types/better-sqlite3": "^9.6.0",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
     "@types/node": "^20.19.0",
