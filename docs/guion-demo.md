@@ -24,7 +24,7 @@
 | **3:10 – 3:30** | Volver a `8 años`, **Guardar** otra vez la misma lista y abrir "Ver riesgo" de `cat-001` | Idempotencia: la web reutiliza los ids para el mismo grupo, fecha y tipo, y el servidor hace upsert. Se ve porque el riesgo de `cat-001` sigue en **1 ausencia**, no en 2. Es lo que necesita la cola offline del proyecto. ⏳ confirmar en el ensayo. |
 | **3:30 – 4:10** | Panel "Probar gateway": **Llamar sin clave** → **401**. Editor: `infra/gateway/gateway.js` (enrutamiento, clave, CORS) | Autenticación por clave de suscripción (datos de menores, ADR 005), enrutamiento `/cat` y `/asis`, CORS. Decir de frente que es un **gateway local** (plan B), no un APIM en la nube; el mismo diseño se traduce a Azure (`infra/apim/policy.xml`, sin probar). |
 | **4:10 – 4:30** | **Ráfaga de 40 llamadas** → conteo de **429** | Rate limiting de 30/min: el pico concentrado del domingo. **Este paso va al final** porque agota la cuota. |
-| **4:30 – 5:00** | Editor: agregado `Catequizando` (invariante de consentimiento) y `main.ts` | Inscribir un menor sin consentimiento es imposible por construcción, no por validación de formulario. Los casos de uso dependen de la interfaz; `main.ts` inyecta la implementación. Cierre: la modularidad era correcta. |
+| **4:30 – 5:00** | Editor: agregado `Catequizando` (invariante de consentimiento) y `main.ts` | Dar de alta a un menor sin consentimiento lo rechaza el dominio en `inscribir`, no un formulario. Los casos de uso dependen de la interfaz; `main.ts` inyecta la implementación. Cierre: la modularidad era correcta. |
 
 ## Reglas para no perder la demo
 

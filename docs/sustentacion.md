@@ -1,6 +1,6 @@
 # Sustentación — SOLID y DDD en los microservicios de SIGECAT
 
-> **Estado:** cada afirmación apunta a un archivo real. Las 26 rutas citadas se comprobaron leyendo el código de los paquetes 1 y 2 en sus ramas (`paquete-1`, commit 61e43a8, y `paquete-2`, commit 9a45970 más el soporte SQLite, que estaba sin commit al escribir esto); las líneas citadas son las de esas versiones y **hay que revisarlas si el código cambia**. `docs/verificar-referencias.mjs` comprueba que las rutas existan (no las líneas); solo dará 0 cuando el código de ambos servicios esté integrado en el mismo repo.
+> **Estado:** cada afirmación apunta a un archivo real. Las 32 rutas citadas se comprobaron leyendo el código de los paquetes 1 y 2 (Catequizandos: `paquete-1`, commits 61e43a8 y 427e2c6; Asistencia: `paquete-2`, commit 9a45970 más su soporte SQLite), ya integrados en la rama `integracion`. Las líneas citadas son las de esas versiones y **hay que revisarlas si el código cambia**. `docs/verificar-referencias.mjs` comprueba que las rutas existan (no las líneas) y da 0 inexistentes en `integracion`.
 
 ✅ = el archivo existe y se leyó.
 
@@ -40,21 +40,23 @@ Regla de dependencias del código: `interfaces → application → domain`. El d
 
 - **Evidencia:** Asistencia tiene ahora un almacén SQLite: ✅ `services/asistencia/src/infrastructure/SesionRepositorioSqlite.ts`, ✅ `services/asistencia/src/infrastructure/RegistroRepositorioSqlite.ts` y ✅ `services/asistencia/src/infrastructure/baseSqlite.ts` (esquema). La elección ocurre en un solo sitio, la función `elegirAlmacen` de ✅ `services/asistencia/src/main.ts` (líneas 20–28): `ALMACEN=sqlite` usa SQLite y, por defecto, memoria.
 - **Lo que no cambió:** `services/asistencia/src/domain/` y `services/asistencia/src/application/` están idénticos al commit 9a45970 (lo comprobé con `git diff` y `git status` en el worktree del paquete 2) y no importan `sqlite`, `express` ni `infrastructure/`. Eso es lo que demuestra O.
+- **Catequizandos, igual:** ✅ `services/catequizandos/src/infrastructure/sqlite.ts` (base y esquema), ✅ `catequizando-repository-sqlite.ts` y ✅ `grupo-repository-sqlite.ts` (todos en `services/catequizandos/src/infrastructure/`). La elección `ALMACEN=sqlite` está en `crearRepositorios` de ✅ `services/catequizandos/src/main.ts` (líneas 20–34). `src/domain/` y `src/application/` de Catequizandos no cambiaron respecto al commit 61e43a8 (`git diff` vacío, comprobado en `integracion`).
 - **Implementación en memoria (sigue siendo la de la demo):** ✅ `services/asistencia/src/infrastructure/RegistroRepositorioEnMemoria.ts` y `SesionRepositorioEnMemoria.ts`.
 
 **Matices honestos (decirlos antes de que pregunten):**
 - O dice "sin tocar dominio ni casos de uso", **no** "sin tocar nada": para agregar SQLite sí se modificaron `main.ts` (el punto de extensión), el `Dockerfile` (un directorio de datos escribible), `package.json` (dependencia `better-sqlite3` 12.8.0, módulo nativo) y las pruebas.
 - **La demo sigue usando memoria.** El `docker-compose.yml` no define `ALMACEN`, así que SQLite es una opción probada por pruebas, no lo que corre en la exposición. El compose tampoco declara un volumen: si se activara SQLite, el archivo de la base viviría dentro del contenedor.
-- Solo **Asistencia** tiene SQLite. Catequizandos usa únicamente memoria.
-- Comprobé que la imagen de Asistencia con `better-sqlite3` construye y que el módulo nativo carga dentro del contenedor (`node:20-slim`).
-- Estos cambios estaban **sin commit** en el worktree del paquete 2 al escribir esto.
+- SQLite existe en **ambos** servicios, pero ninguno lo usa en la demo (ver el punto anterior).
+- Comprobé que las imágenes de **ambos** servicios con `better-sqlite3` construyen y que el módulo nativo carga dentro del contenedor (`node:20-slim`).
+- Los cambios de SQLite de los dos paquetes ya están mergeados en la rama `integracion` (Catequizandos: commit 427e2c6).
 
 ### L — Sustitución de Liskov: repositorios intercambiables
 
 - El contrato que toda implementación debe cumplir está escrito en las interfaces: "Upsert por `registro.id`: reenviar el mismo lote no duplica ni pierde nada" (✅ `services/asistencia/src/domain/RegistroRepositorio.ts`, línea 5) y "Upsert por `sesion.id`" (✅ `services/asistencia/src/domain/SesionRepositorio.ts`, línea 5). Los casos de uso solo dependen de ese contrato.
 - **Prueba:** ✅ `services/asistencia/test/almacenes.ts` lista las implementaciones (`ALMACENES`: memoria y sqlite, líneas 12–24) y ✅ `services/asistencia/test/contratoRepositorios.test.ts` ejecuta **las mismas pruebas de contrato contra cada una** (un `describe` por almacén). Según el paquete 2, también se adaptaron `paseDeLista.test.ts`, `semilla.test.ts` y `http.test.ts` para correr con ambos almacenes. En total, `npm test` en Asistencia da 73 pruebas verdes (las corrí).
+- **Catequizandos:** ✅ `services/catequizandos/src/infrastructure/repositorios.contract.ts` define el contrato una vez (`contratoDeRepositorios`) con una fábrica por almacén (`fabricaEnMemoria`, `fabricaSqlite`), y ✅ `services/catequizandos/src/infrastructure/repositorios.test.ts` lo ejecuta contra memoria y SQLite (líneas 13–14), más una prueba de persistencia entre reinicios. El servicio suma 50 pruebas verdes (las corrí en el worktree del paquete 1).
 
-**Matices honestos:** las pruebas de SQLite usan una base **en memoria** (`abrirBaseSqlite(":memory:")`, `almacenes.ts` línea 20), no un archivo en disco. Una prueba de contrato demuestra que ambas cumplen lo que la interfaz promete; no demuestra equivalencia en concurrencia ni rendimiento. Con eso, "intercambiables detrás de la misma interfaz" es cierto para el contrato definido, en Asistencia.
+**Matices honestos:** las pruebas de SQLite usan una base **en memoria** (`abrirBaseSqlite(":memory:")`, `almacenes.ts` línea 20), no un archivo en disco. Una prueba de contrato demuestra que ambas cumplen lo que la interfaz promete; no demuestra equivalencia en concurrencia ni rendimiento. Con eso, "intercambiables detrás de la misma interfaz" es cierto para el contrato definido, en ambos servicios.
 
 ### I — Segregación de interfaces: una por agregado
 
@@ -64,7 +66,7 @@ Regla de dependencias del código: `interfaces → application → domain`. El d
 ### D — Inversión de dependencias: `main.ts` inyecta
 
 - Los casos de uso reciben la interfaz por constructor (`PasarLista`, `CalcularRiesgo`: ✅ líneas 10–14 y 11–14 respectivamente); solo `main.ts` conoce la implementación concreta (composition root): ✅ `services/asistencia/src/main.ts`, `elegirAlmacen` (líneas 21–28) crea los repositorios y las líneas 39–41 los inyectan en los casos de uso.
-- Catequizandos: ✅ `services/catequizandos/src/main.ts`; el comentario de la línea 11 lo declara ("único lugar donde se elige la implementación concreta de cada puerto") y las líneas 12–14 crean las implementaciones, inyectadas en las líneas 18–21. `InscribirCatequizando` recibe `CatequizandoRepository`, `GrupoRepository` y `Reloj` por constructor (`inscribir-catequizando.ts` líneas 16–20).
+- Catequizandos: ✅ `services/catequizandos/src/main.ts`; el comentario de la línea 16 lo declara ("único lugar donde se elige la implementación concreta de cada puerto"), `crearRepositorios` (líneas 20–34) elige memoria o SQLite, y las líneas 41–44 los inyectan en los casos de uso. `InscribirCatequizando` recibe `CatequizandoRepository`, `GrupoRepository` y `Reloj` por constructor (`inscribir-catequizando.ts` líneas 16–20).
 - Verificado también en Catequizandos: ni `domain/` ni `application/` importan `express` ni `infrastructure/`.
 
 **Verificado:** ningún archivo de `services/asistencia/src/domain/` ni de `application/` importa `express` ni `infrastructure/`.
@@ -91,18 +93,20 @@ Diferencias con `modelo.ts`, todas declaradas:
 
 ### 3.2 El consentimiento informado es un invariante del agregado
 
-El dominio hace imposible inscribir a un menor sin consentimiento completo. Invariantes de `Catequizando`, validados en el agregado y **nunca en el controlador**:
+Inscribir a un menor sin consentimiento completo es imposible por la vía de alta: el dominio lo rechaza. Invariantes de `Catequizando`, validados en el agregado y **nunca en el controlador**:
 
 1. `otorgadoPor`, `otorgadoEn` y `version` no vacíos, y `retencionHasta` posterior a `otorgadoEn`.
 2. Edad entre 8 y 13 años a la fecha actual.
 3. `nombres` y `apellidos` no vacíos; `grupoId` existente.
 
-- ✅ Agregado: `services/catequizandos/src/domain/catequizando.ts`. El constructor es **privado** (línea 39): la única forma de obtener un `Catequizando` es `Catequizando.inscribir` (línea 41), que hace cumplir los tres invariantes antes de construir nada.
+- ✅ Agregado: `services/catequizandos/src/domain/catequizando.ts`. El constructor es **privado** (línea 39): en TypeScript, la forma de dar de alta un `Catequizando` es `Catequizando.inscribir` (línea 41), que hace cumplir los tres invariantes antes de construir nada. Ojo: ese candado es **de compilación**, no de ejecución (ver el matiz de la reconstitución más abajo).
 - ✅ Invariante 1: `services/catequizandos/src/domain/consentimiento.ts`, función `validarConsentimiento` (línea 22), que `inscribir` llama en su primera línea (línea 42).
 - ✅ Invariante 2: constantes `EDAD_MINIMA = 8` y `EDAD_MAXIMA = 13` (`catequizando.ts` líneas 5–6), comprobadas en las líneas 53–56; el cálculo de edad está en `services/catequizandos/src/domain/fechas.ts`.
-- ✅ Pruebas de los tres invariantes: `services/catequizandos/src/domain/catequizando.test.ts` (por ejemplo "rechaza la inscripción sin consentimiento", "rechaza a quien aún no cumplió 8 años", "rechaza un grupo que no existe"). 27 pruebas en el servicio, todas pasan (las corrí).
+- ✅ Pruebas de los tres invariantes: `services/catequizandos/src/domain/catequizando.test.ts` (por ejemplo "rechaza la inscripción sin consentimiento", "rechaza a quien aún no cumplió 8 años", "rechaza un grupo que no existe"). El servicio suma 50 pruebas (con las de SQLite), todas pasan (las corrí).
 
-**Por qué no es "validación de formulario":** un formulario se puede saltar llamando a la API directamente; el invariante en el agregado no, porque con el constructor privado no hay otra forma de crear un `Catequizando` que pasar por `inscribir`. Ni siquiera la semilla se lo salta: `services/catequizandos/src/infrastructure/semilla.ts` crea los 12 catequizandos de ejemplo con `Catequizando.inscribir` (línea 39), es decir, hasta los datos de prueba tienen consentimiento válido. Es la traducción a código del principio de minimización y consentimiento de SIGECAT (`SIGECAT:src/lib/domain/modelo.ts`, comentario inicial, líneas 3–9 ✅).
+**Por qué no es "validación de formulario":** un formulario se puede saltar llamando a la API directamente; el invariante en el agregado no, porque el alta de un catequizando solo existe a través de `inscribir` (la reconstitución desde la base es la excepción declarada abajo). Ni siquiera la semilla se lo salta: `services/catequizandos/src/infrastructure/semilla.ts` crea los 12 catequizandos de ejemplo con `Catequizando.inscribir` (línea 39), es decir, hasta los datos de prueba tienen consentimiento válido. Es la traducción a código del principio de minimización y consentimiento de SIGECAT (`SIGECAT:src/lib/domain/modelo.ts`, comentario inicial, líneas 3–9 ✅).
+
+**Matiz de la reconstitución (declararlo antes de que pregunten):** el repositorio SQLite reconstruye el agregado desde la fila **sin llamar a `inscribir`**, a propósito. Está en ✅ `services/catequizandos/src/infrastructure/catequizando-repository-sqlite.ts` (líneas 18–23): `Catequizando as unknown as new (datos) => Catequizando`, y su comentario lo dice: los invariantes se validaron al inscribir, y volver a evaluarlos "a hoy" rechazaría a quien ya cumplió 14 años (la edad se calcula a la fecha actual). Consecuencias: (1) el constructor privado protege solo en compilación, porque la infraestructura lo salta con un cast; (2) lo que se lee de la base se **confía**, así que un registro editado a mano en la base entraría al dominio sin validar. Lo que sí se mantiene: todo dato que entra por la API o por la semilla pasa por `inscribir`. La solución limpia sería un método `Catequizando.reconstituir()` dentro de `domain/` (validando solo la forma, sin la edad), para que el dominio decida cómo se rehidrata; **no está hecho**, es trabajo futuro.
 
 **Matiz del invariante 3 (decirlo antes de que pregunten):** "`grupoId` debe existir" no lo puede consultar el agregado, porque no conoce los repositorios. Lo resuelve el caso de uso: `InscribirCatequizando` pregunta `grupos.existe(...)` (`services/catequizandos/src/application/inscribir-catequizando.ts`, línea 23) y le pasa el resultado al agregado como `grupoExiste` (línea 28), y el agregado **sigue haciendo cumplir la regla** (`catequizando.ts` líneas 46–48). Es una división correcta (el dominio no depende de infraestructura), pero significa que el agregado confía en ese booleano: un llamador que pase `grupoExiste: true` sin comprobarlo lo saltaría. Hoy hay dos llamadores: el caso de uso (que consulta de verdad) y la semilla, que fija `grupoExiste: true` (`semilla.ts` línea 49) porque siembra los propios grupos del servicio. Grupos y catequizandos viven en el mismo servicio, así que no se llama a otro servicio.
 
@@ -132,7 +136,7 @@ El dominio hace imposible inscribir a un menor sin consentimiento completo. Inva
 
 | Simplificación | Por qué es aceptable en la demo | Qué haría producción |
 |---|---|---|
-| Almacén en memoria con semilla (SQLite existe en Asistencia pero la demo no lo usa) | Demuestra la inversión de dependencias sin operar una base de datos | Repositorio persistente detrás de la misma interfaz, con volumen |
+| Almacén en memoria con semilla (SQLite existe en ambos servicios pero la demo no lo usa) | Demuestra la inversión de dependencias sin operar una base de datos | Repositorio persistente detrás de la misma interfaz, con volumen |
 | Clave del gateway (`demo-key`) en el frontend (`config.js`) | Solo demo | Autenticación de usuario; la clave viviría en un backend |
 | Gateway local en contenedor en lugar de un APIM en la nube | No hubo acceso a Azure ni AWS; demuestra las mismas características | Plataforma administrada (p. ej. Azure APIM); `infra/apim/policy.xml` muestra la traducción, sin probar |
 | Asistencia no valida que el catequizando exista | Consistencia eventual, declarada arriba | Conciliación periódica o eventos entre contextos |
@@ -173,8 +177,8 @@ El contador de rate limit vive en memoria de un solo proceso, hay una sola clave
 
 ## 6. Pendientes antes de entregar
 
-- [x] Asistencia (paquete 2): rutas verificadas leyendo el código en `../sigecat-paquete-2`; 73 pruebas pasan (con SQLite). La regla de riesgo vive en el dominio (S). SQLite existe y está probado por contrato (O y L con los matices de arriba), pero **sin commit** al escribir esto y **no** es el almacén de la demo.
-- [x] Catequizandos (paquete 1): rutas verificadas leyendo el código en `../sigecat-paquete-1` (rama `paquete-1`, commit 61e43a8); 27 pruebas pasan. Nombres en kebab-case (`catequizando.ts`), no los que el SPEC sugería.
+- [x] Asistencia (paquete 2): rutas verificadas; 73 pruebas pasan (con SQLite). La regla de riesgo vive en el dominio (S). SQLite probado por contrato (O y L con los matices de arriba), mergeado en `integracion`, y **no** es el almacén de la demo.
+- [x] Catequizandos (paquete 1): rutas verificadas (commits 61e43a8 y 427e2c6); 50 pruebas pasan. Nombres en kebab-case (`catequizando.ts`). Pendiente de diseño declarado: `Catequizando.reconstituir()` en `domain/`.
 - [ ] Tras integrar los paquetes en una sola rama, correr `node docs/verificar-referencias.mjs` hasta que dé 0 (hoy las rutas de Asistencia existen solo en el worktree del paquete 2).
 - [ ] Añadir la ruta de las pruebas de riesgo de Asistencia a la sección DDD/SOLID si se quiere citar en vivo: `services/asistencia/test/senalRiesgo.test.ts`, `semilla.test.ts`.
 - [ ] Confirmar con el docente si un gateway local cumple "plataforma de API Management en la nube" (es la mayor brecha con la tarea).
