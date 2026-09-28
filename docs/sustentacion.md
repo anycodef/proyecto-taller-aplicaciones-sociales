@@ -1,6 +1,6 @@
 # Sustentación — SOLID y DDD en los microservicios de SIGECAT
 
-> **Estado:** cada afirmación apunta a un archivo real. Las 26 rutas citadas se comprobaron leyendo el código de los paquetes 1 y 2 en sus ramas (`paquete-1`, commit 61e43a8, y `paquete-2`, sin commit al escribir esto); las líneas citadas son las de esas versiones y **hay que revisarlas si el código cambia**. `docs/verificar-referencias.mjs` comprueba que las rutas existan (no las líneas); solo dará 0 cuando el código de ambos servicios esté integrado en el mismo repo.
+> **Estado:** cada afirmación apunta a un archivo real. Las 26 rutas citadas se comprobaron leyendo el código de los paquetes 1 y 2 en sus ramas (`paquete-1`, commit 61e43a8, y `paquete-2`, commit 9a45970 más el soporte SQLite, que estaba sin commit al escribir esto); las líneas citadas son las de esas versiones y **hay que revisarlas si el código cambia**. `docs/verificar-referencias.mjs` comprueba que las rutas existan (no las líneas); solo dará 0 cuando el código de ambos servicios esté integrado en el mismo repo.
 
 ✅ = el archivo existe y se leyó.
 
@@ -36,18 +36,25 @@ Regla de dependencias del código: `interfaces → application → domain`. El d
 
 *Catequizandos:* `InscribirCatequizando` solo orquesta: resuelve si el grupo existe, genera el id y guarda (`inscribir-catequizando.ts` líneas 22–33); los invariantes viven en el agregado (ver 3.2). El reloj también es un puerto inyectable (✅ `services/catequizandos/src/domain/reloj.ts`).
 
-### O — Abierto/cerrado: agregar SQLite sin tocar dominio ni casos de uso
+### O — Abierto/cerrado: SQLite se agregó sin tocar dominio ni casos de uso
 
-- Se agregaría una clase que implemente la interfaz del repositorio y se cambiarían las dos líneas donde `main.ts` crea los repositorios. El propio `main.ts` lo dice: "Para pasar a SQLite basta con cambiar las dos líneas de repositorios" (✅ `services/asistencia/src/main.ts`, línea 4; los repositorios se crean en las líneas 19–20).
-- Implementación actual: ✅ `services/asistencia/src/infrastructure/RegistroRepositorioEnMemoria.ts` y `SesionRepositorioEnMemoria.ts`.
+- **Evidencia:** Asistencia tiene ahora un almacén SQLite: ✅ `services/asistencia/src/infrastructure/SesionRepositorioSqlite.ts`, ✅ `services/asistencia/src/infrastructure/RegistroRepositorioSqlite.ts` y ✅ `services/asistencia/src/infrastructure/baseSqlite.ts` (esquema). La elección ocurre en un solo sitio, la función `elegirAlmacen` de ✅ `services/asistencia/src/main.ts` (líneas 20–28): `ALMACEN=sqlite` usa SQLite y, por defecto, memoria.
+- **Lo que no cambió:** `services/asistencia/src/domain/` y `services/asistencia/src/application/` están idénticos al commit 9a45970 (lo comprobé con `git diff` y `git status` en el worktree del paquete 2) y no importan `sqlite`, `express` ni `infrastructure/`. Eso es lo que demuestra O.
+- **Implementación en memoria (sigue siendo la de la demo):** ✅ `services/asistencia/src/infrastructure/RegistroRepositorioEnMemoria.ts` y `SesionRepositorioEnMemoria.ts`.
 
-**Alcance honesto:** **SQLite no se implementó** (era deseable, no obligatorio). Por eso O se sostiene como *"diseñado para"*, no como *"demostrado"*: hay una interfaz, una sola implementación, y `main.ts` es el único sitio que la elige. Decir "se puede agregar sin tocar dominio ni casos de uso", no "lo agregamos". SQLite queda como trabajo futuro.
+**Matices honestos (decirlos antes de que pregunten):**
+- O dice "sin tocar dominio ni casos de uso", **no** "sin tocar nada": para agregar SQLite sí se modificaron `main.ts` (el punto de extensión), el `Dockerfile` (un directorio de datos escribible), `package.json` (dependencia `better-sqlite3` 12.8.0, módulo nativo) y las pruebas.
+- **La demo sigue usando memoria.** El `docker-compose.yml` no define `ALMACEN`, así que SQLite es una opción probada por pruebas, no lo que corre en la exposición. El compose tampoco declara un volumen: si se activara SQLite, el archivo de la base viviría dentro del contenedor.
+- Solo **Asistencia** tiene SQLite. Catequizandos usa únicamente memoria.
+- Comprobé que la imagen de Asistencia con `better-sqlite3` construye y que el módulo nativo carga dentro del contenedor (`node:20-slim`).
+- Estos cambios estaban **sin commit** en el worktree del paquete 2 al escribir esto.
 
 ### L — Sustitución de Liskov: repositorios intercambiables
 
 - El contrato que toda implementación debe cumplir está escrito en las interfaces: "Upsert por `registro.id`: reenviar el mismo lote no duplica ni pierde nada" (✅ `services/asistencia/src/domain/RegistroRepositorio.ts`, línea 5) y "Upsert por `sesion.id`" (✅ `services/asistencia/src/domain/SesionRepositorio.ts`, línea 5). Los casos de uso solo dependen de ese contrato.
+- **Prueba:** ✅ `services/asistencia/test/almacenes.ts` lista las implementaciones (`ALMACENES`: memoria y sqlite, líneas 12–24) y ✅ `services/asistencia/test/contratoRepositorios.test.ts` ejecuta **las mismas pruebas de contrato contra cada una** (un `describe` por almacén). Según el paquete 2, también se adaptaron `paseDeLista.test.ts`, `semilla.test.ts` y `http.test.ts` para correr con ambos almacenes. En total, `npm test` en Asistencia da 73 pruebas verdes (las corrí).
 
-**Alcance honesto:** hay **una sola implementación** (memoria), así que la intercambiabilidad es teórica: no hay una segunda implementación ni pruebas que corran los mismos casos de uso contra otro repositorio. Decir que el contrato está definido en la interfaz y que cualquier implementación que lo cumpla sustituye a la actual; no decir que memoria y SQLite ya son intercambiables.
+**Matices honestos:** las pruebas de SQLite usan una base **en memoria** (`abrirBaseSqlite(":memory:")`, `almacenes.ts` línea 20), no un archivo en disco. Una prueba de contrato demuestra que ambas cumplen lo que la interfaz promete; no demuestra equivalencia en concurrencia ni rendimiento. Con eso, "intercambiables detrás de la misma interfaz" es cierto para el contrato definido, en Asistencia.
 
 ### I — Segregación de interfaces: una por agregado
 
@@ -56,13 +63,13 @@ Regla de dependencias del código: `interfaces → application → domain`. El d
 
 ### D — Inversión de dependencias: `main.ts` inyecta
 
-- Los casos de uso reciben la interfaz por constructor (`PasarLista`, `CalcularRiesgo`: ✅ líneas 10–14 y 11–14 respectivamente); solo `main.ts` conoce la implementación concreta (composition root): ✅ `services/asistencia/src/main.ts`, líneas 19–20 crean los repositorios en memoria y 25–27 los inyectan.
+- Los casos de uso reciben la interfaz por constructor (`PasarLista`, `CalcularRiesgo`: ✅ líneas 10–14 y 11–14 respectivamente); solo `main.ts` conoce la implementación concreta (composition root): ✅ `services/asistencia/src/main.ts`, `elegirAlmacen` (líneas 21–28) crea los repositorios y las líneas 39–41 los inyectan en los casos de uso.
 - Catequizandos: ✅ `services/catequizandos/src/main.ts`; el comentario de la línea 11 lo declara ("único lugar donde se elige la implementación concreta de cada puerto") y las líneas 12–14 crean las implementaciones, inyectadas en las líneas 18–21. `InscribirCatequizando` recibe `CatequizandoRepository`, `GrupoRepository` y `Reloj` por constructor (`inscribir-catequizando.ts` líneas 16–20).
 - Verificado también en Catequizandos: ni `domain/` ni `application/` importan `express` ni `infrastructure/`.
 
 **Verificado:** ningún archivo de `services/asistencia/src/domain/` ni de `application/` importa `express` ni `infrastructure/`.
 
-**Qué mostrar en vivo:** abrir `CalcularRiesgo.ts` y señalar que solo importa del dominio; luego `main.ts`, donde sí aparece `new RegistroRepositorioEnMemoria()`.
+**Qué mostrar en vivo:** abrir `CalcularRiesgo.ts` y señalar que solo importa del dominio; luego `main.ts`, donde `elegirAlmacen` decide entre `RegistroRepositorioEnMemoria` y `RegistroRepositorioSqlite`.
 
 ---
 
@@ -125,7 +132,7 @@ El dominio hace imposible inscribir a un menor sin consentimiento completo. Inva
 
 | Simplificación | Por qué es aceptable en la demo | Qué haría producción |
 |---|---|---|
-| Almacén en memoria con semilla | Demuestra la inversión de dependencias sin operar una base de datos | Repositorio persistente detrás de la misma interfaz |
+| Almacén en memoria con semilla (SQLite existe en Asistencia pero la demo no lo usa) | Demuestra la inversión de dependencias sin operar una base de datos | Repositorio persistente detrás de la misma interfaz, con volumen |
 | Clave del gateway (`demo-key`) en el frontend (`config.js`) | Solo demo | Autenticación de usuario; la clave viviría en un backend |
 | Gateway local en contenedor en lugar de un APIM en la nube | No hubo acceso a Azure ni AWS; demuestra las mismas características | Plataforma administrada (p. ej. Azure APIM); `infra/apim/policy.xml` muestra la traducción, sin probar |
 | Asistencia no valida que el catequizando exista | Consistencia eventual, declarada arriba | Conciliación periódica o eventos entre contextos |
@@ -166,7 +173,7 @@ El contador de rate limit vive en memoria de un solo proceso, hay una sola clave
 
 ## 6. Pendientes antes de entregar
 
-- [x] Asistencia (paquete 2): rutas verificadas leyendo el código en `../sigecat-paquete-2` (sin commit); 40 pruebas pasan. La regla de riesgo vive en el dominio (S); SQLite no existe, O y L suavizados.
+- [x] Asistencia (paquete 2): rutas verificadas leyendo el código en `../sigecat-paquete-2`; 73 pruebas pasan (con SQLite). La regla de riesgo vive en el dominio (S). SQLite existe y está probado por contrato (O y L con los matices de arriba), pero **sin commit** al escribir esto y **no** es el almacén de la demo.
 - [x] Catequizandos (paquete 1): rutas verificadas leyendo el código en `../sigecat-paquete-1` (rama `paquete-1`, commit 61e43a8); 27 pruebas pasan. Nombres en kebab-case (`catequizando.ts`), no los que el SPEC sugería.
 - [ ] Tras integrar los paquetes en una sola rama, correr `node docs/verificar-referencias.mjs` hasta que dé 0 (hoy las rutas de Asistencia existen solo en el worktree del paquete 2).
 - [ ] Añadir la ruta de las pruebas de riesgo de Asistencia a la sección DDD/SOLID si se quiere citar en vivo: `services/asistencia/test/senalRiesgo.test.ts`, `semilla.test.ts`.
