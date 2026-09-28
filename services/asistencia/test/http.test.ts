@@ -5,14 +5,12 @@ import type { Server } from "node:http";
 import { CalcularRiesgo } from "../src/application/CalcularRiesgo";
 import { ObtenerHistorial } from "../src/application/ObtenerHistorial";
 import { PasarLista } from "../src/application/PasarLista";
-import { RegistroRepositorioEnMemoria } from "../src/infrastructure/RegistroRepositorioEnMemoria";
-import { SesionRepositorioEnMemoria } from "../src/infrastructure/SesionRepositorioEnMemoria";
 import { sembrar } from "../src/infrastructure/semilla";
 import { crearApp } from "../src/interfaces/http/app";
 
-async function levantar(habilitarCors: boolean): Promise<{ servidor: Server; base: string }> {
-  const sesiones = new SesionRepositorioEnMemoria();
-  const registros = new RegistroRepositorioEnMemoria();
+import { ALMACENES, Almacen } from "./almacenes";
+
+async function levantar(habilitarCors: boolean, { sesiones, registros }: Almacen = ALMACENES[0]!.crear()): Promise<{ servidor: Server; base: string }> {
   await sembrar(sesiones, registros);
   const reloj = () => new Date("2026-09-28T12:00:00.000Z");
   const app = crearApp(
@@ -41,10 +39,10 @@ const pase = {
   registradoPor: "C1",
 };
 
-describe("HTTP — contrato de Asistencia", () => {
+for (const { nombre, crear } of ALMACENES) describe(`HTTP — contrato de Asistencia — ${nombre}`, () => {
   let servidor: Server;
   let base: string;
-  before(async () => ({ servidor, base } = await levantar(true)));
+  before(async () => ({ servidor, base } = await levantar(true, crear())));
   after(() => servidor.close());
 
   it("GET /health → 200 {status, servicio}", async () => {

@@ -4,8 +4,8 @@ import { PasarLista } from "../src/application/PasarLista";
 import { ObtenerHistorial } from "../src/application/ObtenerHistorial";
 import { ErrorDeValidacion } from "../src/domain/errores";
 import { DatosPaseDeLista, PaseDeLista } from "../src/domain/PaseDeLista";
-import { RegistroRepositorioEnMemoria } from "../src/infrastructure/RegistroRepositorioEnMemoria";
-import { SesionRepositorioEnMemoria } from "../src/infrastructure/SesionRepositorioEnMemoria";
+
+import { ALMACENES, Almacen } from "./almacenes";
 
 const AHORA = new Date("2026-09-28T09:00:00.000Z");
 
@@ -22,9 +22,7 @@ function lote(sobrescribir: Partial<DatosPaseDeLista> = {}): DatosPaseDeLista {
   };
 }
 
-function armar() {
-  const sesiones = new SesionRepositorioEnMemoria();
-  const registros = new RegistroRepositorioEnMemoria();
+function armar({ sesiones, registros }: Almacen) {
   return {
     pasarLista: new PasarLista(sesiones, registros, () => AHORA),
     historial: new ObtenerHistorial(sesiones, registros),
@@ -90,14 +88,14 @@ describe("PaseDeLista (dominio)", () => {
   });
 });
 
-describe("PasarLista (idempotencia)", () => {
+for (const { nombre, crear } of ALMACENES) describe(`PasarLista (idempotencia) — ${nombre}`, () => {
   it("devuelve sesionId y registrosGuardados", async () => {
-    const { pasarLista } = armar();
+    const { pasarLista } = armar(crear());
     assert.deepEqual(await pasarLista.ejecutar(lote()), { sesionId: "ses-1", registrosGuardados: 3 });
   });
 
   it("reenviar el mismo lote no duplica nada", async () => {
-    const { pasarLista, registros, historial } = armar();
+    const { pasarLista, registros, historial } = armar(crear());
     await pasarLista.ejecutar(lote());
     const segundo = await pasarLista.ejecutar(lote());
 
@@ -107,7 +105,7 @@ describe("PasarLista (idempotencia)", () => {
   });
 
   it("reenviar con el mismo id y otro estado actualiza (upsert), no agrega", async () => {
-    const { pasarLista, historial } = armar();
+    const { pasarLista, historial } = armar(crear());
     await pasarLista.ejecutar(lote());
     await pasarLista.ejecutar(
       lote({ registros: [{ id: "r-3", catequizandoId: "cat-003", estado: "justificado" }] }),
@@ -116,7 +114,7 @@ describe("PasarLista (idempotencia)", () => {
   });
 
   it("un lote inválido no guarda nada", async () => {
-    const { pasarLista, registros } = armar();
+    const { pasarLista, registros } = armar(crear());
     await assert.rejects(
       pasarLista.ejecutar(lote({ registros: [{ id: "r-1", catequizandoId: "cat-001", estado: "presente" }, { id: "r-2", catequizandoId: "cat-002", estado: "?" }] })),
       ErrorDeValidacion,
