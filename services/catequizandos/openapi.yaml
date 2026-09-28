@@ -1,0 +1,239 @@
+openapi: 3.0.3
+info:
+  title: SIGECAT - Catequizandos
+  version: 1.0.0
+  description: >
+    Microservicio del contexto Catequizandos: grupos del ciclo y catequizandos.
+    El consentimiento informado es un invariante del agregado: no existe catequizando sin él.
+# Sin host fijo: el gateway (APIM) define la URL base al importar.
+servers:
+  - url: /
+paths:
+  /health:
+    get:
+      operationId: health
+      summary: Estado del servicio
+      responses:
+        "200":
+          description: Servicio activo
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Health"
+  /grupos:
+    get:
+      operationId: listarGrupos
+      summary: Grupos del ciclo
+      responses:
+        "200":
+          description: Lista de grupos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Grupo"
+  /catequizandos:
+    get:
+      operationId: listarCatequizandos
+      summary: Listado mínimo de catequizandos
+      description: Devuelve solo lo necesario (sin fecha de nacimiento ni consentimiento).
+      parameters:
+        - name: grupoId
+          in: query
+          required: false
+          description: Filtra por grupo
+          schema:
+            type: string
+            example: grp-8
+      responses:
+        "200":
+          description: Lista mínima
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CatequizandoResumen"
+    post:
+      operationId: inscribirCatequizando
+      summary: Inscribe a un catequizando
+      description: >
+        Rechaza con 400 si falta el consentimiento informado completo, si la edad no está
+        entre 8 y 13 años, si nombres o apellidos están vacíos o si el grupo no existe.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Inscripcion"
+      responses:
+        "201":
+          description: Catequizando inscrito
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Catequizando"
+        "400":
+          $ref: "#/components/responses/Validacion"
+  /catequizandos/{id}:
+    get:
+      operationId: obtenerCatequizando
+      summary: Detalle de un catequizando
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: cat-001
+      responses:
+        "200":
+          description: Detalle, con fecha de nacimiento y consentimiento
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Catequizando"
+        "404":
+          $ref: "#/components/responses/NoEncontrado"
+components:
+  responses:
+    Validacion:
+      description: Datos inválidos
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            error:
+              code: VALIDACION
+              message: El consentimiento informado es obligatorio
+    NoEncontrado:
+      description: El recurso no existe
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+          example:
+            error:
+              code: NO_ENCONTRADO
+              message: No existe el catequizando cat-999
+  schemas:
+    Health:
+      type: object
+      required: [status, servicio]
+      properties:
+        status:
+          type: string
+          example: ok
+        servicio:
+          type: string
+          example: catequizandos
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              type: string
+              enum: [VALIDACION, NO_ENCONTRADO]
+            message:
+              type: string
+    Grupo:
+      type: object
+      required: [id, cicloId, nombre, catequistaIds]
+      properties:
+        id:
+          type: string
+          example: grp-8
+        cicloId:
+          type: string
+          example: ciclo-2026
+        nombre:
+          type: string
+          example: 8 años (mixto)
+        catequistaIds:
+          type: array
+          items:
+            type: string
+    Consentimiento:
+      type: object
+      required: [otorgadoPor, otorgadoEn, version, retencionHasta]
+      properties:
+        otorgadoPor:
+          type: string
+          example: Apoderado ficticio
+        otorgadoEn:
+          type: string
+          format: date-time
+          example: "2026-09-01T10:00:00Z"
+        version:
+          type: string
+          description: Versión del texto aceptado
+          example: v1
+        retencionHasta:
+          type: string
+          description: Fecha desde la que el registro debe anonimizarse; posterior a otorgadoEn
+          example: "2029-09-01"
+    CatequizandoResumen:
+      type: object
+      required: [id, grupoId, nombres, apellidos, edad]
+      properties:
+        id:
+          type: string
+          example: cat-001
+        grupoId:
+          type: string
+          example: grp-8
+        nombres:
+          type: string
+        apellidos:
+          type: string
+        edad:
+          type: integer
+          minimum: 8
+          maximum: 13
+    Catequizando:
+      type: object
+      required: [id, grupoId, nombres, apellidos, fechaNacimiento, apoderadoIds, consentimiento]
+      properties:
+        id:
+          type: string
+          example: cat-001
+        grupoId:
+          type: string
+          example: grp-8
+        nombres:
+          type: string
+        apellidos:
+          type: string
+        fechaNacimiento:
+          type: string
+          format: date
+          example: "2018-06-20"
+        apoderadoIds:
+          type: array
+          items:
+            type: string
+        consentimiento:
+          $ref: "#/components/schemas/Consentimiento"
+    Inscripcion:
+      type: object
+      required: [grupoId, nombres, apellidos, fechaNacimiento, consentimiento]
+      properties:
+        grupoId:
+          type: string
+          example: grp-8
+        nombres:
+          type: string
+        apellidos:
+          type: string
+        fechaNacimiento:
+          type: string
+          format: date
+          description: La edad a la fecha actual debe estar entre 8 y 13 años
+        consentimiento:
+          $ref: "#/components/schemas/Consentimiento"
