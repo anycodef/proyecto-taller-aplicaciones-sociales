@@ -24,7 +24,7 @@ function corsHeaders() {
   return {
     "Access-Control-Allow-Origin": config.allowedOrigin,
     "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-    "Access-Control-Allow-Headers": "*",
+    "Access-Control-Allow-Headers": "Ocp-Apim-Subscription-Key, Content-Type",
   };
 }
 

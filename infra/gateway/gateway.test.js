@@ -63,3 +63,15 @@ test("supera el límite -> 429 con Retry-After (401 no consume cupo)", async () 
   assert.ok(Number(limited.headers.get("retry-after")) > 0);
   assert.equal((await call("/cat/grupos")).status, 401);
 });
+
+test("401 y 429 llevan CORS para que el navegador pueda leerlos; preflight permite la clave", async () => {
+  const origin = { Origin: "http://localhost:5500" };
+  const unauthorized = await call("/cat/grupos", origin);
+  assert.equal(unauthorized.status, 401);
+  assert.equal(unauthorized.headers.get("access-control-allow-origin"), "http://localhost:5500");
+  const limited = await call("/cat/grupos", { ...origin, "Ocp-Apim-Subscription-Key": "k" });
+  assert.equal(limited.status, 429);
+  assert.equal(limited.headers.get("access-control-allow-origin"), "http://localhost:5500");
+  const preflight = await call("/cat/grupos", origin, "OPTIONS");
+  assert.match(preflight.headers.get("access-control-allow-headers"), /Ocp-Apim-Subscription-Key/i);
+});
