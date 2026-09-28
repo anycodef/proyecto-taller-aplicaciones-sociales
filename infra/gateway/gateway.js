@@ -102,7 +102,11 @@ function createServer() {
         headers,
       },
       (upstreamRes) => {
-        res.writeHead(upstreamRes.statusCode, { ...upstreamRes.headers, ...corsHeaders() });
+        // Las cabeceras CORS del servicio se descartan: el gateway es el único que las pone.
+        const fromUpstream = Object.fromEntries(
+          Object.entries(upstreamRes.headers).filter(([name]) => !name.toLowerCase().startsWith("access-control-")),
+        );
+        res.writeHead(upstreamRes.statusCode, { ...fromUpstream, ...corsHeaders() });
         upstreamRes.pipe(res);
       },
     );

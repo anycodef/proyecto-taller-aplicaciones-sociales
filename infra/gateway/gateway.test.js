@@ -8,7 +8,7 @@ process.env.RATE_LIMIT = "5";
 process.env.ALLOWED_ORIGIN = "http://localhost:5500";
 
 const stub = http.createServer((req, res) => {
-  res.writeHead(200, { "Content-Type": "application/json" });
+  res.writeHead(200, { "Content-Type": "application/json", "access-control-allow-origin": "*" });
   res.end(JSON.stringify({ path: req.url, gotKey: "ocp-apim-subscription-key" in req.headers }));
 });
 let gateway;
@@ -74,4 +74,21 @@ test("401 y 429 llevan CORS para que el navegador pueda leerlos; preflight permi
   assert.equal(limited.headers.get("access-control-allow-origin"), "http://localhost:5500");
   const preflight = await call("/cat/grupos", origin, "OPTIONS");
   assert.match(preflight.headers.get("access-control-allow-headers"), /Ocp-Apim-Subscription-Key/i);
+});
+
+test("no duplica Access-Control-Allow-Origin cuando el servicio también manda CORS", async () => {
+  // El servicio simulado responde con access-control-allow-origin: *; debe salir un solo valor.
+  // Gateway aparte para no depender del cupo ya gastado por las pruebas anteriores.
+  const { createServer } = require("./gateway");
+  const fresh = createServer();
+  await new Promise((r) => fresh.listen(0, r));
+  try {
+    const res = await fetch(`http://localhost:${fresh.address().port}/asis/health`, {
+      headers: { Origin: "http://localhost:5500", "Ocp-Apim-Subscription-Key": "k" },
+    });
+    assert.equal(res.status, 200);
+    assert.equal(res.headers.get("access-control-allow-origin"), "http://localhost:5500");
+  } finally {
+    fresh.close();
+  }
 });
