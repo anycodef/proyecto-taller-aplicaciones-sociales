@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SIGECAT · Pase de lista</title>
+  <style>
+    :root {
+      --bg: #f6f5f1; --card: #ffffff; --ink: #1f2933; --muted: #5f6b76; --line: #dcd9d0;
+      --brand: #2f4b7c;
+      --presente: #2e7d32; --tardanza: #b26a00; --ausente: #c62828; --justificado: #1565c0;
+      --bajo: #2e7d32; --medio: #f0a202; --alto: #c62828;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; background: var(--bg); color: var(--ink);
+      font: 16px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    }
+    header { background: var(--brand); color: #fff; padding: 14px 16px; }
+    header h1 { margin: 0; font-size: 1.15rem; }
+    header p { margin: 2px 0 0; font-size: .85rem; opacity: .85; }
+    main { max-width: 640px; margin: 0 auto; padding: 12px 16px 48px; }
+    section { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 12px; margin-bottom: 14px; }
+    h2 { margin: 0 0 8px; font-size: 1rem; }
+    label { display: block; font-size: .8rem; color: var(--muted); margin-bottom: 2px; }
+    select, input[type=date], button { font: inherit; }
+    select, input[type=date] {
+      width: 100%; min-height: 44px; padding: 8px; border: 1px solid var(--line); border-radius: 8px; background: #fff;
+    }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+    .grid .full { grid-column: 1 / -1; }
+    button {
+      min-height: 44px; padding: 8px 14px; border: 0; border-radius: 8px;
+      background: var(--brand); color: #fff; cursor: pointer;
+    }
+    button.sec { background: #e9e7df; color: var(--ink); }
+    button:disabled { opacity: .5; cursor: not-allowed; }
+
+    #mensaje { margin: 0 0 14px; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--line); background: #fff; display: none; }
+    #mensaje.info { display: block; }
+    #mensaje.ok { display: block; border-color: var(--presente); background: #e8f5e9; }
+    #mensaje.error { display: block; border-color: var(--ausente); background: #fdecea; }
+    #mensaje.aviso { display: block; border-color: var(--medio); background: #fff6e0; }
+
+    ul { list-style: none; margin: 0; padding: 0; }
+    .nino { border-top: 1px solid var(--line); padding: 8px 0; }
+    .nino:first-child { border-top: 0; }
+    .fila { display: flex; gap: 8px; align-items: stretch; }
+    .estado {
+      flex: 1; display: flex; justify-content: space-between; align-items: center; gap: 8px;
+      text-align: left; background: #fff; color: var(--ink);
+      border: 2px solid var(--line); border-left-width: 8px; user-select: none; -webkit-user-select: none;
+      touch-action: manipulation; -webkit-touch-callout: none;
+    }
+    .estado small { color: var(--muted); }
+    .estado .tag { font-weight: 600; text-transform: capitalize; }
+    .estado[data-estado=presente] { border-left-color: var(--presente); }
+    .estado[data-estado=presente] .tag { color: var(--presente); }
+    .estado[data-estado=tardanza] { border-left-color: var(--tardanza); }
+    .estado[data-estado=tardanza] .tag { color: var(--tardanza); }
+    .estado[data-estado=ausente] { border-left-color: var(--ausente); }
+    .estado[data-estado=ausente] .tag { color: var(--ausente); }
+    .estado[data-estado=justificado] { border-left-color: var(--justificado); }
+    .estado[data-estado=justificado] .tag { color: var(--justificado); }
+
+    .riesgo { margin-top: 6px; padding: 8px 10px; border-radius: 8px; border-left: 8px solid; background: #f4f4f0; }
+    .riesgo strong { text-transform: uppercase; }
+    .riesgo.bajo { border-color: var(--bajo); }
+    .riesgo.medio { border-color: var(--medio); background: #fff6e0; }
+    .riesgo.alto { border-color: var(--alto); background: #fdecea; }
+    .riesgo ul { margin: 4px 0 0 18px; list-style: disc; font-size: .9rem; }
+
+    .leyenda { font-size: .8rem; color: var(--muted); margin: 0 0 8px; }
+    #resultadoGateway { margin-top: 10px; font-size: .95rem; }
+    #resultadoGateway p { margin: 0 0 6px; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--line); }
+    #resultadoGateway p.ok { border-color: var(--presente); background: #e8f5e9; }
+    #resultadoGateway p.error { border-color: var(--ausente); background: #fdecea; }
+    #resultadoGateway p.aviso { border-color: var(--medio); background: #fff6e0; }
+    .vacio { color: var(--muted); }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>SIGECAT · Pase de lista</h1>
+    <p>Demo de microservicios detrás de API Management</p>
+  </header>
+
+  <main>
+    <p id="mensaje" role="status" aria-live="polite"></p>
+
+    <section aria-labelledby="t-sesion">
+      <h2 id="t-sesion">Sesión</h2>
+      <div class="grid">
+        <div class="full">
+          <label for="grupo">Grupo</label>
+          <select id="grupo"><option value="">Cargando grupos…</option></select>
+        </div>
+        <div>
+          <label for="tipo">Tipo</label>
+          <select id="tipo">
+            <option value="catequesis">Catequesis</option>
+            <option value="misa">Misa</option>
+          </select>
+        </div>
+        <div>
+          <label for="fecha">Fecha</label>
+          <input type="date" id="fecha">
+        </div>
+      </div>
+    </section>
+
+    <section aria-labelledby="t-lista">
+      <h2 id="t-lista">Lista</h2>
+      <p class="leyenda">Toca un nombre para cambiar el estado: presente → tardanza → ausente → justificado. Mantén pulsado (o “Ver riesgo”) para ver la señal de riesgo.</p>
+      <ul id="lista"><li class="vacio">Elige un grupo.</li></ul>
+      <div class="grid">
+        <button id="guardar" class="full" disabled>Guardar pase de lista</button>
+      </div>
+    </section>
+
+    <section aria-labelledby="t-gw">
+      <h2 id="t-gw">Probar gateway</h2>
+      <p class="leyenda">Pruebas en vivo del API Management: autenticación por clave (401) y límite de 30 llamadas por minuto (429).</p>
+      <div class="grid">
+        <button id="sinClave" class="sec">Llamar sin clave</button>
+        <button id="rafaga" class="sec">Ráfaga de 40 llamadas</button>
+      </div>
+      <div id="resultadoGateway" aria-live="polite"></div>
+    </section>
+  </main>
+
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
