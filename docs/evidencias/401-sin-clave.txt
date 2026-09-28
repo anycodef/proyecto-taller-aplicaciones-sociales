@@ -1,0 +1,12 @@
+# 2026-09-28T04:37:10-05:00  GET http://localhost:8090/cat/grupos (sin clave)
+HTTP/1.1 401 Unauthorized
+Content-Type: application/json
+Access-Control-Allow-Origin: http://localhost:5500
+Access-Control-Allow-Methods: GET, POST, OPTIONS
+Access-Control-Allow-Headers: Ocp-Apim-Subscription-Key, Content-Type
+Date: Mon, 28 Sep 2026 09:37:10 GMT
+Connection: keep-alive
+Keep-Alive: timeout=5
+Transfer-Encoding: chunked
+
+{"statusCode":401,"message":"Access denied due to missing or invalid subscription key."}

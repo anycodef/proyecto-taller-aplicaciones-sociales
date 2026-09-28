@@ -1,0 +1,13 @@
+# 2026-09-28T04:37:10-05:00  GET http://localhost:8090/cat/health (con clave)
+HTTP/1.1 200 OK
+content-type: application/json; charset=utf-8
+content-length: 42
+etag: W/"2a-A2dLgV8SCJJGE+8OS6jqP1rIipE"
+date: Mon, 28 Sep 2026 09:37:10 GMT
+connection: keep-alive
+keep-alive: timeout=5
+Access-Control-Allow-Origin: http://localhost:5500
+Access-Control-Allow-Methods: GET, POST, OPTIONS
+Access-Control-Allow-Headers: Ocp-Apim-Subscription-Key, Content-Type
+
+{"status":"ok","servicio":"catequizandos"}
