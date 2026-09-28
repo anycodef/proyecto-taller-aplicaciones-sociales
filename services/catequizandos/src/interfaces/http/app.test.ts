@@ -5,43 +5,12 @@ import { InscribirCatequizando } from "../../application/inscribir-catequizando"
 import { ListarCatequizandos } from "../../application/listar-catequizandos";
 import { ListarGrupos } from "../../application/listar-grupos";
 import { ObtenerCatequizando } from "../../application/obtener-catequizando";
-import { CatequizandoRepositoryEnMemoria } from "../../infrastructure/catequizando-repository-en-memoria";
-import { GrupoRepositoryEnMemoria } from "../../infrastructure/grupo-repository-en-memoria";
-import { GRUPOS_SEMILLA, crearCatequizandosSemilla } from "../../infrastructure/semilla";
+import {
+  AHORA_CONTRATO as AHORA,
+  fabricaEnMemoria,
+  fabricaSqlite,
+} from "../../infrastructure/repositorios.contract";
 import { crearApp } from "./app";
-
-const AHORA = new Date("2026-09-28T12:00:00Z");
-
-let servidor: Server;
-let base: string;
-
-beforeAll(async () => {
-  const reloj = { ahora: () => AHORA };
-  const grupos = new GrupoRepositoryEnMemoria(GRUPOS_SEMILLA);
-  const catequizandos = new CatequizandoRepositoryEnMemoria(crearCatequizandosSemilla(AHORA));
-  const app = crearApp(
-    {
-      listarGrupos: new ListarGrupos(grupos),
-      listarCatequizandos: new ListarCatequizandos(catequizandos, reloj),
-      obtenerCatequizando: new ObtenerCatequizando(catequizandos),
-      inscribirCatequizando: new InscribirCatequizando(catequizandos, grupos, reloj),
-    },
-    { habilitarCors: false },
-  );
-  await new Promise<void>((ok) => {
-    servidor = app.listen(0, () => ok());
-  });
-  base = `http://127.0.0.1:${(servidor.address() as AddressInfo).port}`;
-});
-
-afterAll(() => new Promise<void>((ok) => servidor.close(() => ok())));
-
-const post = (cuerpo: unknown) =>
-  fetch(`${base}/catequizandos`, {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify(cuerpo),
-  });
 
 const inscripcionValida = {
   grupoId: "grp-9",
@@ -56,7 +25,41 @@ const inscripcionValida = {
   },
 };
 
-describe("contrato HTTP", () => {
+// El mismo contrato HTTP corre contra ambas implementaciones de los repositorios.
+describe.each([
+  ["en memoria", fabricaEnMemoria],
+  ["SQLite", fabricaSqlite],
+])("contrato HTTP (%s)", (_nombre, fabrica) => {
+  let servidor: Server;
+  let base: string;
+
+  beforeAll(async () => {
+    const reloj = { ahora: () => AHORA };
+    const { grupos, catequizandos } = await fabrica();
+    const app = crearApp(
+      {
+        listarGrupos: new ListarGrupos(grupos),
+        listarCatequizandos: new ListarCatequizandos(catequizandos, reloj),
+        obtenerCatequizando: new ObtenerCatequizando(catequizandos),
+        inscribirCatequizando: new InscribirCatequizando(catequizandos, grupos, reloj),
+      },
+      { habilitarCors: false },
+    );
+    await new Promise<void>((ok) => {
+      servidor = app.listen(0, () => ok());
+    });
+    base = `http://127.0.0.1:${(servidor.address() as AddressInfo).port}`;
+  });
+
+  afterAll(() => new Promise<void>((ok) => servidor.close(() => ok())));
+
+  const post = (cuerpo: unknown) =>
+    fetch(`${base}/catequizandos`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(cuerpo),
+    });
+
   it("GET /health", async () => {
     const res = await fetch(`${base}/health`);
     expect(res.status).toBe(200);
