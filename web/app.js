@@ -1,6 +1,6 @@
 "use strict";
 
-const { CAT_BASE, ASIS_BASE, API_KEY } = window.CONFIG;
+const { CAT_BASE, ASIS_BASE, API_KEY } = window.CONEXION; // resuelta en conexion.js a partir de config.js
 
 const ORDEN_ESTADOS = ["presente", "tardanza", "ausente", "justificado"];
 const REGISTRADO_POR = "C1"; // seudónimo del catequista
@@ -66,7 +66,7 @@ function cabeceras(conClave, conCuerpo) {
 }
 
 function mensajeDeEstado(status, cuerpo) {
-  if (status === 401) return "401 No autorizado: falta la clave de suscripción o no es válida (revisa API_KEY en config.js).";
+  if (status === 401) return "401 No autorizado: falta la clave de suscripción o no es válida (revísala en “Conexión”).";
   if (status === 429) return "429 Demasiadas solicitudes: el gateway permite 30 llamadas por minuto. Espera un momento y vuelve a intentar.";
   if (cuerpo && cuerpo.error && cuerpo.error.message) return `${status} ${cuerpo.error.message}`;
   return `Error ${status} al llamar al servicio.`;
