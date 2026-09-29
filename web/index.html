@@ -77,6 +77,16 @@
     #resultadoGateway p.error { border-color: var(--ausente); background: #fdecea; }
     #resultadoGateway p.aviso { border-color: var(--medio); background: #fff6e0; }
     .vacio { color: var(--muted); }
+
+    details#panelConexion { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 0 12px; margin-bottom: 14px; }
+    details#panelConexion summary { min-height: 44px; display: flex; align-items: center; gap: 8px; cursor: pointer; font-weight: 600; }
+    details#panelConexion summary span { font-weight: 400; color: var(--muted); font-size: .85rem; margin-left: auto; text-align: right; }
+    #formConexion { padding-bottom: 12px; }
+    #formConexion input {
+      width: 100%; min-height: 44px; padding: 8px; border: 1px solid var(--line); border-radius: 8px; background: #fff; font: inherit;
+    }
+    #avisosConexion { margin: 8px 0 0 18px; list-style: disc; color: var(--ausente); font-size: .9rem; }
+    #avisosConexion:empty { display: none; }
   </style>
 </head>
 <body>
@@ -87,6 +97,30 @@
 
   <main>
     <p id="mensaje" role="status" aria-live="polite"></p>
+
+    <details id="panelConexion">
+      <summary>Conexión <span id="conexionActiva"></span></summary>
+      <form id="formConexion" autocomplete="off">
+        <p class="leyenda">Por defecto se usa <code>config.js</code>. Lo que guardes aquí queda solo en este navegador; la clave no se publica en el repositorio.</p>
+        <div class="grid">
+          <div class="full">
+            <label for="catBase">URL de Catequizandos</label>
+            <input id="catBase" name="catBase" type="url" required placeholder="https://&lt;apim&gt;.azure-api.net/cat">
+          </div>
+          <div class="full">
+            <label for="asisBase">URL de Asistencia</label>
+            <input id="asisBase" name="asisBase" type="url" required placeholder="https://&lt;apim&gt;.azure-api.net/asis">
+          </div>
+          <div class="full">
+            <label for="apiKey">Clave de suscripción (Ocp-Apim-Subscription-Key)</label>
+            <input id="apiKey" name="apiKey" type="password" placeholder="vacía para servicios locales sin gateway">
+          </div>
+          <button type="submit">Guardar y recargar</button>
+          <button type="button" id="restaurarConexion" class="sec">Volver a config.js</button>
+        </div>
+        <ul id="avisosConexion"></ul>
+      </form>
+    </details>
 
     <section aria-labelledby="t-sesion">
       <h2 id="t-sesion">Sesión</h2>
@@ -130,6 +164,7 @@
   </main>
 
   <script src="config.js"></script>
+  <script src="conexion.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
