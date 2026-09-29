@@ -45,5 +45,5 @@ Abrir `http://localhost:5500`. Es el origen que aceptan el CORS de los servicios
 - **CORS para `https://anycodef.github.io`.** El gateway local solo permite `http://localhost:5500`
   (`ALLOWED_ORIGIN`) y `infra/apim/policy.xml` igual. Hay que agregar el origen de Pages; si no,
   el navegador bloquea las respuestas, incluidos el 401 y el 429.
-- En el APIM, la política `cors` debe ir **antes** de la validación de la suscripción para que el
-  401 salga con cabeceras CORS y la web pueda leerlo. Si no, el panel lo informa como error de red.
+- Comprobar que el 401 y el 429 del APIM salgan con cabeceras CORS (la política `cors` a nivel
+  global ayuda). Si salen sin ellas, el navegador los oculta y el panel los informa como error de red.
