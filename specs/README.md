@@ -1,17 +1,17 @@
 # Specs de SIGECAT
 
-Cada carpeta describe una funcionalidad: el QUÉ y el POR QUÉ en `spec.md`, y el CÓMO (modelo de datos, API, cliente, decisiones técnicas y tests) en `plan.md`.
+Cada carpeta describe una funcionalidad: el QUÉ y el POR QUÉ en `spec.md`, el CÓMO (modelo de datos, API, cliente, decisiones técnicas y tests) en `plan.md`, y las tareas de implementación (máximo 20–30 min, con RF y «Hecho cuando») en `tasks.md`.
 
-| Spec | Funcionalidad | Plan | Requerimientos de origen |
-| --- | --- | --- | --- |
-| [001](001-acceso-y-roles/spec.md) | Acceso, roles y protección de datos | [plan](001-acceso-y-roles/plan.md) | R15, R16, R21, R25, R26 |
-| [002](002-perfil-catequizando/spec.md) | Perfil e inscripción del catequizando | [plan](002-perfil-catequizando/plan.md) | R1, R2, R3 |
-| [003](003-asistencia-dominical/spec.md) | Asistencia dominical | [plan](003-asistencia-dominical/plan.md) | R4, R5, R6 |
-| [004](004-justificaciones/spec.md) | Justificaciones de ausencias | [plan](004-justificaciones/plan.md) | R7, R8, R9 |
-| [005](005-avance-formativo/spec.md) | Avance formativo | [plan](005-avance-formativo/plan.md) | R10, R11, R12 |
-| [006](006-aptitud-sacramental/spec.md) | Aptitud sacramental | [plan](006-aptitud-sacramental/plan.md) | R13 |
-| [007](007-riesgo-desercion/spec.md) | Riesgo de deserción | [plan](007-riesgo-desercion/plan.md) | R14 |
-| [008](008-historial-ciclos/spec.md) | Historial de ciclos | [plan](008-historial-ciclos/plan.md) | R17 |
+| Spec | Funcionalidad | Plan | Tareas | Requerimientos de origen |
+| --- | --- | --- | --- | --- |
+| [001](001-acceso-y-roles/spec.md) | Acceso, roles y protección de datos | [plan](001-acceso-y-roles/plan.md) | [tareas](001-acceso-y-roles/tasks.md) | R15, R16, R21, R25, R26 |
+| [002](002-perfil-catequizando/spec.md) | Perfil e inscripción del catequizando | [plan](002-perfil-catequizando/plan.md) | [tareas](002-perfil-catequizando/tasks.md) | R1, R2, R3 |
+| [003](003-asistencia-dominical/spec.md) | Asistencia dominical | [plan](003-asistencia-dominical/plan.md) | [tareas](003-asistencia-dominical/tasks.md) | R4, R5, R6 |
+| [004](004-justificaciones/spec.md) | Justificaciones de ausencias | [plan](004-justificaciones/plan.md) | [tareas](004-justificaciones/tasks.md) | R7, R8, R9 |
+| [005](005-avance-formativo/spec.md) | Avance formativo | [plan](005-avance-formativo/plan.md) | [tareas](005-avance-formativo/tasks.md) | R10, R11, R12 |
+| [006](006-aptitud-sacramental/spec.md) | Aptitud sacramental | [plan](006-aptitud-sacramental/plan.md) | [tareas](006-aptitud-sacramental/tasks.md) | R13 |
+| [007](007-riesgo-desercion/spec.md) | Riesgo de deserción | [plan](007-riesgo-desercion/plan.md) | [tareas](007-riesgo-desercion/tasks.md) | R14 |
+| [008](008-historial-ciclos/spec.md) | Historial de ciclos | [plan](008-historial-ciclos/plan.md) | [tareas](008-historial-ciclos/tasks.md) | R17 |
 
 Los requerimientos transversales (R18 a R24 y R27) no tienen spec propia: aparecen como requisitos no funcionales en cada spec que los necesita.
 
