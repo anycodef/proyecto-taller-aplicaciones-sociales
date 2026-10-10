@@ -1,6 +1,6 @@
 # 007 - Adopción de Claude Code como Herramienta IA para Acelerar la Generación de Código Crítico
 
-- Status: accepted
+- Status: deprecated
 - Date: 2026-09-14
 - Tags: herramientas proceso
 
@@ -34,4 +34,5 @@ Todo código generado por Claude Code pasará por una revisión de código estri
 
 ## Enlaces
 
+- Reemplazado por [008 - Adopción de herramientas abiertas de IA para generación de código asistido por especificaciones](20261010-herramientas-abiertas-de-ia-para-generacion-de-codigo.md)
 - Aplica sobre [002 - Estrategia de sincronización de datos Offline-First](20260914-estrategia-de-sincronizacion-offline-first.md) y [005 - Implementación de Zero Trust Architecture (ZTA)](20260914-zero-trust-para-proteccion-de-datos-de-menores.md)

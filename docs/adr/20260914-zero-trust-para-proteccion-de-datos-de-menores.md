@@ -36,3 +36,4 @@ Se implementará un enfoque de Zero Trust Architecture (ZTA):
 
 - Acota a [002 - Estrategia de sincronización de datos Offline-First](20260914-estrategia-de-sincronizacion-offline-first.md): define qué datos pueden vivir en el caché local
 - Endurece [004 - Arquitectura de Backend Serverless](20260914-arquitectura-de-backend-serverless.md)
+- Endurece [010 - Adopción de PostgreSQL para datos estructurados y Azure Blob Storage para almacenamiento de archivos y justificaciones](20260914-arquitectura-de-backend-serverless.md)

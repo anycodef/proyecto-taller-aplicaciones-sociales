@@ -1,6 +1,6 @@
 # 003 - Adopción de SigNoz para Observabilidad basada en OpenTelemetry
 
-- Status: accepted
+- Status: rejected
 - Date: 2026-09-14
 - Tags: backend observabilidad operaciones
 
@@ -15,16 +15,16 @@ Para asegurar que la aplicación responda adecuadamente durante los picos de uso
 
 ## Decisión
 
-Se utilizará SigNoz como plataforma de observabilidad, estandarizando la recolección de métricas, trazas y logs del backend y la base de datos utilizando el estándar OpenTelemetry.
+Se **rechaza** la adopción de SigNoz y OpenTelemetry debido a que representan una sobreingeniería innecesaria y una carga de mantenimiento insostenible para un sistema de ámbito parroquial y bajo consumo (SIGECAT) que prioriza el principio de menor fricción operativa.
 
 ### Consecuencias positivas
 
-- Es Open Source, reduce costos de infraestructura y evita el vendor lock-in gracias a OpenTelemetry.
-- Permite rastrear de extremo a extremo los picos de peticiones los domingos.
+- Se evita añadir complejidad de infraestructura y costos ocultos de mantenimiento.
+- Se mantiene el foco del equipo en el desarrollo de la funcionalidad central de asistencia offline.
 
 ### Consecuencias negativas
 
-- Al ser auto-alojado en una capa gratuita, añade una ligera sobrecarga de configuración inicial y mantenimiento en comparación con un SaaS totalmente gestionado.
+- Al no contar con una plataforma centralizada de trazas distribuidas, si ocurre un fallo intermitente o un problema de rendimiento durante la sincronización dominical, el diagnóstico dependerá enteramente de los logs básicos y dispersos de la plataforma, lo que puede dificultar la identificación de la causa raíz.
 
 ## Enlaces
 
