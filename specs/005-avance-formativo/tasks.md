@@ -7,7 +7,8 @@
 ## Leyenda y convenciones
 
 - `- [ ]` pendiente · `- [x]` hecha.
-- **[Primer corte]**: la necesita el plan 003 para RF-313 ("RF-313 con la tabla mínima `actividades` del plan 005") y para el cómputo de falta por jornada (RF-311). El resto de la spec 005 no entra en el primer corte.
+- **[Primer corte]**: soporte mínimo `actividad_obligatoria` de `0505` para RF-313/RF-311 de 003. Backend/001-003 integra ese soporte/puertos; no equivale a avance 005 completo.
+- Ampliación vigente: `0506_actividades_trazabilidad.sql` reserva 0506 para autoría/cambios; las referencias históricas a `0506_listas_pendientes.sql` toman siguiente número libre (T005-61). Sesión se vincula por `sesion.actividad_id`, UUID v5 por actividad/fecha, estado vigente/cancelada. Tareas de tests sobre `actividad_obligatoria.sesion_id` se verifican contra esta relación real, no se crea columna redundante. Sin casillas completadas por documentación.
 - **[Bloqueada por aclaración]**: no puede darse por terminada hasta que la coordinación responda la duda `[NECESITA ACLARACIÓN]` indicada. Las tareas que solo aplican un supuesto provisional y reversible del plan (S-1 a S-14) **no** están bloqueadas: citan el supuesto en el nombre del test y se ajustan si la respuesta lo contradice.
 - **Depende de**: `T005-NN` son tareas de este archivo. Las demás specs aún no tienen `tasks.md`, así que se citan como `TNNN (pieza)`.
 - **Tests**: cada test cita su RF o RNF en el nombre. Los de dominio van en `src/lib/<modulo>/__tests__/*.test.ts` (jest-expo); los de API, en `api/test/` (Jest + `ts-jest`, plan 001 D-115). `npm test` corre la app, la API y la integración con PostgreSQL en Docker (plan 001).
@@ -35,7 +36,7 @@
 - [ ] **T005-04** Crear la migración `0505_actividades_obligatorias.sql` **[Primer corte]**
   - RF: RF-504, RNF-503
   - Depende de: T005-01, T008 (tabla `ciclo` y `ciclo_bloquear_si_cerrado()`), T001 (runner de migraciones y PostgreSQL en Docker)
-  - Hecho cuando: la migración crea `actividad_obligatoria` y `cambio_actividad` (inmutable) con las columnas del plan §3.1, ajustadas al contrato de T005-01, más el trigger de congelamiento por ciclo. Pasan los tests de integración `RF-504: actividad_obligatoria exige sesion_id único` y `RNF-503: no existe tabla de cumplimiento de actividades` (inspección del esquema). `npm test`, `npm run typecheck` y `npm run lint` pasan.
+   - Hecho cuando: `0505` crea catálogo/FK desde `sesion.actividad_id`/congelamiento, `0506_actividades_trazabilidad.sql` añade autoría y cambio inmutable; sesión UUID v5 sin columna redundante. Tests `RF-504: sesion referencia actividad y su UUID determinista evita duplicados`, `RNF-503: no existe tabla de cumplimiento de actividades` y checks con evidencia. No editar migración aplicada.
 
 - [ ] **T005-05** Crear el módulo API `actividades` con su repositorio **[Primer corte]**
   - RF: RF-504
@@ -330,7 +331,7 @@
   - Depende de: T005-13
   - Hecho cuando: `src/lib/seguimiento/lista-pendientes.ts` exporta `construirListaPendientes`. Pasan `RF-505: la lista incluye solo niños con pendientes y es determinista` y `RF-505: usa nombres e inicial del apellido y dos iniciales si hay homónimos (supuesto S-14)`. `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T005-61** Crear la migración `0506_listas_pendientes.sql` y su repositorio
+- [ ] **T005-61** Crear migración de listas pendientes con siguiente número libre (0506 reservado a trazabilidad) y repositorio
   - RF: RF-505
   - Depende de: T005-20, T008 (trigger de congelamiento), T001 (runner de migraciones)
   - Hecho cuando: `lista_pendientes_generada` y `repositorio-listas-pg.ts` (con versión en memoria) existen. Pasan `RF-505: lista_pendientes_generada no tiene columnas con datos de niños` y `RF-505: guardar dos veces la misma lista por id deja un solo registro`. `npm test`, `npm run typecheck` y `npm run lint` pasan.

@@ -14,6 +14,8 @@
 
 ## Convenciones de estas tareas
 
+Acuerdo de integración 2026-10-11: backend/001-003 incluye `0002` + `0801`, guardia y puertos; no declara 008 completo. T008-01 ya tiene decisión documental: rol **y** contexto SET LOCAL, contador PostgreSQL atómico en Functions/APIM global, cierre por revocación/reemisión y Blob por bandeja; su verificación sigue pendiente.
+
 - **Cierre de cada tarea.** Un commit Conventional Commits con su registro Agent Trace (principio 9). Ninguna tarea termina con un test en rojo, omitido o borrado; `npm test`, `npm run typecheck` y `npm run lint` pasan siempre (principio 4).
 - **Nombres de tests.** Empiezan por el RF o RNF que verifican (`RF-801: …`). Dominio en `src/lib/ciclos/__tests__/`; API (unidad, contrato con PostgreSQL en Docker y HTTP) en `api/src/modulos/ciclos/__tests__/` (plan 008 §8; si la configuración de Jest de 001 fija `api/test/<tipo>/ciclos/`, se usa esa); extremo a extremo en `api/test/e2e/ciclos/`. Las pantallas delegan en componentes de `src/components/ciclos/`, que se prueban con `@testing-library/react-native` en `src/components/ciclos/__tests__/` para no crear rutas de prueba dentro de `src/app/`.
 - **Rutas.** Las pantallas van en el grupo `src/app/(equipo)/` del plan 001 §6.1 (la URL no cambia). `coordinacion.tsx` es `src/app/(equipo)/coordinacion.tsx` cuando 001 lo mueva.
@@ -26,7 +28,7 @@
 - [ ] **T008-01** Conciliar con el plan 001 el congelamiento, el cierre y la retención **[Primer corte]**
   - RF: RF-802, RF-803, RF-805, RF-807, RF-808
   - Depende de: —
-  - Hecho cuando: los planes 008 y 001 describen lo mismo, con el visto bueno del dueño de 001, en estos cuatro puntos. (a) El mecanismo de excepción C-4: `SET LOCAL sigecat.contexto` en 008 §3.1 frente a `SET LOCAL ROLE sigecat_retencion` en 001 §3.1. (b) El límite por cuenta de `GET /constancias` y `GET /reinscripciones/candidatos`: APIM Consumo no ofrece `rate-limit-by-key` (001 §5.3), así que va en la Function; hay que decidir dónde se guarda el contador. (c) Las firmas de `terminarDelegacionesVigentes(tx, en)`, `suspenderEnlacesFamiliaPorCierre(tx, cicloId)` y `reactivarEnlacesFamilia(tx, apoderadoIds)`; hoy 001 §5.4 expone `terminarDelegacionesVigentes()` y `revocarEnlacesFamilia(cuentaIds)`. (d) Cómo llegan las evidencias del ciclo al motor: `eliminarEvidenciasDeCiclo` en 008 §5.4 frente a la bandeja `borrado_blob_pendiente` en 001 D-110. No hay cambios de código; `npm test`, `npm run typecheck` y `npm run lint` pasan.
+   - Hecho cuando: planes/contratos coinciden y checks con evidencia: (a) rol `sigecat_retencion` y contexto `retencion`/`retiro_consentimiento`, ambos SET LOCAL; (b) límites por cuenta PostgreSQL atómicos en Functions; (c) puertos reciben misma tx, terminan delegaciones/revocan enlaces sin reactivar credencial terminada, reemisión cuando corresponda; (d) participantes devuelven referencias de blobs a bandeja para borrado tras commit. Decisión aceptada no cierra integración ni checks.
 
 - [ ] **T008-02** Definir el tipo `Ciclo` y validar la apertura **[Primer corte]**
   - RF: RF-801

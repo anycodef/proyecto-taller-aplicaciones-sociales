@@ -2,6 +2,32 @@
 
 ## Contexto y objetivo
 
+### Acuerdos aprobados para backend/001-003 (2026-10-11)
+
+Se aceptan D-301 a D-316 y A-301 a A-313 del plan: misa 07:30–09:30 y fin del domingo 23:59:59 en Lima, QR exclusivamente `SGC1:<uuid>:<emision>`, jornada cuenta aparte, sesión cancelada/sin registro no suma falta y familia no ve registradores ni horas. Línea base en papel, laboratorio QR, piloto y despliegue siguen sin evidencia física.
+
+Backend de todas las fases de 003, con puertos hacia 004–008, `FuenteInscripciones` real de 002 y `resumenAsistencia` para el perfil. Adaptador vacío de justificaciones no acredita RF-311 integrado con 004. Adelantar `0002_ciclo_base.sql`, complemento `0801` y tabla mínima `actividad_obligatoria` de `0505` no completa 008 ni avance 005.
+
+Ampliación transversal: HTTP listado/abierto/apertura/cierre de ciclo (alias `/cerrar` y `/cierre`) y GET/POST/PATCH/cumplimiento de actividades tienen DTO actuales en OpenAPI. Pull añade `ciclos` y `actividades_obligatorias`; push admite actividades antes de sesiones, con autoría/estado vigente-cancelada y traza 0506. No acredita módulos completos 005/008. RF-106/RF-108 de 001 y RF-307 exigen capturar UUID original/destinatarios en lápidas **antes** de anonimizar o cambiar IDs; `0309` conserva únicamente colección, fila_id, cuenta destinataria, ciclo y eliminación, nunca QR/nombre/niño/contenido. Pull entrega deleted a destinatario/COORD según alcance durante 60 días; purga bajo rol/contexto, sin endpoint HTTP.
+
+HTTP camelCase español, con excepción de transporte WatermelonDB: `changes`, `timestamp`, `experimentalStrategy`, `created`, `updated`, `deleted` se conservan nativos en HTTP; filas snake_case y colecciones plurales. No se exige traducirlos: adaptadores españoles internos son opcionales (ADR 015). Tablas PostgreSQL singulares. Pool 3 por proceso, 1 worker, 5 instancias por grupo Flex, concurrencia HTTP 10, 2048 MB, always-ready 0 y timers UTC. Límites por cuenta en Functions con contador PostgreSQL atómico compartido; APIM global.
+
+RF-307/RNF-306: ignorar metadata local `_status`/`_changed` en toda fila created/updated antes de Zod/huella (MUST oficial, acuerdo3 previo al código); nunca SQL/pull. Además ignorar feedback estado/motivo_rechazo/recibido_en **solo** en listas/marcas/correcciones porque raw envía todas las columnas. Entrada HTTP opcional/writeOnly; cualquier valor enviado carece de autoridad, servidor calcula salida normal. Autoría/valor/sesión/carné siguen validados y otros desconocidos 422. Reenvío con solo metadata/feedback distintos mantiene huella; feedback aceptada no convierte código inválido en presencia. Sin dependencias ni cambio de modelo persistente.
+
+### Dependencias justificadas
+
+| Paquete | Motivo y alternativa descartada |
+| --- | --- |
+| `uuid` | Solo UUID v5 en dominio puro para ids deterministas; evita coordinación online/hash propio |
+| `expo-crypto` | UUID v4 de registros nacidos en dispositivo, compartido con 001 |
+| `@react-native-community/netinfo` | Reconexión sin sondeo continuo |
+| `@nozbe/watermelondb` | Almacén operativo reactivo y protocolo pull/push; evita cola mutable artesanal |
+| `expo-camera` | QR continuo con linterna; evita escáner adicional |
+| `expo-dev-client` | Build nativo para JSI/nueva arquitectura; Expo Go no acredita compatibilidad |
+| `expo-sqlite` | Alternativa condicional si la prueba descarta WatermelonDB; no instalación automática |
+
+Plugins de configuración/decoradores necesarios se identificarán por paquete y versión en `prueba-tecnica.md` y se justificarán antes de instalarlos. No se inventan versiones compatibles ni resultados de builds. Herramientas API/Jest se justifican en 001.
+
 Cada domingo hay misa a las 8:00 y catequesis de 9:50 a 11:30 en el centro cultural. Hoy la asistencia a misa se marca en un cartón que los niños olvidan y el párroco la estima con manos levantadas: ve unos 35 niños de 97 inscritos y cuestiona a la coordinación cuando en diciembre se presentan 70 para la Primera Comunión. Parte de esa diferencia es inasistencia real, porque algunos padres retiran a sus hijos entre la misa y la catequesis. Las herramientas anteriores se abandonaron porque tomaban más tiempo que el papel, y en el local la señal no llega del primer al tercer piso.
 
 **Objetivo:** registrar misa y catequesis por separado, en menos tiempo que en papel, sin depender de la señal, y producir para el párroco una evidencia verificable de quién estuvo en misa.
@@ -131,6 +157,8 @@ Cada domingo hay misa a las 8:00 y catequesis de 9:50 a 11:30 en el centro cultu
 - Un código inválido escaneado sin conexión llega como aviso a la coordinación y no como asistencia.
 
 ## Dudas abiertas
+
+Registro histórico: las respuestas A-301–A-313 del plan fueron aceptadas el 2026-10-11. Ventana/QR/fin del domingo quedan decididos. Imprimir/entregar carnés y medir línea base continúan pendientes de ejecución física, no de aprobación conceptual.
 
 - **[NECESITA ACLARACIÓN]** Ventana de la misa: ¿desde qué hora y hasta qué hora se aceptan escaneos? ¿La define la coordinación cada domingo?
 - **[NECESITA ACLARACIÓN]** El contenido del QR depende del identificador del niño, pendiente en la spec 002.

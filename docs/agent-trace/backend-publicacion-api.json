@@ -1,0 +1,15 @@
+{
+  "version": "1.0",
+  "fecha": "2026-10-11",
+  "agente": "OpenCode",
+  "modelo": "openai/gpt-6.1-sol",
+  "tarea": "T001-152",
+  "solicitud": "El usuario pide commitear los cambios siguiendo las convenciones",
+  "commitPrevisto": "feat(api): integrar backend de specs 001-003",
+  "alcance": ["api/ excepto contrato OpenAPI y prueba de infraestructura", "src/lib/seguridad/", "src/lib/avisos/", "src/lib/catequizandos/", "src/lib/asistencia/", "src/lib/sincronizacion/", "src/lib/actividades/", "src/lib/ciclos/", "package.json", "package-lock.json", "tsconfig.json", "eslint.config.js", "jest.config.js", ".gitignore", "README.md", "scripts/verificar-cobertura-rf.mjs", "docs/backend-implementacion.md"],
+  "trazasDeImplementacion": ["docs/agent-trace/backend-001.json", "docs/agent-trace/backend-002.json", "docs/agent-trace/backend-003.json", "docs/agent-trace/backend-transversal.json", "docs/agent-trace/backend-e2e.json", "docs/agent-trace/backend-integracion.json"],
+  "criterio": "Entrega integrada: pruebas reales entre seguridad, perfiles, asistencia, ciclos y actividades. Las tareas de origen continúan trazadas sin inventar commits intermedios ni completar requisitos ajenos a backend.",
+  "comprobaciones": ["npm test", "npm run typecheck", "npm run lint", "npm --prefix api run build", "Verificación del diff indexado y git diff --check antes del commit"],
+  "resultados": { "tests": "179 pasan: 1 cliente y 178 API; cero omitidos", "typecheck": "Pasa raíz y API", "lint": "Pasa sin advertencias", "build": "Bundle API compilado", "migraciones": "33 SQL válidos e inmutables frente a origin/main" },
+  "notas": "No incluye node_modules, dist, local.settings.json ni secretos. No modifica configuración Git ni realiza push. Hash efectivo consultable en git log."
+}

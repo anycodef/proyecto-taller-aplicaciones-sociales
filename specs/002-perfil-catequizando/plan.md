@@ -9,6 +9,8 @@
 
 ## 1. Resumen y alcance
 
+**Acuerdo 2026-10-11:** backend de fases 1–4 completo; D-201–D-214 y C-01–C-13 aceptados, con excepción administrativa ONLINE registrada en constitución/ADR 013. Los supuestos históricos son decisiones cerradas; UI, campo, impresión y despliegue requieren evidencia. Véanse [contratos](../../docs/backend-contratos.md) y [seguimiento](../../docs/backend-implementacion.md).
+
 | Cubre | Qué |
 | --- | --- |
 | RF-201 | Perfil único que se mantiene entre ciclos, vista consolidada y aviso de posible duplicado sin exponer el perfil existente |
@@ -37,7 +39,7 @@
 | 2 | La spec manda | La matriz de la §10 cubre cada RF y RNF, y cada test cita su identificador. La divergencia con el C4 está anotada en §11: la relación `cmpInscripciones -> servicioStorage` contradice RF-204. |
 | 3 | Lógica sin interfaz | Todas las reglas viven en `src/lib/catequizandos/` como TypeScript puro. La API las importa y esbuild las empaqueta. Las pantallas solo llaman a esas funciones. |
 | 4 | Tests en verde | Se siguen la estrategia de §9 y el runner de Jest del plan 001. Ninguna fase se cierra con tests en rojo. |
-| 5 | Offline primero | **Tensión explícita.** RF-202 prohíbe inscribir sin conexión, y el principio 7 obliga a que condiciones y consentimiento se escriban en el servidor. Ver la duda C-01, que tiene supuesto provisional. Lo operativo de 002 (nómina, grupos, carné) sí se lee desde el almacén local. |
+| 5 | Offline primero | Excepción administrativa ONLINE aprobada: inscripción, edición, grupos, apoderados, documentos, condiciones y consentimiento no se persisten/encolan localmente. Borradores solo en memoria; nómina/grupos/carné operativos se leen desde sync. |
 | 6 | Persistencia segura | El cliente genera el UUID de catequizando, inscripción, apoderado, vínculo, grupo, condición y documento, y las escrituras son idempotentes por UUID. Las migraciones M-201 a M-207 son versionadas y nunca se editan. |
 | 7 | Datos de menores | Las condiciones nunca entran al almacén local ni a los registros de log, y se responden con `Cache-Control: no-store`. No se guarda el número de DNI (D-201). Toda Function verifica rol y alcance. La autoría se muestra con `identidadOperativa` (001, RF-105). |
 | 8 | Idioma | Tablas, columnas, módulos y archivos van en español sin tildes ni `ñ` (`carne_emision`, `ninos`). Los textos de interfaz van con tildes. |
@@ -49,7 +51,7 @@
 
 ### 3.1 PostgreSQL
 
-Las migraciones van en `api/migraciones/NNNN_descripcion.sql`. El número `NNNN` se asigna en orden de integración según la convención del plan 001. Aquí se identifican como M-20x. Todas las tablas usan `id uuid PRIMARY KEY` generado en el cliente y la columna `actualizado_en timestamptz` que pide el plan 003 para la sincronización.
+Migraciones `02NN` según plan 001: M-201–M-207 = `0201`–`0207`; vista de nómina en `0204`, después de carné. `0002_ciclo_base.sql` precede las tablas operativas y `0801` aporta su complemento. Tablas singulares snake_case. UUID cliente en entidades nacidas desde app; solo proyecciones sincronizadas exigen columnas sync. Los periodos `inscripcion.desde/hasta` y `asignacion_grupo.desde/hasta` permiten consultas históricas; alta/anulación/cambio actualizan sus vigencias en la misma transacción.
 
 | Migración | Tabla | Columnas clave y restricciones | RF | Fase |
 | --- | --- | --- | --- | --- |
@@ -60,7 +62,7 @@ Las migraciones van en `api/migraciones/NNNN_descripcion.sql`. El número `NNNN`
 | | `grupo_catequista` | `grupo_id`, `cuenta_id → cuenta(001)`, `desde`, `hasta NULL` | RF-206 | 1 |
 | M-203 `crear_inscripcion_y_asignacion` | `inscripcion` | `catequizando_id`, `ciclo_id → ciclo(008)`, `estado CHECK IN ('vigente','anulada')`, `consentimiento_id NOT NULL → consentimiento(001)`, `edad_al_inicio smallint`, `edad_fuera_rango_confirmada bool`, `duplicado_descartado bool`, `anulada_en`, `anulada_por`, `motivo_anulacion`. Índice único parcial `(catequizando_id, ciclo_id) WHERE estado='vigente'`, para que un niño anulado por error pueda volver a inscribirse | RF-202, RF-203 | 1 |
 | | `asignacion_grupo` | `inscripcion_id`, `grupo_id`, `desde`, `hasta NULL`, `asignado_por`, `fuera_de_sugerencia bool`, `motivo NULL`. Índice único parcial `(inscripcion_id) WHERE hasta IS NULL` | RF-206, RF-203 | 1 |
-| | vista `v_nomina_ciclo` | `catequizando_id`, `nombres`, `apellidos`, `grupo_id`, `emision_carne` y `actualizado_en` de los niños con inscripción vigente en el ciclo abierto y estado `vigente` | RF-201 (nómina, RNF-306 de 003) | 1 |
+| M-204 (después de `carne_emision`) | vista `v_nomina_ciclo` | `catequizando_id`, `nombres`, `apellidos`, `grupo_id`, `emision` y `actualizado_en`; proveedor deriva `codigo_carne` de los niños activos | RF-201 (nómina, RNF-306 de 003) | 1 |
 | M-204 `crear_carne_emision` | `carne_emision` | `catequizando_id`, `emision int`, `emitida_en`, `emitida_por`, `invalidada_en NULL`. Único `(catequizando_id, emision)` e índice único parcial de una emisión vigente por niño | RF-302 (003) | 1 |
 | M-205 `crear_cambio_inscripcion` | `cambio_inscripcion` | `catequizando_id`, `entidad CHECK IN ('catequizando','apoderado','vinculo_apoderado','inscripcion','documento_inscripcion','asignacion_grupo')`, `entidad_id`, `campo`, `valor_anterior jsonb`, `valor_nuevo jsonb`, `cambiado_por`, `cambiado_en`, `motivo NULL`. Solo admite inserciones: se revoca `UPDATE` y `DELETE` al rol de la app, y solo el rol de retención del plan 001 puede anonimizar | RF-203 | 2 |
 | M-206 `crear_documento_inscripcion` | `documento_inscripcion` | `inscripcion_id`, `tipo CHECK IN ('documento_identidad','partida_nacimiento','partida_bautismo','boleta_pago','ficha_compromiso')`, `estado CHECK IN ('pendiente','entregado','invalido','no_aplica')`, `motivo NULL` (obligatorio si es `invalido`), `fecha_estado date`, `recibido_por NULL`. Único `(inscripcion_id, tipo)`. **Ninguna columna de archivo, URL ni `bytea`** | RF-204 | 2 |
@@ -77,8 +79,8 @@ El esquema y la versión los define el plan 003. 002 aporta estas tablas, que en
 
 | Tabla local | Columnas | Quién la recibe | RF |
 | --- | --- | --- | --- |
-| `catequizandos` | `nombres`, `apellidos`, `grupo_id`, `emision_carne` | Todo catequista y COORD: la nómina completa de niños activos | RF-201, RNF-204 (RNF-306 de 003) |
-| `grupos` | `nombre`, `ciclo_id`, `estado` | Todo catequista y COORD | RF-206, RNF-204 |
+| `catequizandos` | `id`, `nombres`, `apellidos`, `grupo_id`, `codigo_carne`, `activo`; `codigo_carne` se deriva de `carne_emision.emision` | Todo catequista y COORD: nómina mínima completa | RF-201, RNF-204 (RNF-306 de 003) |
+| `grupos` | `id`, `nombre`, `ciclo_id`, `estado`, `es_mio` calculado por cuenta | Todo catequista y COORD | RF-206, RNF-204 |
 
 **No bajan al dispositivo:** fecha de nacimiento, sexo, apoderados, documentos, condiciones ni historial (D-205). El push del plan 003 rechaza cualquier cambio local en estas tablas.
 
@@ -102,6 +104,8 @@ Todo el código es TypeScript puro, sin React, React Native ni Expo. Las firmas 
 | `contratos.ts` | Tipos de petición y respuesta compartidos entre la app y la API | todos |
 
 ## 5. API
+
+Los proveedores de resumen reciben la misma `Tx` que la consulta del perfil, además del contexto de acceso. No abren una transacción/pool anidado: con un pool de tres conexiones, tres perfiles simultáneos deben completar sin esperar conexiones que ellos mismos retienen. El alcance operativo se resuelve exclusivamente contra la inscripción y asignación vigentes del ciclo abierto; una asignación histórica no autoriza condiciones actuales.
 
 Los módulos son `api/src/modulos/inscripciones/` y `api/src/modulos/catequizandos/` (D-213). Toda Function usa los siguientes elementos del plan 001:
 - el middleware de autenticación (JWT de corta duración);
@@ -145,6 +149,9 @@ Son llamadas dentro del mismo Function App, no endpoints:
 | `gruposACargo(cuentaId, cicloId)`, `alcanceFamilia(cuentaId)` | `seguridad` (001) | Calcular el alcance de cada petición |
 | `eliminarDatosRestringidos(catequizandoId)`, `anonimizarCatequizando(catequizandoId)` | motor de retención y consentimiento (001) | Borrar las condiciones; anular la clave de duplicado, los nombres y el historial (RF-106 y RF-108 de 001; RF-201) |
 | `ninosActivos(cicloId, fecha)` | 003, 007, 008 | Total de niños activos por fecha |
+| `FuenteInscripciones.periodos(cicloId, catequizandoIds, tx)` | 003 | Periodos de inscripción y asignación, límites desde/hasta, anulación y grupo en la fecha de sesión; no sustituir por el grupo actual |
+| `grupoActual`, `apoderadosVinculados`, `marcarInactivo(tx, catequizandoId)` | 007/008 | Puertos de consulta/cambio administrativo con autorización y transacción; integración externa pendiente |
+| `crearInscripcion(tx, datos)` | 008 | Reutiliza perfil no anonimizado; puerto backend no acredita flujo completo de reinscripción de 008 |
 
 ### 5.3 Políticas de APIM
 
@@ -152,6 +159,12 @@ Se agregan sobre las políticas base del plan 001:
 - **Registro de cuerpos desactivado.** En todas las operaciones de 002 el diagnóstico guarda 0 bytes del cuerpo de petición y respuesta, porque contienen datos de menores (principio 7).
 - **`Cache-Control: no-store`.** Se fuerza en `/perfil`, `/condiciones` y `/documentos`.
 - **Límite de peticiones.** `GET /apoderados` tiene un límite propio por llamante, más estricto que el global, para frenar barridos.
+
+El límite por cuenta se impone en la Function con contador PostgreSQL atómico compartido (429 al excederlo), no en APIM Consumo ni en memoria local de cada instancia. APIM impone el global.
+
+### 5.4 Retiro de consentimiento y retención
+
+Participante `catequizandos` dentro de la transacción del motor de 001, con rol `sigecat_retencion` y contexto `retiro_consentimiento` o `retencion`, ambos `SET LOCAL`. En retiro borra condiciones, estados de `documento_inscripcion` e historial personal de `cambio_inscripcion` (incluidos contactos/valores anteriores); cierra vigencias de inscripción/asignación/vínculos, invalida carné y anonimiza nombres, nacimiento y clave de duplicado. El perfil queda anonimizado y operativamente inactivo, fuera de nómina. Elimina/anonimiza datos de apoderado solo sin otros hijos vinculados y pide a 001 terminar su credencial sin vínculos. 003 preserva asistencia anonimizada; 008 preserva constancia. Al vencer ciclo no anonimiza un perfil o apoderado aún necesario en un ciclo no vencido. Rollback total si falla un participante; blobs por bandeja después del commit.
 
 ## 6. Cliente
 
@@ -288,7 +301,7 @@ El runner y `npm test` los configura el plan 001. Cada nombre de test empieza co
 | R-2 | Colisión de números de migración entre ocho planes escritos en paralelo | Asignar `NNNN` al integrar en `main`, nunca antes |
 | R-3 | Falsos negativos de duplicado por errores de tipeo | Normalización en D-203 y, como mejora, `pg_trgm` |
 | R-4 | Filtración de condiciones por logs o caché | Políticas de §5.3, `no-store` y tests de logs |
-| R-5 | El C4 conserva `cmpInscripciones -> servicioStorage` ("Guarda partidas, DNIs y boletas"), que contradice RF-204 | Actualizar el diagrama C4 en una tarea aparte, fuera de este plan |
+| R-5 | El C4 anterior contradecía RF-204 con carga de partidas/DNI/boletas | Relación eliminada en acuerdo 2026-10-11/ADR 013; build pendiente |
 | R-6 | WatermelonDB exige un build de desarrollo con EAS | Ya está asumido en las decisiones fijas. Las pantallas que solo funcionan en línea se prueban con Jest |
 | R-7 | Lectura del QR con poca luz en celulares de gama baja (RNF-305 de 003) | El formato `SGC1:` es corto (unos 45 caracteres) y permite usar QR de baja versión con corrección de errores M |
 
@@ -323,6 +336,8 @@ Cada duda tiene un supuesto provisional explícito y reversible.
 | C-13 | Contenido del QR (pendiente con el coordinador) | `SGC1:<uuid-perfil>:<emision>` (D-202) | El prefijo `SGC1` permite convivir con un formato `SGC2` |
 
 ## 12. Orden de implementación
+
+Todas las fases backend están incluidas en la entrega actual. Las referencias a primer corte son orden histórico, no exclusiones. `ProveedorResumenPerfil` registra `resumenAsistencia` de 003; 004/005/007 requieren proveedores reales y su integración permanece pendiente cuando no estén disponibles.
 
 ### Fase 1: primer corte (niños y grupos para la asistencia, sin documentos ni salud)
 

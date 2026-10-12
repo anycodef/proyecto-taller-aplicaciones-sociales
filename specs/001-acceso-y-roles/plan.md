@@ -12,6 +12,8 @@
 
 ## 1. Resumen y alcance
 
+**Acuerdo 2026-10-11:** este trabajo cubre backend F0–F4 completo, no solo primer corte. D-101–D-121 y S-01–S-20 están aceptados con los ajustes aquí registrados. Las secciones históricas de dudas contienen la motivación de la decisión; no son bloqueos de aprobación. UI, campo y despliegue se cierran solo con evidencia. Contratos transversales: [guía frontend](../../docs/backend-contratos.md); estado: [seguimiento](../../docs/backend-implementacion.md).
+
 | Cubre | Qué |
 | --- | --- |
 | RF-101 | Credencial obligatoria en cada petición; rechazo genérico 401 sin revelar existencia; cuenta desactivada rechazada en la siguiente petición |
@@ -64,13 +66,13 @@
 
 - **Archivo.** `api/migraciones/SSNN_descripcion.sql`. `SS` es el bloque de la spec (`00` infraestructura, `01` spec 001 … `08` spec 008) y `NN` es el correlativo dentro del bloque. Así ocho planes escritos en paralelo no chocan. Los planes que usaron `NNNN` provisional o M-xxx toman el número de su bloque al integrarse.
 - **Orden.** El runner aplica en orden numérico los archivos pendientes, aunque haya otros de número mayor ya aplicados. Para que una base vacía y producción den el mismo resultado:
-  - una migración solo referencia tablas de su bloque o de bloques menores;
+   - una migración solo referencia tablas de su bloque o de bloques menores, salvo la base transversal `0002_ciclo_base.sql` de 008, que precede las tablas operativas; `0801` agrega su complemento sin redefinir `ciclo`;
   - **una FK hacia una tabla de un bloque mayor la crea la migración del bloque mayor.** Por ejemplo, `consentimiento.catequizando_id → catequizando` la agrega 002.
 - **Inmutabilidad.** La tabla `esquema_migracion(version, nombre, checksum_sha256, aplicada_en)` guarda cada migración aplicada. El runner falla si un archivo ya aplicado cambió. CI además falla si un PR modifica o borra un archivo de `api/migraciones/` que ya existe en `main` (D-114).
 - **Roles de BD** (creados en `0001`):
   - `sigecat_migrador`: login, dueño de los objetos y de DDL. Lo usa solo CI.
   - `sigecat_api`: login, usado por las Functions. Cada migración otorga explícitamente `SELECT/INSERT/UPDATE/DELETE` a las tablas que crea.
-  - `sigecat_retencion`: NOLOGIN. `sigecat_api` es miembro y solo `motor-retencion.ts` ejecuta `SET LOCAL ROLE sigecat_retencion`. Los triggers de inmutabilidad de otros planes aceptan `UPDATE` o `DELETE` solo si `current_user = 'sigecat_retencion'`.
+   - `sigecat_retencion`: NOLOGIN. `sigecat_api` es miembro y solo el motor ejecuta `SET LOCAL ROLE sigecat_retencion`, junto con `SET LOCAL sigecat.contexto = 'retiro_consentimiento'` o `'retencion'`. Los triggers de inmutabilidad y congelamiento exigen ambos; se aplican a retiro y vencimiento, dentro de la misma transacción. Ningún handler permite fijar contexto desde entradas HTTP.
 - **Nombres en singular** (`cuenta`, `credencial`), como en los planes 002, 005 y 006.
 - **UUID.** `id uuid PRIMARY KEY` lo genera el cliente cuando nace en la app. Si nace en el servidor (auditoría, retención), se usa `gen_random_uuid()`. Las columnas de sincronización (`actualizado_en`, etc.) solo están en las tablas que baja la sincronización y se definen en el plan 003.
 
@@ -90,8 +92,8 @@
 | | `consentimiento` | `id uuid PK` (cliente), `catequizando_id uuid NOT NULL` (FK que agrega 002), `apoderado_id uuid NOT NULL` (FK que agrega 002), `texto_id → texto_consentimiento`, `otorgado_en`, `canal CHECK IN ('presencial','enlace')`, `registrado_por → cuenta`, `retirado_en NULL`, `retirado_por NULL`, `canal_retiro NULL` | RF-106 | 1 (S-12) |
 | `0105_retencion.sql` | `ejecucion_retencion` | `id`, `tipo CHECK IN ('retiro_consentimiento','vencimiento_ciclo')`, `objetivo_id uuid` (niño o ciclo), `iniciada_en`, `completada_en NULL`, `resumen jsonb` (conteos por participante). `UNIQUE (tipo, objetivo_id)` para que sea idempotente | RF-106, RF-108 | 3 |
 | | `borrado_blob_pendiente` | `id`, `ejecucion_id → ejecucion_retencion`, `contenedor`, `ruta`, `intentos int`, `ultimo_error`, `creado_en`, `completado_en NULL` (bandeja de salida, D-110) | RF-106, RF-108 | 3 |
-| `0106_avisos.sql` | `aviso_grupo` | `id uuid PK` (cliente), `grupo_id uuid` (FK que agrega 002), `autor_id → cuenta`, `texto text CHECK (length(texto) BETWEEN 1 AND 500)`, `publicado_en`, `retirado_en NULL`, más las columnas de sincronización del plan 003 | RF-103 | 2 |
-| | `aviso_coordinacion` | `id`, `tipo CHECK IN ('pendientes_rechazados')` (ampliable por otros planes con una migración nueva), `cuenta_relacionada_id`, `cantidad int`, `creado_en`, `leido_en NULL`, `leido_por NULL` | RF-112 | 1 |
+| `0107_aviso_grupo.sql` | `aviso_grupo` | `id uuid PK` (cliente), `grupo_id uuid` (FK que agrega 002), `autor_id → cuenta`, `texto text CHECK (length(texto) BETWEEN 1 AND 500)`, `publicado_en`, `retirado_en NULL`, columnas sync de 003; colección local `avisos_grupo` | RF-103 | 2 |
+| `0106_aviso_coordinacion.sql` | `aviso_coordinacion` | `id`, `tipo CHECK IN ('pendientes_rechazados')`, `cuenta_relacionada_id`, `cantidad int`, `creado_en`, `leido_en NULL`, `leido_por NULL` | RF-112 | 1 |
 
 Dependencias de esquema con otros planes:
 - 002 crea `grupo_catequista.cuenta_id → cuenta` y `apoderado.cuenta_id → cuenta`, y agrega las FK `consentimiento → catequizando/apoderado` y `aviso_grupo → grupo`.
@@ -103,7 +105,7 @@ Dependencias de esquema con otros planes:
 
 | Tabla local | Columnas | Sentido | RF |
 | --- | --- | --- | --- |
-| `aviso_grupo` | `id`, `grupo_id`, `texto`, `autor_visible` (es la `identidad_operativa` que manda el servidor; nunca el nombre real), `publicado_en` | Solo pull | RF-103, RF-105 |
+| `avisos_grupo` | `id`, `grupo_id`, `texto`, `autor_visible` (es la `identidad_operativa` que manda el servidor; nunca el nombre real), `publicado_en` | Solo pull | RF-103, RF-105 |
 
 **Exigencias de seguridad para el esquema local de 003** (las verifica el test `RNF-101` de la §9):
 1. Ninguna columna local coincide con un campo `restringido` del catálogo de datos (§4).
@@ -183,7 +185,7 @@ Base pública: `https://<apim>.azure-api.net/v1`. Todas las rutas usan HTTPS (RN
 | `POST /acceso/familia/entrar` | Anónima | Recibe `{ token }`. Con una credencial de tipo familia no terminada devuelve `{ jwt (30 min), contexto }`. No está atada al dispositivo: un enlace reenviado entra como ese apoderado (caso límite). Si no, 401 idéntico | RF-101, RF-110 | 1 |
 | `POST /acceso/renovar` | Anónima; el token de renovación va en el cuerpo | Recibe `{ tokenRenovacion, dispositivoId, pendientes?: number }`. Acepta `hash_actual` o `hash_anterior` (D-106) y rota el token. Si la credencial está terminada o la cuenta desactivada, responde 401 `{ codigo: 'credencial_terminada' }` y, si `pendientes > 0`, crea un `aviso_coordinacion` de tipo `pendientes_rechazados` con la cantidad. Un token vencido se acepta dentro de la ventana de reconexión (S-13) | RF-112, RF-101 | 1 |
 | `POST /acceso/bloqueo` | Anónima; token de renovación | El celular lo manda cuando llega al 5.º PIN fallido y tiene red. Termina la credencial con `motivo_fin='bloqueo_pin'`. Si no hay red, el bloqueo local basta (§6.2) | RF-111 | 1 |
-| `GET /yo` | Cualquier cuenta | Devuelve el contexto y los roles efectivos, con `identidad_operativa` y la delegación vigente | RF-102, RF-104 | 1 |
+| `GET /yo` | Cualquier cuenta | Devuelve el contexto y los roles efectivos, con `identidadOperativa` y la delegación vigente (HTTP camelCase) | RF-102, RF-104 | 1 |
 | `POST /cuentas` | ADM; COORD solo para cuentas CAT o FAM | Recibe `{ id, identidadOperativa, esMenor, roles, identidadReal? }`. La identidad real se guarda con `guardar_identidad_real`, a la que COORD puede escribir pero no leer. Es idempotente por `id` | RF-102, RF-105, RNF-105 | 1 |
 | `GET /cuentas`, `GET /cuentas/{id}` | ADM; COORD (solo cuentas CAT o FAM) | Siempre muestran la `identidad_operativa` | RF-105 | 1 |
 | `GET /cuentas/{id}/identidad-real` | Solo ADM | Lee con `leer_identidad_real` y audita la lectura | RF-105, RF-109 | 2 |
@@ -220,7 +222,7 @@ interface ParticipanteRetencion {
 ```
 
 El motor:
-1. Abre una sola transacción.
+1. Abre una sola transacción (o usa la del retiro) y fija rol `sigecat_retencion` y contexto `retiro_consentimiento`/`retencion` con `SET LOCAL`, en ambas operaciones.
 2. Ejecuta los participantes en orden de registro.
 3. Guarda `ejecucion_retencion` con los conteos y encola los blobs.
 4. Si algún participante falla, deshace todo.
@@ -229,7 +231,7 @@ El participante propio de `seguridad` hace lo siguiente al vencer un ciclo:
 - borra `identidad_real` de las cuentas desactivadas que no participan en ciclos posteriores;
 - termina las credenciales de familia de los apoderados que se quedan sin vínculos.
 
-Lo que hace cada participante lo define su plan (002 condiciones, documentos y perfil; 004 evidencias; 005 avance; etc.).
+Lo que hace cada participante lo define su plan. 002 borra condiciones, estados de documentos e historial personal, cierra inscripción/asignación/vínculos, invalida carné y anonimiza perfil, excluyéndolo como inactivo de nómina. El apoderado se elimina/anonimiza solo si no tiene otros hijos vinculados. 003 conserva asistencia anonimizada y elimina datos personales en códigos/avisos. 004 borra evidencias; 005–008 registran sus participantes cuando se integran; no se afirma que estén implementados. La constancia sacramental se conserva. El agente de seguridad implementa el motor y sus puertos; cada dueño implementa y registra su participante.
 
 ### 5.3 APIM (Consumo)
 
@@ -245,6 +247,8 @@ APIM Consumo no ofrece `rate-limit-by-key` (solo `rate-limit` por suscripción);
 | Sin registro de cuerpos | Global | El diagnóstico de APIM guarda 0 bytes de cuerpo | RNF-101 |
 
 ### 5.4 Servicios para el cierre de ciclo (los llama el plan 008)
+
+Los límites por cuenta usan contador PostgreSQL compartido con clave `(cuenta_id, operacion, ventana)` e incremento atómico; nunca un contador de memoria por instancia. La Function devuelve 429 al excederlo. APIM mantiene solamente el tope global por cliente/producto.
 
 | Servicio | Efecto | RF de origen |
 | --- | --- | --- |
@@ -314,7 +318,7 @@ APIM Consumo no ofrece `rate-limit-by-key` (solo `rate-limit` por suscripción);
 | D-108 | `identidad_real` va en una tabla sin GRANT para el rol de la API. Se accede solo con funciones `SECURITY DEFINER` que comprueban ADM en la BD | Columnas en `cuenta`; cifrado por columna | RF-105 pide guardarla separada y mostrarla solo a ADM. Si se olvida una comprobación en código, la BD sigue protegiendo. El cifrado por columna exige gestionar claves sin ganancia frente a la falta de GRANT |
 | D-109 | La auditoría es una tabla de PostgreSQL solo de inserción. La lectura de un dato restringido falla si no se pudo auditar (cierre en falla) | Logs de Application Insights; auditoría asíncrona en una cola | Los logs tienen muestreo, retención corta y riesgo de datos personales. Una cola añade un servicio. La spec exige registrar cada consulta |
 | D-110 | El motor de retención usa un registro de participantes y una transacción única, con una bandeja de salida para blobs (`borrado_blob_pendiente`) | Un temporizador por módulo; `ON DELETE CASCADE` | El retiro del consentimiento debe ser inmediato y atómico entre módulos. El blob no participa en la transacción de la BD, así que se borra después del commit y se reintenta. Como su fila ya no existe, ningún SAS nuevo puede apuntarlo |
-| D-111 | Function App en **Flex Consumption** (Linux, Node 22), con `maximumInstanceCount` = 10 y un pool `pg` de 3 conexiones por instancia | Consumo Y1 (plan heredado en Linux); Premium (costo fijo); Node 20 (fuera de soporte desde abril de 2026) | Flex tiene una concesión gratuita mensual y es el plan sin servidor vigente. B1ms tiene pocas conexiones y el nivel Burstable no ofrece PgBouncer integrado, así que el tope 10 × 3 evita agotarlas en el pico dominical (RNF-303 de 003) |
+| D-111 | Flex Consumption Linux Node 22: pool `pg` 3 **por proceso**, 1 worker, `maximumInstanceCount=5` **por grupo**, concurrencia HTTP 10, 2048 MB, always-ready 0; timers UTC | Y1 heredado; Premium; pool 4; tope global supuesto | HTTP y timers pueden tener grupos separados: 15 conexiones por grupo no son un tope global de la app. Inventariar grupos, conexiones auxiliares, cuota regional y carga en despliegue. Azure 2026 permite máximo desde 1; 5 es válido (ADR 014) |
 | D-112 | PostgreSQL 16 en Flexible Server con acceso público, TLS obligatorio y firewall "permitir servicios de Azure". CI abre una regla temporal para su IP al migrar | Acceso privado con VNet y zona DNS privada | Costo y administración (R23, R24). El riesgo se mitiga con TLS, credenciales en Key Vault y la ausencia de datos de menores en el rol `sigecat_migrador` (que no usa la app) |
 | D-113 | Secretos (clave JWT, contraseña de BD, clave de host) en **Key Vault** con referencias desde la Function App y valores con nombre en APIM, usando identidad administrada. CI se autentica en Azure por **OIDC federado**, sin secretos en GitHub | Secretos directos en la configuración de la app; secreto del principal de servicio en GitHub | Rotar sin redeployar y sin secretos de larga vida. Key Vault Standard cuesta céntimos al mes |
 | D-114 | Runner de migraciones propio y mínimo (`api/scripts/migrar.ts`, unas 80 líneas con `pg`) con checksum, más una verificación en CI contra `main` | node-pg-migrate; Flyway (Java); Prisma Migrate (ORM) | Se pidió SQL puro numerado. El checksum hace cumplir el principio 6. Las otras opciones traen su propio formato o un runtime extra |
@@ -337,7 +341,9 @@ APIM Consumo no ofrece `rate-limit-by-key` (solo `rate-limit` por suscripción);
 | `pg`, `@types/pg` | API | Acceso a PostgreSQL sin ORM |
 | `jose` | API | Firmar y verificar el JWT |
 | `zod` | API | Validación estricta de entradas (RF-107) |
+| `@azure/storage-blob` | API | Borrado idempotente real de blobs en retención y reintentos; no carga de documentos RF-204 |
 | `esbuild`, `typescript`, `ts-jest`, `jest` | API (dev) | Empaquetado que incluye `src/lib` y los tests |
+| `tsx`, `@types/node` | API (dev) | Ejecutar scripts TS puros de migración/semillas y tipos Node22; justificados en spec antes de siguiente instalación |
 | `@react-native-community/netinfo` | App | La lista el plan 003 (dueño de la conectividad) |
 
 ---
@@ -355,7 +361,7 @@ infra/
   modulos/secretos.bicep           # Key Vault (RBAC) + secretos generados
   modulos/almacenamiento.bicep     # Storage: contenedor de despliegue de Flex + contenedor 'evidencias' privado (uso: plan 004)
   modulos/postgres.bicep           # Flexible Server B1ms, PG 16, TLS, firewall servicios Azure, BD 'sigecat'
-  modulos/funciones.bicep          # Flex Consumption, Node 22, identidad administrada, referencias a Key Vault, maximumInstanceCount=10
+  modulos/funciones.bicep          # Flex Node 22, pool3/proceso, worker1, max5/grupo, HTTP10, 2048MB, always-ready0, UTC
   modulos/apim.bicep               # Consumo, API comodín, productos, valores con nombre desde Key Vault
   modulos/web.bicep                # Static Web Apps Free
   modulos/monitoreo.bicep          # Application Insights con muestreo, sin cuerpos (ver riesgo R-10)
@@ -366,7 +372,7 @@ api/
   package.json  tsconfig.json  host.json  jest.config.js  esbuild.config.mjs
   local.settings.example.json  docker-compose.yml   # postgres:16 + azurite
   migraciones/0001_base.sql 0101_cuentas_y_credenciales.sql 0102_auditoria.sql
-              0103_delegacion.sql 0104_consentimiento.sql 0105_retencion.sql 0106_avisos.sql
+              0103_delegacion.sql 0104_consentimiento.sql 0105_retencion.sql 0106_aviso_coordinacion.sql 0107_aviso_grupo.sql
   scripts/migrar.ts  verificar-migraciones.ts  crear-administracion-inicial.ts  sembrar-demo.ts
   src/index.ts
   src/compartido/{bd/pool.ts, bd/transaccion.ts, http/con-acceso.ts, http/respuestas.ts, config.ts, reloj.ts, registro.ts}
@@ -532,19 +538,19 @@ Los temporizadores se prueban con reloj falso.
 | 005, 006, 007 | Filas propias en la matriz de permisos y participantes de retención | Middleware, matriz, rol `sigecat_retencion` para sus triggers de inmutabilidad |
 | 008 | `ciclo` (inicio y cierre). Llama a los servicios de la §5.4 | Motor de retención (RF-808 lo usa), servicios de cierre |
 
-**ADR y C4 pendientes** (no los escribe este plan):
-1. ADR "Identidad propia con enlace + PIN", que reemplaza a `servicioAuth` en el C4 (D-101).
-2. ADR que acepte la plataforma Azure concreta y cierre el ADR 004 (hoy en estado propuesto).
-3. ADR que reemplace al ADR 008 (PWA): la decisión vigente es React Native + Expo con compilación web para familias.
-4. Revisar el ADR 003 (SigNoz auto-alojado) frente a Application Insights con concesión gratuita (R-10).
-5. Actualizar `docs/diagrams/arquitectura-c4.dsl`: quitar `servicioAuth`, nombrar Azure en `servicioStorage` y en el backend.
+**Acuerdos ADR y C4 (2026-10-11):** los ADR 011–014 registran enlace/PIN, marcas/contratos, excepción administrativa y configuración Azure. El C4 elimina carga documental RF-204 y contraseña servidor. Las siguientes notas anteriores son referencias históricas para integrar las decisiones; no bloquean su aceptación:
+1. ADR 011 acepta identidad propia enlace/PIN local; C4 sin contraseñas servidor ni proveedor externo.
+2. ADR 014 sustituye ADR 004 (históricamente accepted) con configuración Azure concreta; despliegue pendiente.
+3. ADR 008 vigente trata herramientas IA, no PWA; React Native + Expo y web de familias siguen ADR 001/planes.
+4. Observabilidad según ADR 014; ADR 003 ya figura rejected (SigNoz descartado), se conserva histórico. Verificar telemetría sin cuerpos y costo Application Insights.
+5. C4 actualizado para Azure y RF-204; build pendiente de integración.
 
 ### 11.2 Riesgos
 
 | Id | Riesgo | Mitigación |
 | --- | --- | --- |
 | R-1 | PostgreSQL B1ms cuesta alrededor de US$ 15–20 al mes cuando terminan los 12 meses gratis (choca con R23) | Usar el crédito de estudiante. Alerta de presupuesto en Bicep (US$ 5). Antes del mes 12, decidir: renovar crédito o migrar a otro proveedor (fuera de alcance) |
-| R-2 | Agotar las conexiones de PostgreSQL en el pico dominical | D-111 (10 instancias × 3 conexiones). Prueba de carga con 50 clientes simulados antes de producción |
+| R-2 | Agotar conexiones de PostgreSQL en el pico dominical | D-111: 5 × 1 × 3 por grupo; sumar HTTP, cada timer y conexiones auxiliares. Carga/medición en despliegue pendientes |
 | R-3 | Arranque en frío de Flex Consumption el domingo a primera hora | El trabajo es offline-first: el registro no espera al servidor. Si molesta, una instancia siempre lista cuesta dinero, así que solo se activa si la prueba de campo lo exige |
 | R-4 | SQLite de WatermelonDB sin cifrar en el celular (el ADR 002 pedía cifrado) | Solo guarda datos operativos (nombre, grupo, asistencia), nunca restringidos (RNF-101). El cifrado es decisión del plan 003 |
 | R-5 | Celular robado con root: se puede extraer SecureStore (token de renovación) | COORD revoca el enlace (RF-111). Efecto en la siguiente petición (D-104). La exposición se limita a datos operativos |
@@ -596,6 +602,8 @@ Los temporizadores se prueban con reloj falso.
 ---
 
 ## 12. Orden de implementación
+
+Las fases siguientes conservan el orden histórico. **Todas sus piezas backend F0–F4 están incluidas** en backend/001-003; “después del primer corte” no posterga la protección ni el retiro. Los criterios completos de cada tarea siguen pendientes de evidencia.
 
 ### Primer corte (junto con 003 completa y lo mínimo de 002)
 

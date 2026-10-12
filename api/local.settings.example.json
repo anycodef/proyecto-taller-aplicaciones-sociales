@@ -1,0 +1,13 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "node",
+    "BD_URL": "postgresql://postgres:postgres@localhost:55432/sigecat",
+    "JWT_CLAVE": "reemplazar-por-clave-aleatoria-de-al-menos-32-bytes",
+    "JWT_KID": "v1",
+    "RENOVACION_CLAVE": "reemplazar-por-otra-clave-aleatoria-de-32-bytes",
+    "URL_WEB": "https://sigecat.example",
+    "BLOBS_CONEXION": "UseDevelopmentStorage=true"
+  }
+}

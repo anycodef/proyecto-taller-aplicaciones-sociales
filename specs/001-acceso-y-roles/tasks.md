@@ -2,16 +2,20 @@
 
 - Spec: [spec.md](spec.md)
 - Plan: [plan.md](plan.md)
-- **Total de tareas: 150** (100 de primer corte, 3 bloqueadas por aclaración).
+- **Total histórico: 150 tareas**, más T001-DOC y T001-151–153 de coordinación e integración. El backend completo F0–F4 está incluido; 100 etiquetas de primer corte conservan el orden histórico. Decisiones aceptadas el 2026-10-11; ninguna casilla se cierra sin evidencia.
 
 ## Leyenda
 
 - **[Primer corte]**: entra en el primer corte de desarrollo (spec 003 completa + lo mínimo de 001: fases F0, F1 y F1b del plan, §12).
-- **[Bloqueada por aclaración]**: no se cierra hasta resolver la duda `[NECESITA ACLARACIÓN]` indicada. Las demás tareas que usan un supuesto provisional (S-xx, plan §11.4) avanzan con él y lo citan; el supuesto es reversible.
+- **[Bloqueada por aclaración]**: etiqueta histórica; S-01–S-20 están aceptados para este backend. T001-95 mantiene su condición de necesidad/dispositivo, y las verificaciones externas conservan su evidencia pendiente. Aprobar la decisión no implementa la tarea.
 - **[Requiere cuenta externa]**: necesita Azure, GitHub con OIDC o EAS; su "Hecho cuando" separa lo verificable sin desplegar de lo que exige el despliegue.
 - `TNNN-XX`: tarea de otra spec. Como las demás specs aún no tienen `tasks.md`, se citan como `TNNN (pieza del plan NNN)`.
 
 ## Convenciones para todas las tareas
+
+- CLI existentes: `configurar:roles` (`BD_ADMIN_URL`, `BD_API_CLAVE`, `BD_MIGRADOR_CLAVE`) configura credenciales; migrar/admin inicial usan `BD_MIGRACIONES_URL` migrador, demo `BD_URL` API. Verificadores de migraciones/cobertura existen. No dotenv: env exportado; validación lazy. Principal reportó migraciones persistentes/demo sin enlaces al repetir/admin idempotente PostgreSQL; mantener cierre de T001-69/70/73/14/15 ligado a evidencia, no a aprobación documental.
+
+- Acuerdo de contrato: `aviso_grupo` SQL; `avisos_grupo` local/sync. HTTP camelCase español salvo interfaz WatermelonDB nativa, filas snake_case (ADR 015), adaptadores internos opcionales. `@azure/storage-blob` justificado para T001-130; `tsx`/`@types/node` justificados antes de siguiente instalación. T001-DOC abarca OpenAPI 3.1 y verificador Node sin dependencias.
 
 - Cada tarea es un commit (Conventional Commits) con su registro Agent Trace (principio 9).
 - Cada tarea termina con `npm test`, `npm run typecheck` y `npm run lint` en verde (principio 4). A partir de T001-10, `npm test` incluye la integración con PostgreSQL de `api/docker-compose.yml`.
@@ -22,9 +26,10 @@
 
 ## Notas sobre el plan
 
-- **`0106` se parte en dos archivos.** El plan (§12, F1) crea en F1 "la parte de `0106` correspondiente a `aviso_coordinacion`" y deja `aviso_grupo` para F2. Como una migración aplicada no se edita (principio 6, D-114), F1 crea `0106_aviso_coordinacion.sql` y F2 crea `0107_aviso_grupo.sql`. Hay que reflejarlo en la §3.2 del plan.
-- **ADR y C4 pendientes** (plan §11.1): el plan los deja fuera de su alcance y no tienen tarea aquí. D-101 exige el ADR "Identidad propia con enlace + PIN" antes de dar 001 por terminada.
-- **Migración `ciclo` de 008 (M1).** El plan 008 pide aplicarla justo después de `0001_base.sql`. Su número lo fija el plan 008; aquí solo se cita como `T008 (M1, tabla ciclo)`.
+- **Avisos separados:** `0106_aviso_coordinacion.sql` y `0107_aviso_grupo.sql`, alineados con plan §3.2. No editar una migración aplicada para agregar la segunda tabla.
+- **ADR/C4:** T001-DOC registra ADR 011–015 y corrige C4. Build Log4brains1.1.0 pasó tras usar `Status: superseded by <slug>` sin Markdown; 16 ADRs generados. C4 tiene verificación propia pendiente.
+- **Ciclo base:** `0002_ciclo_base.sql` inmediatamente después de `0001`; complemento `0801` sin recrear tabla. No acredita spec 008 completa.
+- **Administración ONLINE:** todas las tareas administrativas usan HTTP directo, borrador solo en memoria; nunca WatermelonDB/cola. PIN local, nunca cuerpo de autenticación al servidor.
 
 ---
 
@@ -123,7 +128,7 @@
 - [ ] **T001-19** Crear el módulo Bicep de la Function App Flex Consumption **[Primer corte]**
   - RF: RNF-103, RF-101 (D-111, D-113)
   - Depende de: T001-16, T001-17
-  - Hecho cuando: `infra/modulos/funciones.bicep` crea una Function App Flex Consumption (Linux, Node 22, `maximumInstanceCount: 10`, `httpsOnly: true`, TLS mínimo 1.2) con identidad administrada y los roles `Key Vault Secrets User`, `Storage Blob Data Contributor` y `Storage Blob Delegator`, y la configuración con referencias a Key Vault; `az bicep build --file infra/main.bicep` termina sin errores; `npm test`, `npm run typecheck` y `npm run lint` pasan.
+   - Hecho cuando: Bicep Flex Linux Node 22 fija `maximumInstanceCount: 5` por grupo, 2048 MB, HTTP concurrency 10, always-ready 0 y 1 worker; pool 3 por proceso. Identidad administrada, TLS/HTTPS, Key Vault y roles Storage del plan; compilación y despliegue prueban esos valores e inventario de grupos/conexiones. Tests/typecheck/lint pasan con evidencia.
 
 - [ ] **T001-20** Crear los módulos Bicep de Static Web Apps y monitoreo **[Primer corte]**
   - RF: RNF-103, RNF-101 (riesgo R-10)
@@ -622,12 +627,12 @@
 - [ ] **T001-115** Distribuir los avisos de grupo por el pull de sincronización
   - RF: RF-103, RF-105 (D-120)
   - Depende de: T001-114, T003 (registro de tablas de sincronización, plan 003)
-  - Hecho cuando: `aviso_grupo` está registrada como colección de solo pull filtrada por los grupos asignados y con `autor_visible` = `identidad_operativa`; pasan `RF-103: el pull entrega a CAT(g) solo los avisos de sus grupos` y `RF-103: el aviso muestra el seudónimo del autor`; `npm test`, `npm run typecheck` y `npm run lint` pasan.
+   - Hecho cuando: tabla SQL `aviso_grupo` se proyecta como colección `avisos_grupo` de solo pull por grupos y `autor_visible` operativo; tests RF-103 de alcance/seudónimo y checks pasan con evidencia.
 
 - [ ] **T001-116** Crear la tabla local y las pantallas de avisos de grupo
   - RF: RF-103
   - Depende de: T001-115, T003 (mecanismo de extensión del esquema local, §3.3 del plan 003)
-  - Hecho cuando: el esquema WatermelonDB tiene `aviso_grupo` mediante un paso nuevo de migración local y `src/app/(equipo)/avisos/…` permite a COORD publicar y a CAT leer sin conexión; el test RNTL `RF-103: CAT ve los avisos de su grupo sin conexión` pasa; `npm test`, `npm run typecheck` y `npm run lint` pasan.
+   - Hecho cuando: WatermelonDB tiene `avisos_grupo` mediante paso nuevo de migración; UI permite publicar solo ONLINE y CAT leer sin conexión. Test RNTL RF-103 y checks pasan con evidencia; backend no cierra esta tarea UI.
 
 - [ ] **T001-117** Implementar el plan de cierre de sesión
   - RF: RNF-102 (D-118)
@@ -699,7 +704,7 @@
 - [ ] **T001-130** Borrar los blobs de la bandeja tras el commit y reintentar
   - RF: RF-106, RF-108
   - Depende de: T001-17, T001-126
-  - Hecho cuando: el motor borra los blobs encolados justo después del commit mediante el puerto `BorradorBlobs` (falso en tests; el real lo aporta 004) y la Function de temporizador `borradosPendientes` (`0 */15 * * * *`) reintenta; con reloj falso pasan `RF-106: los blobs se borran justo después del commit` y `RF-108: los blobs que fallan se reintentan`; `npm test`, `npm run typecheck` y `npm run lint` pasan.
+   - Hecho cuando: `BorradorBlobs` tiene falso y adaptador real `@azure/storage-blob` del backend 001, borra idempotentemente después del commit y reintenta con timer UTC `0 */15 * * * *`; 004 aporta referencias/participante, no bloquea implementar el borrador. Tests `RF-106: los blobs se borran justo después del commit` y `RF-108: los blobs que fallan se reintentan`, integración Azurite, typecheck/lint en verde con evidencia.
 
 - [ ] **T001-131** Crear la pantalla de consentimiento de un niño para la coordinación
   - RF: RF-106
@@ -808,6 +813,24 @@
 ---
 
 ## Cobertura
+
+### Coordinación backend completa
+
+- [ ] **T001-DOC** Registrar acuerdos documentales 001–003 (RF-101–RF-112, RF-201–RF-207, RF-301–RF-313).
+  - Hecho cuando: specs/dependencias/constitución/ADR 011–015/C4/contratos/seguimiento/Agent Trace coherentes y checks documentados. Build ADR pasó; pausa npm terminada. Checks integrales finales del principal y verificaciones C4/campo/despliegue siguen con evidencia propia; esta nota no marca task completa.
+- [ ] **T001-151** Verificar límites por cuenta distribuidos (RF-102, RNF-104, RNF-303).
+  - Depende de: T001-11, T001-50, T002-39, T003-55.
+   - Hecho cuando: contador PostgreSQL atómico por cuenta/operación/ventana funciona entre procesos concurrentes, devuelve 429, no depende de memoria de instancia; APIM solo global. Tests con ids RF/RNF y checks con evidencia.
+- [ ] **T001-152** Registrar la entrega integrada y verificada del backend 001–003 en Git.
+  - RF: RF-101–RF-112, RF-201–RF-207, RF-301–RF-313; tareas de origen en las trazas de cada módulo.
+  - Depende de: T001-DOC y la implementación backend descrita en `docs/backend-implementacion.md`.
+  - Hecho cuando: un commit Conventional Commits registra API, dominio compartido, migraciones, configuración y pruebas integradas con sus Agent Trace; `npm test`, `npm run typecheck`, `npm run lint` y build pasan. La entrega integrada conserva las dependencias entre módulos y no equivale a cerrar tareas de cliente o despliegue.
+- [ ] **T001-153** Registrar infraestructura, CI y herramientas de verificación en Git.
+  - RF: RF-101, RNF-101, RNF-103, RNF-104, RNF-303; tareas de origen T001-16–25, T001-27 y T003-98.
+  - Depende de: T001-152.
+  - Hecho cuando: un commit Conventional Commits registra Bicep, workflows, skills y prueba de infraestructura con sus Agent Trace; los checks integrales, compilación Bicep, tests de plantilla y validación de workflows pasan. El commit no declara desplegado Azure ni ejecutada carga en nube.
+
+Publicación solicitada tras la implementación: T001-DOC, T001-152 y T001-153 son las tres tareas de entrega, un commit por tarea. Las trazas de los agentes conservan los IDs de las tareas originales y sus resultados históricos; no se reconstruye una cronología ficticia de microtareas ni se cierran verificaciones externas por crear commits.
 
 | Requisito | Tareas |
 | --- | --- |

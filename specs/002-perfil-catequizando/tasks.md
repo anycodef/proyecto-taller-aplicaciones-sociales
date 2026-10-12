@@ -4,6 +4,7 @@
 > Si una tarea contradice la spec, manda la spec (principio 2). Cada tarea se hace en un commit propio con su registro Agent Trace (principio 9).
 
 **Leyenda**
+- **Acuerdo 2026-10-11:** backend de fases 1–4 incluido; C-01–C-13 aceptados. Etiquetas de aclaración son históricas, no bloqueo de aprobación; tareas, UI y verificaciones físicas siguen pendientes hasta evidencia. Administración ONLINE, sin persistencia/cola local.
 - **[Primer corte]**: entra en el primer corte (niños y grupos con lo mínimo para la asistencia, nómina sincronizable y carné QR; sin documentos ni salud).
 - **[Bloqueada por aclaración: C-xx]**: no se empieza hasta que el equipo responda la duda indicada de la §11 del plan. Las tareas que dependen de una bloqueada esperan a que se desbloquee.
 - "Supuesto C-xx": la tarea se implementa con el supuesto provisional de la §11 del plan, que es reversible; no bloquea.
@@ -11,7 +12,7 @@
 - Cada test se nombra con su requisito (`RF-2xx: …`, `RNF-2xx: …`, `RF-302: …`).
 - Rutas de pantallas: van bajo los grupos `(equipo)` y `(familia)` del plan 001 §6.1; la URL no cambia.
 
-**Total: 106 tareas** (60 de primer corte; 3 bloqueadas por aclaración).
+**Total: 108 tareas** (106 históricas más T002-107/108; 60 etiquetas históricas de primer corte). No hay decisiones backend bloqueadas por aclaración.
 
 ---
 
@@ -351,7 +352,7 @@
 
 - [ ] **T002-63** Agregar la FK `aviso_grupo.grupo_id → grupo`
   - RF: RF-206 (dependencia de esquema del RF-103 de 001)
-  - Depende de: T002-16, T001 (F2: tabla `aviso_grupo` de `0106_avisos.sql`)
+   - Depende de: T002-16, T001-113 (`0107_aviso_grupo.sql`)
   - Hecho cuando: una migración nueva del bloque 02 agrega la FK que el plan 001 §3.1 asigna a 002; pasa `RF-206: un aviso de grupo no puede apuntar a un grupo inexistente`; y `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
 - [ ] **T002-64** Implementar `correcciones.ts`
@@ -565,12 +566,12 @@
 - [ ] **T002-102** Implementar `eliminarDatosRestringidos` como participante de retención
   - RF: RF-205, RNF-203
   - Depende de: T002-90, T001 (F3: motor de retención y `registrarParticipanteRetencion`)
-  - Hecho cuando: `retencion.ts` registra el participante `catequizandos` y, al retirar el consentimiento, borra las condiciones del niño en la transacción del motor; pasan `RF-205: al retirar el consentimiento se borran las condiciones del niño` y el test de 001 `RF-106: todas las tablas con catequizando_id tienen participante de retención`; y `npm test`, `npm run typecheck` y `npm run lint` pasan.
+   - Hecho cuando: participante `catequizandos` borra condiciones, estados documentales e historial personal; cierra vigencias, invalida carné, anonimiza perfil y lo excluye como inactivo de nómina. Borra/anonimiza apoderado solo sin otros hijos vinculados. Usa transacción del motor con `SET LOCAL ROLE sigecat_retencion` y contexto `retiro_consentimiento`, también en ciclo cerrado. Tests `RF-106: retiro borra estados e historial personal`, `RF-207: retiro de un hijo conserva apoderado de otro hijo`, `RF-205: al retirar el consentimiento se borran las condiciones del niño`, rollback/participantes y checks pasan con evidencia.
 
 - [ ] **T002-103** Implementar `anonimizarCatequizando` al vencer el ciclo
   - RF: RF-201, RF-203
   - Depende de: T002-61, T002-102
-  - Hecho cuando: con `SET LOCAL ROLE sigecat_retencion` pone `clave_duplicado` en NULL, anonimiza nombres e historial de `cambio_inscripcion` y marca `estado='anonimizado'`, solo para perfiles sin inscripción en un ciclo no vencido; pasan `RF-201: un perfil anonimizado no se detecta como duplicado` y `RF-203: solo el rol de retención puede anonimizar el historial`; y `npm test`, `npm run typecheck` y `npm run lint` pasan.
+   - Hecho cuando: con rol `sigecat_retencion` y contexto `retencion`, ambos SET LOCAL, pone clave duplicado en NULL, anonimiza perfil/historial y marca `estado='anonimizado'`, solo sin inscripción en ciclo no vencido; tests RF-201/RF-203 incluyen rechazo con rol o contexto aislados. Checks pasan con evidencia.
 
 - [ ] **T002-104** Exponer el puerto `crearInscripcion(tx, …)` para la reinscripción de 008
   - RF: RF-201
@@ -611,10 +612,17 @@
 ## Notas de coordinación
 
 1. **Numeración de migraciones.** Se usa el bloque `02NN` de la convención del plan 001 §3.1 (`0201` a `0207` para M-201 a M-207; la FK de T002-63 toma el siguiente número libre del bloque). La vista `v_nomina_ciclo` va en `0204` y no en `0203`, como sugiere el plan, porque lee `carne_emision`.
-2. **Nómina local entre 002 y 003.** El plan 003 y sus tareas (T003-32, T003-33, T003-47) declaran las tablas locales `catequizandos` y `grupos` y su proveedor de sincronización, y llaman `codigo_carne` (más `activo`) al dato que el plan 002 llama `emision_carne`; además nombran en plural las tablas PostgreSQL que 002 crea en singular. Por eso T002-27 entrega solo la interfaz en proceso y T002-28 verifica las definiciones de 003. Hay que alinear el nombre del dato del carné en ambos planes antes de T002-27.
-3. **Interfaces que piden otras specs y no están en el plan 002.** El plan 007 consume `grupoActual`, `apoderadosVinculados` y `marcarInactivo`, y el plan 003 consume periodos de inscripción y de grupo (`FuenteInscripciones`). No se crean tareas porque el plan 002 no las define (principio 2): primero se agregan al plan.
+2. **Nómina alineada:** `codigo_carne` derivado de `carne_emision.emision`, más `activo`; tablas SQL `catequizando`/`grupo`, colecciones locales `catequizandos`/`grupos`. T002-27 entrega interfaz; T002-28 comprueba contrato de 003.
+3. **Puertos agregados al plan §5.2:** `FuenteInscripciones`, `grupoActual`, `apoderadosVinculados`, `marcarInactivo` y `crearInscripcion`; tareas T002-107/108. No acreditan implementación de 007/008.
 4. **Compartir el PDF en nativo.** `Print.printToFileAsync` devuelve un archivo; compartirlo puede exigir `expo-sharing`, que no figura en D-210. T002-01 decide entre justificarlo o usar `Print.printAsync({ html })`.
 5. **Selector de fecha.** El asistente no agrega `@react-native-community/datetimepicker`; si el equipo lo prefiere, primero se justifica en la spec.
-6. **Resumen de asistencia en el perfil.** Las tareas de 003 no incluyen hoy un proveedor de `ProveedorResumenPerfil` para la asistencia; T002-97 lo necesita (D-212). Se pide a 003 que lo agregue.
-7. **Retiro del consentimiento.** `efectoRetiro` del plan 001 menciona borrar "documentos"; el plan 002 solo borra condiciones en `eliminarDatosRestringidos`. T002-102 sigue el plan 002; la diferencia se resuelve entre ambos planes.
-8. **Supuestos provisionales aplicados** (reversibles, no bloquean): C-02 en T002-06 y T002-36; C-03 en T002-66; C-04 y C-12 en T002-87 y T002-88; C-05 en T002-66; C-06 en T002-67 y T002-78; C-07 en T002-05; C-09 en T002-12 y T002-41; C-10 en T002-58; C-11 en T002-08 y T002-31; C-13 en T002-10.
+6. **Resumen:** 003 aporta `resumenAsistencia` en T003-114; T002-97 integra asistencia real. 004/005/007 requieren su evidencia externa, no se sustituyen por resúmenes inventados.
+7. **Retiro alineado:** T002-102 aplica plan §5.4 y RF-106 completo; incluye estados documentales aunque no existan archivos. Vencimiento usa rol y contexto `retencion`.
+8. **Decisiones aceptadas:** C-01–C-13; cambios futuros requieren actualizar spec/migración, no reabrir aprobación para implementar la decisión vigente.
+
+- [ ] **T002-107** Implementar `FuenteInscripciones` histórica para 003 (RF-201, RF-206, RF-305).
+  - Depende de: T002-17, T002-22, T002-25.
+  - Hecho cuando: periodos desde/hasta de inscripción/asignación resuelven grupo/actividad en fecha, incluyendo alta tardía, anulación y cambio de grupo, con batería falsa/PostgreSQL; ningún cálculo usa solo grupo actual. Checks con evidencia.
+- [ ] **T002-108** Exponer puertos de integración 007/008 (RF-201, RF-207).
+  - Depende de: T002-24, T002-78, T002-104.
+  - Hecho cuando: `grupoActual`, `apoderadosVinculados`, `marcarInactivo` y `crearInscripcion` tienen contratos con tx/autorización y tests citando RF; se distingue puerto disponible de consumidor externo integrado. Checks con evidencia.

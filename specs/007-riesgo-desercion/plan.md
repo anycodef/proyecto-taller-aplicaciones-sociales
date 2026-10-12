@@ -8,6 +8,8 @@ Plan técnico (CÓMO) de [spec.md](spec.md). Todo lo transversal (infraestructur
 
 ## 1. Resumen y alcance
 
+**Integración backend 001–003 (2026-10-11):** consumir `consultarFaltas`/eventos de 003 y `grupoActual`, `apoderadosVinculados`, `marcarInactivo` de 002. 001 aporta permisos y registro de participantes. Tener puertos/falsos no completa máquina de riesgo ni consumidor 007; cursor/idempotencia, resumen perfil y retención requieren integración real. Timers UTC. Véase [seguimiento](../../docs/backend-implementacion.md).
+
 | Requisito | Cubierto por este plan |
 | --- | --- |
 | RF-701 Conteo de faltas | Clasificación pura de cada falta (pendiente de justificar, en revisión, justificada, suma) sobre el cómputo de falta de 003 y el plazo/estado de justificaciones de 004 |

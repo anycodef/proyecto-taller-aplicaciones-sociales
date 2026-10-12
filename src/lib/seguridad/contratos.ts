@@ -1,0 +1,10 @@
+import type { ContextoAcceso, Rol } from "./contexto-acceso";
+import type { IdentidadReal } from "./seudonimo";
+export type Cuenta = { id: string; identidadOperativa: string; esMenor: boolean; activa: boolean; roles: Rol[] };
+export type ActivarEquipo = { token: string; dispositivoId: string };
+export type EntrarFamilia = { token: string };
+export type RenovarSesion = { tokenRenovacion: string; dispositivoId: string; pendientes?: number };
+export type SesionAcceso = { jwt: string; contexto: ContextoAcceso; tokenRenovacion?: string; ultimaRenovacion?: string };
+export type AltaCuenta = { id: string; identidadOperativa: string; esMenor: boolean; roles: Rol[]; identidadReal?: IdentidadReal };
+export type DatosConsentimiento = { id: string; catequizandoId: string; apoderadoId: string; textoId: string; canal: "presencial" | "enlace"; registradoPor?: string };
+export type Consentimiento = DatosConsentimiento & { otorgadoEn: string; retiradoEn: string | null };

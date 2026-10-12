@@ -1,4 +1,4 @@
-# Version 1.1.0
+# Version 1.2.0 - acuerdos backend 001-003; arquitectura objetivo, no evidencia de implementacion
 workspace "SIGECAT" "Diagrama de Contexto, Contenedores y Componentes" {
 
     model {
@@ -15,10 +15,10 @@ workspace "SIGECAT" "Diagrama de Contexto, Contenedores y Componentes" {
             ## Contenedores
             appMovil = container "Aplicación móvil SIGECAT" "Interfaz móvil para toma rápida de asistencia dominical, consulta de documentación, seguimiento de progreso y envío de justificaciones." "React Native & Expo" "ContenedorFrontend" {
                 cmpUI = component "Interfaz y Navegación" "Pantallas táctiles, formularios rápidos y enrutamiento por pestañas según el rol." "React Navigation & UI Components" "ComponenteUI"
-                cmpSesion = component "Gestión de Sesión" "Controla el ciclo de vida del login, almacenamiento seguro de tokens locales y credenciales cacheadas." "Expo SecureStore" "ComponenteCore"
+                cmpSesion = component "Gestión de Sesión" "Activa enlace, verifica PIN exclusivamente local y protege credencial en SecureStore; renueva antes del push." "Expo SecureStore" "ComponenteCore"
                 cmpNet = component "Monitor de Conectividad" "Detecta el estado de conexión de red y notifica eventos online/offline." "NetInfo API" "ComponenteCore"
                 cmpAsistencia = component "Registro de Asistencia" "Lógica de escaneo/marcado rápido de asistencia dominical (misa y catequesis)." "Controlador TypeScript" "ComponenteNegocio"
-                cmpCatequizandos = component "Gestión de Catequizandos" "Administración de fichas individuales, salud, neurodivergencia y documentos." "Controlador TypeScript" "ComponenteNegocio"
+                cmpCatequizandos = component "Gestión de Catequizandos" "Nómina operativa local; inscripción, condiciones y estados documentales exclusivamente ONLINE, sin copias ni persistencia local." "Controlador TypeScript" "ComponenteNegocio"
                 cmpSeguimiento = component "Seguimiento Formativo" "Registro del avance en memorización de oraciones, doctrina y jornadas." "Controlador TypeScript" "ComponenteNegocio"
                 cmpJustificaciones = component "Gestión de Justificaciones" "Recepción de justificaciones familiares y compresión de evidencias fotográficas." "Controlador TypeScript & ImagePicker" "ComponenteNegocio"
                 cmpSync = component "Gestión de Sincronización" "Orquesta la resolución de conflictos y envío diferido en lotes hacia el backend." "WatermelonDB Sync Engine" "ComponenteSync"
@@ -33,32 +33,33 @@ workspace "SIGECAT" "Diagrama de Contexto, Contenedores y Componentes" {
                 cmpUI -> cmpJustificaciones "Carga evidencias y justificantes"
 
                 cmpAsistencia -> cmpRepoLocal "Escribe asistencias en offline"
-                cmpCatequizandos -> cmpRepoLocal "Consulta y persiste datos de niños"
+                cmpCatequizandos -> cmpRepoLocal "Lee nómina mínima y grupos sincronizados; nunca condiciones/documentos/apoderados"
+                cmpCatequizandos -> cmpClienteAPI "Administra perfiles, inscripción y estados solo ONLINE; borrador en memoria"
                 cmpSeguimiento -> cmpRepoLocal "Actualiza progreso de oraciones"
-                cmpJustificaciones -> cmpRepoLocal "Almacena justificante temporal"
+                cmpJustificaciones -> cmpClienteAPI "Envía evidencia solo con conexión; nunca persiste evidencia local"
 
                 cmpSync -> cmpNet "Escucha cambios de conectividad"
                 cmpSync -> cmpRepoLocal "Lee cambios pendientes y aplica deltas remotos"
                 cmpSync -> cmpClienteAPI "Envía lotes de sincronización"
-                cmpSesion -> cmpClienteAPI "Solicita login y renovación de sesión"
+                cmpSesion -> cmpClienteAPI "Canjea enlace y renueva token; nunca envía PIN ni contraseña"
             }
             
-            apiBackend = container "Backend / API Serverless" "Punto de entrada serverless, autenticación propia, lógica de negocio y sincronización de datos." "Azure Functions v4 (Node.js)" "ContenedorBackend" {
+            apiBackend = container "Backend / API Serverless" "Azure Flex detrás de APIM; pool3/proceso, worker1, max5/grupo, HTTP10, 2048MB, always-ready0; timers UTC." "Azure Functions v4 (Node.js 22) / APIM" "ContenedorBackend" {
                 cmpController = component "API Controller / HTTP Triggers" "Endpoints HTTP (app.http en v4), valida esquemas de entrada y serializa respuestas JSON." "Azure Functions HTTP Trigger" "C3BackCore"
-                cmpSeguridad = component "Seguridad y Autenticación Interna" "Genera y valida JWT nativos, gestiona contraseñas con hash, aplica RBAC y anonimiza catequistas menores." "Node.js Crypto / JWT Middleware" "C3BackSeguridad"
+                cmpSeguridad = component "Seguridad y Autenticación Interna" "Canjea enlaces por JWT, almacena hashes de tokens (no PIN/contraseñas), revalida roles/alcance, audita y coordina retención por participantes." "Node.js Crypto / jose / PostgreSQL" "C3BackSeguridad"
                 cmpSyncSvc = component "Servicio de Sincronización" "Procesa inserciones por lotes, resuelve colisiones y emite deltas para WatermelonDB." "Sync Protocol Handler" "C3BackNegocio"
-                cmpInscripciones = component "Gestión de Inscripciones y Documentos" "Procesa fichas, partidas de bautismo, DNIs y orquesta la carga al almacenamiento." "Business Service" "C3BackNegocio"
+                cmpInscripciones = component "Gestión de Inscripciones y Documentos" "Inscripción y consentimiento atómicos ONLINE; solo estados documentales RF-204, sin imágenes, copias, DNI ni carga a Blob." "Business Service" "C3BackNegocio"
                 cmpCatequizandosBack = component "Gestión de Catequizandos" "Administra perfiles consolidados, salud, neurodivergencia y asignación de grupos." "Business Service" "C3BackNegocio"
                 cmpAsistenciaSvc = component "Gestión de Asistencia" "Audita presencia en misa y catequesis, y alimenta el detector de deserción." "Business Service" "C3BackNegocio"
-                cmpJustificacionesSvc = component "Gestión de Justificaciones" "Vincula justificaciones y fotos directamente a la ficha del niño." "Business Service" "C3BackNegocio"
-                cmpSeguimientoSvc = component "Seguimiento Formativo" "Registra el progreso en memorización de las 10 oraciones y contenidos doctrinales." "Business Service" "C3BackNegocio"
+                cmpJustificacionesSvc = component "Gestión de Justificaciones" "Objetivo spec 004: justificaciones/evidencias ONLINE; integración por puertos, módulo externo no declarado completo." "Business Service" "C3BackNegocio"
+                cmpSeguimientoSvc = component "Seguimiento Formativo" "Objetivo spec 005: oraciones/doctrina; puertos de integración, módulo externo no declarado completo." "Business Service" "C3BackNegocio"
                 cmpActividades = component "Gestión de Actividades Obligatorias" "Registra asistencia y firmas de jornadas, viacrucis, retiros y Semana Santa." "Business Service" "C3BackNegocio"
                 cmpSacramental = component "Evaluación Sacramental" "Consolida las 3 dimensiones (misa, doctrina, oraciones) para determinar la aptitud." "Analytics & Rules Engine" "C3BackNegocio"
 
                 # Relaciones internas del Backend
                 cmpController -> cmpSeguridad "Valida credenciales, genera tokens e intercepta peticiones"
                 cmpController -> cmpSyncSvc "Delega payloads de sincronización diferida"
-                cmpController -> cmpInscripciones "Delega registro de inscripciones y carga documental"
+                cmpController -> cmpInscripciones "Delega inscripción ONLINE y estados documentales; sin upload"
                 cmpController -> cmpCatequizandosBack "Delega consultas y actualizaciones de fichas"
                 cmpController -> cmpAsistenciaSvc "Delega registro y consulta de asistencia"
                 cmpController -> cmpJustificacionesSvc "Delega procesamiento de justificaciones"
@@ -67,6 +68,9 @@ workspace "SIGECAT" "Diagrama de Contexto, Contenedores y Componentes" {
                 cmpController -> cmpSacramental "Consulta dictamen de aptitud y reportes de deserción"
 
                 cmpSyncSvc -> cmpAsistenciaSvc "Aplica registros de asistencia tomados offline"
+                cmpAsistenciaSvc -> cmpCatequizandosBack "Consulta FuenteInscripciones histórica y carné SGC1; aporta resumenAsistencia"
+                cmpSeguridad -> cmpCatequizandosBack "Retención: borra condiciones/estados/historial; anonimiza perfil y apoderado sin otros hijos"
+                cmpSeguridad -> cmpAsistenciaSvc "Retención con rol y contexto SET LOCAL; conserva asistencia anonimizada"
                 cmpSyncSvc -> cmpSeguimientoSvc "Aplica evaluaciones de oraciones offline"
                 cmpSacramental -> cmpAsistenciaSvc "Evalúa porcentaje de asistencia a misa"
                 cmpSacramental -> cmpSeguimientoSvc "Evalúa oraciones aprobadas y doctrina"
@@ -75,7 +79,7 @@ workspace "SIGECAT" "Diagrama de Contexto, Contenedores y Componentes" {
             
             sqliteLocal = container "Base de Datos Local" "Almacenamiento embebido en el dispositivo para soporte offline-first y sincronización diferida." "SQLite & WatermelonDB" "ContenedorBD"
             
-            dbRelacional = container "Base de Datos SIGECAT" "Persistencia relacional de credenciales locales, perfiles, asistencias y aprendizaje de oraciones" "PostgreSQL" "ContenedorBD"
+            dbRelacional = container "Base de Datos SIGECAT" "Tablas singulares snake_case; credenciales, perfiles, marcas inmutables, consolidado y contador atómico de límites por cuenta" "PostgreSQL Flexible 16" "ContenedorBD"
     
             ## Relaciones internas de contenedores
             appMovil -> sqliteLocal "Lee y escribe datos localmente sin conexión" "WatermelonDB SDK"
@@ -88,7 +92,7 @@ workspace "SIGECAT" "Diagrama de Contexto, Contenedores y Componentes" {
         }
 
         # Sistema Externo (Solo Almacenamiento de Archivos)
-        servicioStorage = softwareSystem "Servicio de Almacenamiento" "Repositorio en la nube para documentos escaneados y evidencias fotográficas de justificaciones." "SistemaExterno"
+        servicioStorage = softwareSystem "Azure Blob Storage" "Contenedor privado para evidencias autorizadas de justificaciones (004) y bandeja de borrado de retención; prohibidas copias de inscripción RF-204." "SistemaExterno"
 
         # Relaciones
 
@@ -96,11 +100,11 @@ workspace "SIGECAT" "Diagrama de Contexto, Contenedores y Componentes" {
         catequista -> sistemaCatequesis "Registra asistencia"
         coordinador -> sistemaCatequesis "Administra sistema y hace seguimiento"
         parroco -> sistemaCatequesis "Consulta seguimiento y evidencias"
-        padreTutor -> sistemaCatequesis "Envía justificaciones y documentación"
+        padreTutor -> sistemaCatequesis "Consulta estados documentales y envía justificaciones autorizadas"
         admin -> sistemaCatequesis "Gestiona usuarios, roles y permisos"
 
         ## Sistema <-> Servicios Externos
-        sistemaCatequesis -> servicioStorage "Almacena y recupera fotos y documentos" "HTTPS"
+        sistemaCatequesis -> servicioStorage "Evidencias 004 autorizadas y borrado de retención; no copias de inscripción" "HTTPS"
         
         ## Usuarios <-> Contenedores
         catequista -> appMovil "Registra asistencia y evalúa aprendizaje de oraciones"
@@ -110,10 +114,10 @@ workspace "SIGECAT" "Diagrama de Contexto, Contenedores y Componentes" {
         admin -> appMovil "Gestiona usuarios y permisos"
         
         ## Contenedores <-> Servicios Externos   
-        apiBackend -> servicioStorage "Almacena y recupera documentos y evidencias" "HTTPS"
+        apiBackend -> servicioStorage "Gestiona evidencias autorizadas y borrado; no documentos de inscripción" "HTTPS"
 
         ## Componentes <-> Servicios Externos
-        cmpInscripciones -> servicioStorage "Guarda partidas, DNIs y boletas" "HTTPS / Blob API"
+        cmpSeguridad -> servicioStorage "Borra blobs tras commit con bandeja idempotente y reintentos" "HTTPS / Blob API"
         cmpJustificacionesSvc -> servicioStorage "Guarda fotos de evidencias de justificación" "HTTPS / Blob API"
 
         ## Usuarios <-> Componentes
@@ -128,7 +132,7 @@ workspace "SIGECAT" "Diagrama de Contexto, Contenedores y Componentes" {
         cmpSyncSvc -> dbRelacional "Aplica mutaciones en lote" "SQL"
         cmpInscripciones -> dbRelacional "Inserta y consulta inscripciones" "SQL"
         cmpCatequizandosBack -> dbRelacional "Consulta y actualiza fichas de salud/perfil" "SQL"
-        cmpAsistenciaSvc -> dbRelacional "Persiste asistencias y faltas" "SQL"
+        cmpAsistenciaSvc -> dbRelacional "Persiste marcas/consolidado/eventos; ausencias y faltas calculadas" "SQL"
         cmpJustificacionesSvc -> dbRelacional "Persiste justificaciones vinculadas al niño" "SQL"
         cmpSeguimientoSvc -> dbRelacional "Actualiza estado de oraciones y doctrina" "SQL"
         cmpActividades -> dbRelacional "Registra firmas de eventos obligatorios" "SQL"

@@ -8,8 +8,15 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "lint": "expo lint",
-    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit && npm --prefix api run typecheck",
+    "test": "npm run test:app && npm --prefix api test",
+    "test:app": "jest --config jest.config.js --runInBand",
+    "test:rapido": "npm run test:app && npm --prefix api run test:rapido",
+    "test:api": "npm --prefix api test",
+    "migrar": "npm --prefix api run migrar",
+    "verificar:migraciones": "node api/scripts/verificar-migraciones.mjs",
+    "verificar:cobertura": "node scripts/verificar-cobertura-rf.mjs",
     "adr:new": "npx --yes log4brains@1.1.0 adr new",
     "adr:preview": "npx --yes log4brains@1.1.0 preview",
     "adr:build": "npx --yes log4brains@1.1.0 build"
@@ -33,6 +40,10 @@
     "react-native-worklets": "0.10.1"
   },
   "devDependencies": {
+    "@types/jest": "^29.5.14",
+    "jest": "^29.7.0",
+    "jest-expo": "~57.0.0",
+    "uuid": "^11.1.0",
     "@types/react": "~19.2.2",
     "eslint": "^9.0.0",
     "eslint-config-expo": "~57.0.2",

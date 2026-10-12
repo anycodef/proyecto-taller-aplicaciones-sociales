@@ -1,0 +1,69 @@
+{
+  "version": "1.0",
+  "fecha": "2026-10-11",
+  "agente": "OpenCode",
+  "modelo": "openai/gpt-6.1-sol",
+  "rama": "backend/001-003",
+  "autorizacion": "Implementar infraestructura/workflows en rama actual y rutas asignadas, sin commits y sin ejecutar npm durante instalacion paralela.",
+  "tareas": ["T001-16", "T001-17", "T001-18", "T001-19", "T001-20", "T001-21", "T001-22", "T001-23", "T001-24", "T001-25", "T001-27", "T001-28", "T001-143", "T001-144", "T002-94", "T003-55"],
+  "alcance": ["infra/**", ".github/**", "skills/**", "api/pruebas/infra/**", "docs/agent-trace/backend-infra.json"],
+  "fuentes": [
+    "docs/constitution.md",
+    "specs/001-acceso-y-roles/spec.md",
+    "specs/001-acceso-y-roles/plan.md",
+    "specs/001-acceso-y-roles/tasks.md",
+    "specs/002-perfil-catequizando/spec.md",
+    "specs/002-perfil-catequizando/plan.md",
+    "specs/002-perfil-catequizando/tasks.md",
+    "specs/003-asistencia-dominical/spec.md",
+    "specs/003-asistencia-dominical/plan.md",
+    "specs/003-asistencia-dominical/tasks.md",
+    "docs/backend-contratos.md",
+    "docs/backend-implementacion.md",
+    "docs/adr/20261011-identidad-propia-enlace-pin-local.md",
+    "docs/adr/20261011-marcas-inmutables-y-contratos-sincronizacion.md",
+    "docs/adr/20261011-excepcion-administrativa-online-y-retencion.md",
+    "docs/adr/20261011-configuracion-servidores-azure-flex.md"
+  ],
+  "cambios": [
+    "Bicep modular resourceGroup prod: Key Vault RBAC, Storage Hot LRS privado, PostgreSQL16 B1ms TLS, Functions Flex Node22, APIM Consumption, SWA minima y Application Insights con cuota workspace/presupuesto5.",
+    "Flex maximumInstanceCount5 por grupo, HTTP10, memoria2048, alwaysReady vacio; host y OneDeploy por identidad administrada. Pool3 declarado; runtime y timers UTC sin ajustes Flex obsoletos.",
+    "Politicas cargadas con loadTextContent: CORS fijo, clave host, JWT HS256 exp/iss/aud salvo POST acceso, rotacion kid anterior opcional, 401 generico, no-store, cuerpos/cabeceras0 y limite push512KB. Rate-limit por suscripcion/producto; cuentas se limitan en Functions/PostgreSQL.",
+    "Secretos generados y persistidos en Key Vault por script OIDC, parametros temporales0600 fuera del repo, refs BD_URL/JWT_CLAVE/JWT_CLAVES/JWT_KID/RENOVACION_CLAVE/URL_WEB/BLOBS_CONEXION; clave APIM base64 de bytes UTF8 usados por API.",
+    "CI Node22 con npmci raiz/API, servicio PostgreSQL16, URLs pruebas/operacion aisladas, tipos/lint/test completos/buildAPI/Bicep, migraciones inmutables y reporte RF del principal.",
+    "Despliegue manual main/prod protegido con gate CI reutilizable, OIDC, what-if-only por defecto, bootstrap/identidades antes de politicas, roles PostgreSQL de minimo privilegio, firewall runner limpiado con always, FunctionsAction Flex OneDeploy.",
+    "Workflow frontend separado y deshabilitado hasta artefacto frontend-web aprobado; no genera Expo ni EAS. Token SWA obtenido por OIDC en runner, sin secreto de repositorio.",
+    "Skills nueva-migracion/verificacion con frontmatter, plantilla PR, README operativo en infra y seis tests Node22 sobre plantilla compilada con citas RF/RNF."
+  ],
+  "evidencia": [
+    {"comando": "/tmp/opencode/bicep --version", "resultado": "Bicep CLI 0.48.1 (cec7951cf6), descargado de release oficial fuera del repo."},
+    {"comando": "/tmp/opencode/bicep build infra/main.bicep --outfile /tmp/opencode/sigecat-plantilla.json", "resultado": "Salida0, sin errores ni advertencias."},
+    {"comando": "/tmp/opencode/bicep build infra/bootstrap.bicep --outfile /tmp/opencode/sigecat-bootstrap.json", "resultado": "Salida0, sin errores ni advertencias."},
+    {"comando": "SIGECAT_CLAVE_ADMINISTRACION=<ejemplo sin secreto> /tmp/opencode/bicep build-params infra/prod.example.bicepparam --outfile /tmp/opencode/sigecat-parametros-ejemplo.json", "resultado": "Salida0, parametros de ejemplo compilados sin secretos reales."},
+    {"comando": "BICEP_BIN=/tmp/opencode/bicep node --test api/pruebas/infra/plantilla.test.mjs", "resultado": "6 tests aprobados, 0 fallos, 0 omitidos. Compila Bicep real; no acredita comportamiento desplegado ni carga RNF-303."},
+    {"comando": "/tmp/opencode/actionlint -shellcheck='' .github/workflows/ci.yml .github/workflows/despliegue.yml .github/workflows/despliegue-web.yml", "resultado": "Actionlint1.7.11 salida0; verificacion workflows, sin ShellCheck."},
+    {"comando": "Python ast.parse del script desplegar.py y ElementTree.parse de politicas XML", "resultado": "Sintaxis Python y XML validas; no ejecuta comandos Azure."},
+    {"comando": "node --check infra/scripts/empaquetar-api.mjs && node --check infra/scripts/preparar-roles.mjs", "resultado": "Salida0; sintaxis, no ejecucion ni pruebas PostgreSQL."},
+    {"comando": "git diff --check", "resultado": "Salida0; revision de archivos propios nuevos complementada al cierre."}
+  ],
+  "azureDocumental": {
+    "fechaConsulta": "2026-10-11",
+    "flex": "https://learn.microsoft.com/en-us/azure/azure-functions/flex-consumption-plan, actualizacion2026-09-30: menor maximo1, Node22, limites por grupo y always-ready separado.",
+    "ajustes": "https://learn.microsoft.com/en-us/azure/azure-functions/functions-app-settings#flex-consumption-plan-deprecations, actualizacion2026-09-18: FUNCTIONS_WORKER_PROCESS_COUNT invalido; FUNCTIONS_EXTENSION_VERSION gestionado por plataforma. No se emiten estos ajustes ni ftpsState/TZ/WEBSITE_TIME_ZONE.",
+    "politicas": "https://learn.microsoft.com/en-us/azure/api-management/api-management-policy-expressions: Jwt.Algorithm permite exigir HS256 despues de validate-jwt.",
+    "workerUnico": "Objetivo/default1, pendiente comprobar numero efectivo en Azure. No se inventa un parametro Flex valido para worker1.",
+    "despliegue": "Sin Azure CLI instalada ni sesion/suscripcion disponible; solo compilador Bicep independiente. No hubo what-if ni despliegue real."
+  },
+  "integracionPendiente": [
+    "npm test, npm run typecheck, npm run lint y buildAPI: no ejecutados por prohibicion expresa mientras instala el principal.",
+    "El principal debe publicar lockfiles/configuracion API y scripts typecheck/lint/build/migrar/verificar-migraciones; raiz npmtest con globalSetup PostgreSQL aislado y scripts/verificar-cobertura-rf.mjs. No se modificaron sus package/configuracion/entrypoint.",
+    "Verificar compatibilidad de 0001/runner con roles precreados sin CREATEROLE y objetos propiedad sigecat_migrador. Bootstrap de roles y TLS verify-full aun sin ejecucion PostgreSQL real.",
+    "RF-101 host gate depende de authLevel function en todos los handlers HTTP; correccion pertenece al agente API/003 y no se acredita aqui.",
+    "Provision externa de OIDC, roles condicionados/grupo, providers, region/cuota y protecciones GitHub prod/main; YAML no crea revisores ni credencial federada.",
+    "What-if, despliegue, propagacion RBAC/Key Vault, presupuesto/costo real, JWT/host/CORS/TLS/429 y k6 con inventario de grupos/conexiones auxiliares permanecen pendientes.",
+    "Marketplace/plugin debe registrar skills como fuente; paquete SKILL.md publicado en repo, sin modificar configuracion del harness.",
+    "Frontend artifact producer, FRONTEND_HABILITADO/AZURE_NOMBRE_WEB y verificaciones Expo/dispositivo/campo externos a esta propiedad."
+  ],
+  "tareasMarcadasCompletas": false,
+  "commits": false
+}

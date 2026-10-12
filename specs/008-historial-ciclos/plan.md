@@ -51,12 +51,14 @@
 | C-1 Toda tabla operativa lleva `ciclo_id` | `ciclo_id uuid NOT NULL REFERENCES ciclo(id)` más un índice que empieza por `ciclo_id`. Es operativa toda tabla cuyo contenido pertenece al año catequético: grupos y su asignación de catequistas, inscripción y documentos (002); sesiones, asistencia y correcciones (003); justificaciones (004); catálogo, evaluaciones y actividades (005); umbrales, decisiones, saldos y lista de aptos (006); alertas, contactos, fichas, retiros y saldos (007). Si una tabla hija tiene padre con ciclo, se recomienda una FK compuesta `(padre_id, ciclo_id)` para que no difieran. | RF-801 |
 | C-2 Tablas transversales sin `ciclo_id` | Cuentas, roles, enlaces, delegaciones y auditoría (001); perfil del catequizando, apoderados, vínculo apoderado–niño y condiciones (002); `constancia_sacramental` y `constancia_correccion` (008). | RF-801, RF-805 |
 | C-3 Trigger de congelamiento | Toda tabla operativa declara en su migración `CREATE TRIGGER t_<tabla>_ciclo_cerrado BEFORE INSERT OR UPDATE OR DELETE ON <tabla> FOR EACH ROW EXECUTE FUNCTION ciclo_bloquear_si_cerrado();`. La función la define 008 (§3.2) y rechaza la escritura con `SQLSTATE 'SG801'` si el ciclo de la fila no está abierto. | RF-802, RF-803 |
-| C-4 Excepciones al congelamiento | Solo dos contextos pueden escribir en tablas de un ciclo cerrado, y lo hacen marcando la transacción con `SET LOCAL sigecat.contexto = 'retencion'` o `'retiro_consentimiento'`: el motor de retención y el retiro de consentimiento, ambos de 001. Ningún endpoint HTTP fija esa variable. RF-804 y RF-805 no la necesitan porque sus tablas no llevan el trigger. | RF-803, RF-808 |
+| C-4 Excepciones al congelamiento | Motor 001 exige **ambos** `SET LOCAL ROLE sigecat_retencion` y `SET LOCAL sigecat.contexto = 'retencion'` o `'retiro_consentimiento'`. Solo caminos internos fijan contexto, nunca desde HTTP. Aplicar en retiro/vencimiento, también ciclo cerrado; RF-804/805 mantienen excepciones particulares | RF-803, RF-808 |
 | C-5 Tareas programadas | Toda Function de temporizador de otro módulo (vencimiento de plazos en 004, recálculo de riesgo en 007, aptitud en 006) filtra `ciclo.estado = 'abierto'`. Si no lo hace, el trigger la rechaza. | RF-802 |
 | C-6 Almacén local | Toda tabla operativa de WatermelonDB lleva `ciclo_id` (indexada). El celular asigna el `ciclo_id` del ciclo abierto local al crear un registro y no permite crear registros si no hay ciclo abierto. | RF-801, RF-802 |
 | C-7 Ciclo en la sincronización | Al aplicar un lote, el push de 003 toma `SELECT estado FROM ciclo WHERE id = $1 FOR SHARE` en la misma transacción, lo que lo serializa con el cierre (D-803), y clasifica cada registro con `clasificarRegistroEntrante` (§4). | RF-802 |
 
 ### 3.2 Tablas PostgreSQL de 008
+
+Acuerdo backend 001–003: `0002_ciclo_base.sql` precede operativas sin FK a `cuenta` aún inexistente; `0801_ciclo_cuentas.sql` las agrega tras `0101`. Soporte mínimo/puertos no acredita historial/constancia ni 008 completo. Límites por cuenta en Functions con contador PostgreSQL atómico; APIM global. Cierre sigue revocación/reemisión de 001, nunca reactivar credencial terminada; constancia real se preserva al integrar participante.
 
 La numeración `NNNN` es provisional y la fija el orden de fusión. Restricción: **M1 debe aplicarse justo después de la migración base de 001 y antes de cualquier tabla operativa** (002 `grupo` ya referencia `ciclo`). Con el esquema `SSNN` del plan 001 (bloque = número de spec), M1 se numera como `0002_ciclo_base.sql`, inmediatamente después de `0001_base.sql`, como excepción explícita al bloque 08; el resto de migraciones de esta spec sí usan el bloque `08NN`.
 
@@ -73,7 +75,7 @@ La numeración `NNNN` es provisional y la fija el orden de fusión. Restricción
 | --- | --- | --- |
 | `id` | uuid PK | Generado en el dispositivo |
 | `nombre` | text NOT NULL | Ej. «Ciclo 2027» |
-| `fecha_inicio`, `fecha_fin` | date NOT NULL | `CHECK (fecha_fin > fecha_inicio)` |
+| `inicio`, `fin` | date NOT NULL | `CHECK (fin > inicio)`; HTTP serializa `fechaInicio`/`fechaFin`, sync `fecha_inicio`/`fecha_fin` |
 | `estado` | text NOT NULL | `CHECK (estado IN ('abierto','cerrado'))` |
 | `abierto_por`, `abierto_en` | uuid → cuenta, timestamptz | |
 | `cerrado_por`, `cerrado_en` | uuid → cuenta, timestamptz NULL | `cerrado_en` en hora del servidor |
@@ -81,7 +83,7 @@ La numeración `NNNN` es provisional y la fija el orden de fusión. Restricción
 
 - `CREATE UNIQUE INDEX ux_ciclo_un_abierto ON ciclo ((true)) WHERE estado = 'abierto';`: un solo ciclo abierto (RF-801, D-801).
 - Trigger `ciclo_transicion_valida`: solo admite `abierto → cerrado`. En un ciclo cerrado solo deja cambiar `depurado_en`, y prohíbe el DELETE (RF-803).
-- Función `ciclo_bloquear_si_cerrado()`: lee `NEW.ciclo_id` (u `OLD.ciclo_id` en DELETE) y lanza `SG801` si el ciclo no está `abierto`, salvo que `current_setting('sigecat.contexto', true)` esté en `('retencion','retiro_consentimiento')` (C-4).
+- Función `ciclo_bloquear_si_cerrado()`: lee `NEW.ciclo_id` (u `OLD.ciclo_id` en DELETE) y lanza `SG801` si ciclo no está abierto, salvo `current_user = 'sigecat_retencion'` **y** contexto en `('retencion','retiro_consentimiento')` (C-4).
 
 **`registro_descartado_cierre`** (RF-802). Sirve de traza mínima y no guarda el contenido del registro (minimización).
 
@@ -276,7 +278,7 @@ Familias (Expo web): 008 no añade pantallas. Con el enlace suspendido al cierre
 | D-809 | Indicadores: instantánea al cerrar más «sacramentos recibidos» en vivo desde la constancia; ciclo abierto en vivo | Calcular siempre en vivo | Tras anonimizar o retirar consentimientos el recálculo podría variar; la instantánea es barata y estable | RF-806, RF-808 |
 | D-810 | Las operaciones de 008 se hacen solo con conexión, idempotentes por UUID del dispositivo | Encolar en WatermelonDB | El cierre es un único evento del servidor; la constancia (nombres y fechas de nacimiento de exalumnos) no debe bajar al celular; marcar sacramentos ocurre sobre todo con el ciclo cerrado, cuando ya no hay datos locales. 002 ya hace la inscripción solo en línea. | RF-802, RF-804, RF-805, RF-807 |
 | D-811 | La retención es un manejador de 008 registrado en el motor de 001, por pasos idempotentes y en lotes; los perfiles se anonimizan solo si no tienen ninguna inscripción vigente | Borrar en cascada; anonimizar el perfil aunque siga activo en un ciclo nuevo | Una cascada borraría la constancia y los conteos; anonimizar un perfil activo contradice RF-201 y RF-807 | RF-808 |
-| D-812 | Excepciones al congelamiento mediante `SET LOCAL sigecat.contexto`, solo en las rutas de retención y retiro de consentimiento | Desactivar triggers (requiere privilegios de superusuario); rol de BD aparte | Mínima infraestructura; la variable no la puede fijar ningún endpoint y hay un test que lo comprueba | RF-803, RF-808 |
+| D-812 | Excepción requiere `SET LOCAL ROLE sigecat_retencion` **y** contexto `retencion`/`retiro_consentimiento`, solo motor interno 001 | Desactivar triggers; permitir excepción con solo variable o solo rol | Ambos controles en la misma tx, nunca contexto tomado de HTTP; tests de retiro/vencimiento en ciclo cerrado | RF-803, RF-808 |
 | D-813 | La reinscripción es una fila nueva de inscripción (002) sobre el perfil existente | Clonar el perfil | Un perfil único entre ciclos (002 RF-201) da el historial gratis | RF-807 |
 | D-814 | Abrir un ciclo no copia nada del anterior (provisional, A-1) | Copiar grupos, catálogo, umbrales, plazo y ventana | Cada módulo ya pide su configuración «al inicio del ciclo» (RF-405, RF-501, RF-601). Añadir una copia después no cambia el esquema, porque todo lleva `ciclo_id`. | RF-801 |
 

@@ -1,0 +1,93 @@
+name: Despliegue backend prod
+on:
+  workflow_dispatch:
+    inputs:
+      solo_plan:
+        description: Ejecutar solamente what-if
+        type: boolean
+        default: true
+        required: true
+permissions:
+  contents: read
+concurrency:
+  group: despliegue-prod
+  cancel-in-progress: false
+jobs:
+  verificar:
+    if: github.ref == 'refs/heads/main' && !inputs.solo_plan
+    uses: ./.github/workflows/ci.yml
+  desplegar:
+    needs: verificar
+    if: always() && github.ref == 'refs/heads/main' && (inputs.solo_plan || needs.verificar.result == 'success')
+    runs-on: ubuntu-latest
+    environment: prod
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      GRUPO_RECURSOS: rg-sigecat-prod
+      UBICACION: ${{ vars.AZURE_UBICACION }}
+      UBICACION_WEB: ${{ vars.AZURE_UBICACION_WEB }}
+      PREFIJO: ${{ vars.AZURE_PREFIJO }}
+      CORREO_PRESUPUESTO: ${{ vars.CORREO_PRESUPUESTO }}
+      INICIO_PRESUPUESTO: ${{ vars.INICIO_PRESUPUESTO }}
+      JWT_KID: ${{ vars.JWT_KID }}
+      JWT_KID_ANTERIOR: ${{ vars.JWT_KID_ANTERIOR }}
+      SOLO_PLAN: ${{ inputs.solo_plan }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            api/package-lock.json
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      - name: Instalar raiz y API
+        run: npm ci && npm ci --prefix api
+      - name: Tipos, lint y build de API
+        run: |
+          npm run typecheck
+          npm run typecheck --prefix api
+          npm run lint
+          npm run lint --prefix api
+          npm run build --prefix api
+          az bicep install --version v0.48.1
+      - name: Plan o crear infraestructura y secretos
+        id: infraestructura
+        run: python3 infra/scripts/desplegar.py
+      - name: Abrir firewall temporal del runner
+        if: ${{ !inputs.solo_plan }}
+        run: |
+          IP_RUNNER=$(curl --fail --silent --show-error https://api.ipify.org)
+          az postgres flexible-server firewall-rule create --resource-group "$GRUPO_RECURSOS" --name "$NOMBRE_POSTGRES" --rule-name "ci-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" --start-ip-address "$IP_RUNNER" --end-ip-address "$IP_RUNNER" --output none
+      - name: Preparar roles y migrar con minimo privilegio
+        if: ${{ !inputs.solo_plan }}
+        run: |
+          node infra/scripts/preparar-roles.mjs
+          npm run migrar --prefix api
+      - name: Cerrar firewall temporal incluso ante fallo
+        if: ${{ always() && !inputs.solo_plan && steps.infraestructura.outcome == 'success' }}
+        run: az postgres flexible-server firewall-rule delete --resource-group "$GRUPO_RECURSOS" --name "$NOMBRE_POSTGRES" --rule-name "ci-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}" --yes --output none
+      - name: Preparar paquete Functions v4
+        if: ${{ !inputs.solo_plan }}
+        run: node infra/scripts/empaquetar-api.mjs
+      - name: Publicar Flex mediante OneDeploy
+        if: ${{ !inputs.solo_plan }}
+        uses: Azure/functions-action@v1
+        with:
+          app-name: ${{ env.NOMBRE_FUNCIONES }}
+          package: ${{ runner.temp }}/paquete-api
+          sku: flexconsumption
+          remote-build: false
+      - name: Guardar clave de host y activar politicas
+        if: ${{ !inputs.solo_plan }}
+        run: python3 infra/scripts/desplegar.py --activar-apim
+      - name: Eliminar parametros y paquete temporales
+        if: always()
+        run: python3 infra/scripts/desplegar.py --limpiar

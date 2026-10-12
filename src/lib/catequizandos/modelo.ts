@@ -1,0 +1,14 @@
+export type Sexo = "femenino" | "masculino";
+export type Catequizando = { id: string; nombres: string; apellidos: string; fechaNacimiento: string; sexo: Sexo; bautizado: boolean; estado: "vigente" | "inactivo" | "anonimizado" };
+export type Apoderado = { id: string; nombres: string; apellidos: string; tipoContacto: "telefono" | "otro"; valorContacto: string; cuentaId?: string };
+export type Relacion = "madre" | "padre" | "otro_familiar" | "tutor";
+export type VinculoApoderado = { id: string; catequizandoId: string; apoderadoId: string; relacion: Relacion; detalleRelacion?: string; vigenteDesde: string; vigenteHasta?: string };
+export type Grupo = { id: string; cicloId: string; nombre: string; edadMinima: number; edadMaxima: number; modalidad: "mixto" | Sexo; estado: "abierto" | "cerrado" };
+export type Inscripcion = { id: string; catequizandoId: string; cicloId: string; consentimientoId: string; estado: "vigente" | "anulada"; desde: string; hasta?: string; edadAlInicio: number };
+export type AsignacionGrupo = { id: string; inscripcionId: string; grupoId: string; desde: string; hasta?: string; fueraDeSugerencia: boolean };
+export type EstadoDocumento = "pendiente" | "entregado" | "invalido" | "no_aplica";
+export type TipoDocumento = "documento_identidad" | "partida_nacimiento" | "partida_bautismo" | "boleta_pago" | "ficha_compromiso";
+export type DocumentoInscripcion = { id: string; inscripcionId: string; tipo: TipoDocumento; estado: EstadoDocumento; motivo?: string; fechaEstado: string; recibidoPor?: string };
+export type CategoriaCondicion = "trastorno_espectro_autista" | "deficit_atencion_hiperactividad" | "discapacidad_fisica" | "discapacidad_intelectual" | "alergia" | "condicion_medica" | "otra";
+export type CondicionCatequizando = { id: string; categoria: CategoriaCondicion; nota?: string };
+export type CarneEmision = { catequizandoId: string; emision: number; emitidaEn: string; emitidaPor: string; invalidadaEn?: string };

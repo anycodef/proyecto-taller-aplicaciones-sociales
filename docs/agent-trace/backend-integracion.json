@@ -1,0 +1,40 @@
+{
+  "version": "1.0",
+  "fecha": "2026-10-11",
+  "zonaHoraria": "America/Lima",
+  "agente": "OpenCode principal",
+  "modelo": "openai/gpt-6.1-sol",
+  "rama": "backend/001-003",
+  "tareas": ["T001-02", "T001-03", "T001-04", "T001-05", "T001-06", "T001-07", "T001-08", "T001-09", "T001-10", "T001-11", "T001-12", "T001-13", "T001-14", "T001-15", "T001-24", "T001-28", "T001-69", "T001-70", "T001-72", "T001-73", "T001-123", "T001-140", "T002-97", "T003-53", "T003-94", "T003-95", "T003-96", "T003-97", "T003-114", "T003-115"],
+  "fuentes": ["AGENTS.md", "docs/constitution.md", "specs/001-acceso-y-roles", "specs/002-perfil-catequizando", "specs/003-asistencia-dominical", "docs/backend-contratos.md", "https://learn.microsoft.com/en-us/azure/azure-functions/flex-consumption-plan", "https://watermelondb.dev/docs/Sync/Backend"],
+  "propiedad": ["package.json", "package-lock.json", "tsconfig.json", "eslint.config.js", ".gitignore", "jest.config.js", "api/package.json", "api/package-lock.json", "api/tsconfig.json", "api/jest.config.js", "api/esbuild.config.mjs", "api/host.json", "api/docker-compose.yml", "api/local.settings.example.json", "api/src/index.ts", "api/src/compartido", "api/migraciones/0001_base.sql", "api/migraciones/0002_ciclo_base.sql", "api/migraciones/0003_limites.sql", "api/migraciones/0505_actividades_obligatorias.sql", "api/migraciones/0801_ciclo_cuentas.sql", "api/scripts/migrar.ts", "api/scripts/configurar-roles.ts", "api/scripts/crear-administracion-inicial.ts", "api/scripts/sembrar-demo.ts", "api/scripts/verificar-migraciones.mjs", "api/scripts/verificar-host.mjs", "api/test/soporte", "api/test/unit/base", "api/test/integracion/base", "scripts/verificar-cobertura-rf.mjs", "src/lib/seguridad/__tests__/base.test.ts", "README.md", "docs/backend-implementacion.md"],
+  "integracionesRevisadas": [
+    "Registro real de 65 bindings HTTP con authLevel=function, seis timers y proveedores de ciclos/actividades/avisos",
+    "Matriz ciclo:gestionar exclusivamente administración",
+    "Resolución operativa del alcance por ciclo abierto, sin permisos de grupos históricos",
+    "Resumen de perfil con la misma Tx para evitar espera circular del pool3",
+    "Retención en orden asistencia, catequizandos, seguridad y avisos, conservando lápidas antes de borrar relaciones",
+    "Purga de metadatos con rol y contexto de retención; columna vence_en correcta",
+    "Proyecciones locales validadas contra catálogo por entidad/campo; avisos registrados y visibles a coordinación sin asignación de grupo",
+    "Preprocesamiento de metadata local y feedback de servidor de filas raw WatermelonDB antes de validación/huella; otros campos desconocidos rechazados",
+    "Correcciones de ausencias calculadas/sin_registro con autorización, valor anterior y motivo verificados; migración aditiva0310 y reporte manual sin inventar escaneos",
+    "Azurite local/CI con --skipApiVersionCheck para protocolo del SDK2026; borrado funcional real, ningún test omitido"
+  ],
+  "verificacion": {
+    "npmTest": { "resultado": "179 pasan: 1 cliente y 178 API; 26 suites API; cero fallidos/omitidos", "bd": "PostgreSQL16 Docker, BD efímera; Azurite3.35.0", "incidenteResuelto": "Una ejecución anterior de globalSetup falló ECONNRESET durante indisponibilidad transitoria de Docker. Después de restaurar el daemon y esperar salud de Compose, la ejecución integral final pasó sin omisiones." },
+    "typecheck": "npm run typecheck aprobado raíz y API",
+    "lint": "npm run lint aprobado sin advertencias",
+    "build": "npm --prefix api run build aprobado",
+    "openapi": "65 operaciones, 186 schemas; verificador aprobado",
+    "migraciones": "33 archivos válidos/inmutables frente a origin/main; runner real propietario probado, nueva0310 aplicada y checksum/rollback verificados",
+    "infra": "Bicep compilado y seis tests aprobados; actionlint sin ShellCheck/Pyflakes aprobado",
+    "adrs": "npm run adr:build genera 16 ADRs, advertencias de webpack sin fallos",
+    "host": "Azure Functions Core Tools4.15.2 + extension bundle4.38.1, host local TCP responde401genérico en yo/activación inválida con rol SQL API; caché temporal tras fallo de descarga automática",
+    "demo": "Semilla real con rol SQL API, cinco roles/cuenta mixta/dos hermanos; repetición devuelve enlacesNuevos vacíos",
+    "datos": "E2E grupo25:50marcas/50consolidados,89396bytes sin comprimir",
+    "concurrencia": "50 clientes, un consolidado/evento por niño/sesión; perfiles con tres conexiones sin transacciones anidadas",
+    "cobertura": "Informe RF:001 17/17,002 10/11,003 19/20; pendientes RNF-202 y RNF-305 corresponden a UI/dispositivo, no se fabrican tests"
+  },
+  "estado": "Backend integrado y verificado localmente antes de la publicación Git. El usuario solicita después los commits; publicación trazada en backend-publicacion-*.json, sin push. Checks finales en docs/backend-implementacion.md.",
+  "pendientes": ["Despliegue/what-if Azure y credencial federada GitHub", "Carga k6 en Azure", "Frontend, SecureStore, WatermelonDB nativo y pruebas de campo", "Integraciones reales de justificaciones004, avance005, aptitud006, riesgo007 y constancia/historial008", "Revisión/commits por tarea con las trazas; casillas de spec no se marcan si incluyen UI/evidencia externa no ejecutada"]
+}

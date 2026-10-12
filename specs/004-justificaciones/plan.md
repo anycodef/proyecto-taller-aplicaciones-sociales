@@ -117,7 +117,7 @@ Todas las rutas pasan por APIM (política base de 001: validación de JWT, CORS,
 | Proveedor de pull `justificaciones_estado` | protocolo de 003 | Cambios desde `actualizado_en` dentro del alcance del dispositivo | RF-410 |
 | Puerto `ConsultaJustificaciones` | 003, 006, 007 (en proceso) | `faltaJustificada`, `ausenciaMisaJustificada`, `estadoParaRiesgo`, `diasPlazo` | RF-409 |
 
-**Políticas de APIM específicas** (sobre la base de 001): límite más estricto en `POST /evidencias/reservas` y `POST /justificaciones/lotes` (orientativo 10 por minuto por cuenta, con clave = `sub` del JWT si el nivel Consumo lo admite; si no, la Function limita a 20 reservas por cuenta y hora contando en `evidencias`); `GET .../evidencia` sin caché en la respuesta. La subida y lectura de bytes van directo a Blob con SAS y no pasan por APIM.
+**Integración backend 001–003 (2026-10-11):** límites por cuenta en Functions con contador PostgreSQL atómico compartido (10/min en reservas/lotes y reservas 20/h), APIM Consumo solo global. `GET .../evidencia` sin caché; bytes por SAS directo a Blob. Puertos de justificaciones aprobadas, `alCambiarAsistencia(..., tx)`, resumen perfil y participante requieren integración real; no se declara 004 completo por disponer de contratos. Borrador real de blobs en 001; 004 aporta referencias.
 
 ## 6. Cliente
 

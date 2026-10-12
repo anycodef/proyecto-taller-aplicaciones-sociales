@@ -1,0 +1,15 @@
+{
+  "version": "1.0",
+  "fecha": "2026-10-11",
+  "agente": "OpenCode",
+  "modelo": "openai/gpt-6.1-sol",
+  "tarea": "T001-DOC",
+  "solicitud": "El usuario pide commitear los cambios siguiendo las convenciones",
+  "commitPrevisto": "docs(backend): fijar acuerdos y contratos de specs 001-003",
+  "alcance": ["AGENTS.md", "specs/", "docs/constitution.md", "docs/adr/", "docs/diagrams/", "docs/backend-contratos.md", "docs/backend-desarrollo.md", "api/openapi.json", "api/scripts/verificar-openapi.mjs", "docs/agent-trace/backend-documentacion.json"],
+  "trazaDeImplementacion": "docs/agent-trace/backend-documentacion.json",
+  "criterio": "Un commit por tarea de entrega; autoría y tareas originales conservadas en sus trazas. No se marcan completadas tareas de campo/cliente/despliegue por publicar el código.",
+  "comprobaciones": ["Revisión de git status, git diff y últimos 10 commits", "Revisión de archivos nuevos y exclusión de dependencias, bundles y configuración local", "Verificación de ausencia de enlaces personales reales y claves privadas en archivos de entrega", "npm test, npm run typecheck y npm run lint antes del commit", "Verificador OpenAPI y git diff --check"],
+  "resultados": { "tests": "179 pasan: 1 cliente y 178 API; cero omitidos", "typecheck": "Pasa raíz y API", "lint": "Pasa sin advertencias", "openapi": "65 operaciones y 186 schemas coherentes", "diff": "Sin errores de espacios" },
+  "notas": "No modifica configuración Git ni realiza push. El hash efectivo queda en git log. Resultados de esta publicación se comunican al finalizar."
+}

@@ -1,0 +1,69 @@
+name: Verificacion backend 001-003
+on:
+  pull_request:
+  push:
+    branches: [main, 'backend/**']
+  workflow_dispatch:
+  workflow_call:
+permissions:
+  contents: read
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  verificar:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s --health-timeout 5s --health-retries 5
+    env:
+      BD_PRUEBAS_URL: postgres://postgres:postgres@localhost:5432/postgres
+      BD_URL: postgres://postgres:postgres@localhost:5432/sigecat_ci_aislada
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            api/package-lock.json
+      - name: Instalar raiz y API
+        run: npm ci && npm ci --prefix api
+      - name: Tipos
+        run: npm run typecheck
+      - name: Lint
+        run: npm run lint
+      - name: Compilar Bicep
+        run: |
+          az bicep install --version v0.48.1
+          az bicep build --file infra/main.bicep --outfile "$RUNNER_TEMP/plantilla.json"
+          az bicep build --file infra/bootstrap.bicep --outfile "$RUNNER_TEMP/bootstrap.json"
+      - name: Migraciones inmutables
+        run: |
+          git fetch origin main
+          npm run verificar-migraciones --prefix api -- origin/main
+      - name: Azurite para SDK Blob actual (validacion funcional, sin rechazo por version emulada)
+        run: docker run --detach --name sigecat-azurite --publish 127.0.0.1:10000:10000 mcr.microsoft.com/azure-storage/azurite:3.35.0 azurite --blobHost 0.0.0.0 --skipApiVersionCheck
+      - name: Tests completos (globalSetup crea y migra bases aisladas)
+        run: npm test
+      - name: Tests de infraestructura compilada
+        run: node --test api/pruebas/infra/plantilla.test.mjs
+      - name: Compilar API
+        run: npm run build --prefix api
+      - name: Informe RF y RNF
+        run: node scripts/verificar-cobertura-rf.mjs
+      - name: Contratos OpenAPI
+        run: node api/scripts/verificar-openapi.mjs
+      - name: Diff sin errores de espacios
+        run: git diff --check

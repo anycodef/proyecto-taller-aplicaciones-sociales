@@ -1,6 +1,6 @@
 # 004 - Arquitectura de Backend Serverless (Node.js y Azure Functions v4)
 
-- Status: accepted
+- Status: superseded by 20261011-configuracion-servidores-azure-flex
 - Date: 2026-09-14
 - Tags: backend infraestructura
 

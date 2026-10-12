@@ -243,10 +243,10 @@
 
     `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T004-35** Limitar las reservas y los lotes en APIM, con respaldo en la Function
+- [ ] **T004-35** Limitar reservas/lotes por cuenta en Functions y globalmente en APIM
   - RF: RNF-403
   - Depende de: T004-34, T004-22, T001 (F0-4: política base de APIM)
-  - Hecho cuando: la política de APIM limita `POST /evidencias/reservas` y `POST /justificaciones/lotes` a 10 por minuto por `sub`. Pasa `RNF-403: la reserva 21 de una cuenta en una hora responde 429` (respaldo en la Function, contado en `evidencias`). `az bicep build` termina sin errores. `npm test`, `npm run typecheck` y `npm run lint` pasan.
+   - Hecho cuando: Functions limita a 10/min por cuenta con contador PostgreSQL atómico compartido, reservas 20/h; APIM solo global. Test `RNF-403: la reserva 21 de una cuenta en una hora responde 429` y concurrencia entre procesos prueban límite. Bicep y checks con evidencia; contrato de 001 no acredita módulo 004 implementado.
 
 - [ ] **T004-36** Implementar el servicio `crear-lote.ts` (verificar los blobs, insertar y confirmar)
   - RF: RF-402, RF-403, RF-404, RF-407, RNF-402
