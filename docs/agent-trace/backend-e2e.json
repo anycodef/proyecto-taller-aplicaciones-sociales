@@ -1,0 +1,68 @@
+{
+  "version": "1.0",
+  "fecha": "2026-10-11",
+  "agente": "OpenCode",
+  "modelo": "openai/gpt-6.1-sol",
+  "autorizacion": "Usuario autoriza escribir y ejecutar E2E reales backend 001–003 exclusivamente en api/test/e2e/**, api/test/http/inventario.test.ts y este trace. Defectos de producción y fixtures ajenas se reportan al principal.",
+  "fuentes": [
+    "AGENTS.md", "docs/constitution.md",
+    "specs/001-acceso-y-roles/spec.md", "specs/001-acceso-y-roles/plan.md", "specs/001-acceso-y-roles/tasks.md",
+    "specs/002-perfil-catequizando/spec.md", "specs/002-perfil-catequizando/plan.md", "specs/002-perfil-catequizando/tasks.md",
+    "specs/003-asistencia-dominical/spec.md", "specs/003-asistencia-dominical/plan.md", "specs/003-asistencia-dominical/tasks.md"
+  ],
+  "tareas": ["T001-71", "T001-72", "T001-108", "T001-140", "T002-59", "T002-79", "T002-95", "T002-97", "T002-105", "T003-94", "T003-95", "T003-96"],
+  "archivos": [
+    "api/test/e2e/soporte.ts",
+    "api/test/e2e/backend-001-003.test.ts",
+    "api/test/e2e/arranque-depuracion.test.ts",
+    "api/test/http/inventario.test.ts",
+    "docs/agent-trace/backend-e2e.json"
+  ],
+  "estado": "Pendiente de correcciones del principal: regresión del timer y tres tests ajenos impiden cerrar npm test. No se marcaron tareas completadas.",
+  "metodo": {
+    "bd": "Docker api-postgres-1, PostgreSQL 16.15; localhost:55432. BD_PRUEBAS_URL apunta a sigecat, globalSetup crea BD efímera y aplica todas las migraciones. Cada test E2E crea un esquema UUID y vuelve a aplicar todas las migraciones salvo 0001 (roles globales ya creados); public se sustituye únicamente por el esquema aislado, incluidas funciones SECURITY DEFINER. Esquemas/pools se eliminan al terminar.",
+    "rolSql": "Pool de handlers max=3, options role=sigecat_api, search_path aislado, statement_timeout=5000 y connectionTimeoutMillis=2000. Se verifica current_user; se usan permisos e índices reales. Pool administrativo separado solo para migraciones, bootstrap y fixtures históricas/controladas.",
+    "autenticacion": "HttpRequest e InvocationContext reales de @azure/functions; JWT emitido por manejarAcceso tras enlaces HTTP reales. Solo el administrador inicial se inserta por SQL. No se simulan autenticación, fuente de alcance, lógica de negocio, JWT, pg ni proveedores. Jest sustituye únicamente el destino del pool.",
+    "proveedores": "Registros directos iguales al index: resumenAsistencia pasa la Tx real; retención en orden asistencia, catequizandos, seguridad, avisos; proveedorAvisos real. Inventario importa index completo, intercepta app.http/app.timer y observa registros reales de proveedores sin ejecutar SQL. Prueba de depuración importa index y ejecuta su handler timer real contra PostgreSQL con rol API.",
+    "historia": "Inscripciones/asignaciones y activación de credenciales reciben una fecha histórica explícita tras el flujo HTTP para cubrir el domingo 2026-01-04; no se falsifica Date.now ni la verificación JWT. Fixture de ciclo histórico cerrado se inserta con rol/contexto de retención sin alterar migraciones ni triggers.",
+    "falloControlado": "Trigger SQL de fixture al actualizar completada_en de ejecucion_retencion provoca fallo al final de todos los participantes reales. Se comprueba rollback de consentimiento, perfil, códigos, ejecución y lápidas.",
+    "sameTx": "Tres borrowers reales ocupan el pool completo. El proveedor de producción lee una asistencia aún no confirmada únicamente desde su Tx y las otras dos lecturas no la ven. No se registran proveedores sonda ni se reemplaza consultarResumenAsistencia; pool.connect no se invoca durante las consultas de perfil. La suite existente ya verifica barreras/concurrencia y no se duplica carga de 50 clientes.",
+    "colas": "Dos cargas serializadas JSON representan pendientes de dos cuentas y se entregan a handlers HTTP reales; no son bases locales WatermelonDB ni un motor de sincronización nativo. Se prueban recepción íntegra, rechazo persistente e idempotencia backend.",
+    "inventario": "65 nombres HTTP únicos, todos authLevel=function, handlers presentes y comparación exacta de todos los métodos/rutas con OpenAPI. Seis timers presentes incluido depurarMetadatos. Index importa sin JWT_CLAVE, URL_WEB, BD_URL ni BLOBS_CONEXION y sin consultar SQL. Las rutas de canje de enlaces mantienen autenticación Function del host aunque no requieran JWT de usuario."
+  },
+  "coberturaBackend": [
+    "RF-101/102/105/107/109/110/111: enlaces, JWT reales, roles actuales en una consulta, CAT menor, COORD, SUP, FAM y unión CAT+FAM; 401/403 auditado/422, identidad real inaccesible al rol API, auditoría solo inserción.",
+    "RF-103/104/112: aviso de grupo por proveedor de producción, delegación evaluada con el mismo JWT, vencimiento y revocación inmediata; push revocado 401 y renovación con pendientes genera aviso a COORD.",
+    "RF-106/108: motor real con todos los participantes, anonimización completa y conteos en ejecución, hermano aún vinculado conserva acceso, cierre histórico no concede salud actual; lápidas de UUID originales llegan tras anulación, pendiente tardío no restaura UUID/QR, retiro idempotente y timer diario retiene ciclo vencido preservando agregados.",
+    "RF-201/202/203/204/205/206/207: alta completa HTTP, consentimiento obligatorio sin efectos parciales, duplicado opaco y confirmación, reintento de UUID, cinco documentos, corrección con valores/autor SQL, inválido requiere motivo, grupos e historial, condiciones no-store con alcance actual, hermano/apoderado y desvinculación selectiva.",
+    "RF-301/302/303/304/305/306/307/308/309/310/311/312/313: manual y escaneo ajeno, código inválido con aviso, lista de otro grupo, presencia consolidada y reenvíos sin duplicados, horas/autores ocultos a familia, reporte SUP con seudónimo y manuales, corrección del autor/denegación ajena, corrección posterior con motivo, doble falta y no falta con sin_registro/no_aplica, conflicto presente-gana, aviso cruzado y jornada con cumplimiento HTTP real.",
+    "RNF-203/306/307: nómina completa mínima sin condiciones/documentos/contacto/nacimiento/identidad real, operativo filtrado y validación carné solo estado. RNF-304: grupo de 25 niños, 51 filas aceptadas (lista+50 marcas), 50 marcas y 50 consolidados exactos; push+pull sin comprimir 89396 bytes, menor que 102400 bytes; bitácora real."
+  ],
+  "verificacion": {
+    "postgres": { "comando": "docker exec api-postgres-1 psql -U postgres -d sigecat -c 'SHOW server_version'", "resultado": "16.15 (Debian 16.15-1.pgdg13+2)" },
+    "e2eFlujosInventario": { "comando": "BD_PRUEBAS_URL=postgres://postgres:postgres@localhost:55432/sigecat npm --prefix api test -- --runTestsByPath test/e2e/backend-001-003.test.ts test/http/inventario.test.ts", "resultado": "13/13 tests, 2/2 suites aprobados, cero omitidos; 12 escenarios backend más 1 inventario, 17.414 s" },
+    "npmTest": { "comando": "BD_PRUEBAS_URL=postgres://postgres:postgres@localhost:55432/sigecat npm test", "resultado": "Cliente 1/1 aprobado; API 151 aprobados, 4 fallidos, 155 total; 18 suites aprobadas y 2 fallidas de 20; cero omitidos, 28.622 s. Fallos: timer de esta propiedad y tres tests de seguridad ajenos. No se declara verde." },
+    "typecheck": { "comando": "npm run typecheck", "resultado": "Aprobado raíz y API tras último cambio TS" },
+    "lint": { "comando": "npm run lint", "resultado": "Aprobado sin errores ni advertencias tras último cambio TS" },
+    "openapi": { "comando": "node api/scripts/verificar-openapi.mjs", "resultado": "Aprobado: 65 operaciones, 186 schemas; referencias, DTO, métodos/rutas y metadatos coherentes" },
+    "coberturaScript": { "comando": "node scripts/verificar-cobertura-rf.mjs", "resultado": "No ejecutable: MODULE_NOT_FOUND. Archivo aún ausente del principal; no se creó fuera del ámbito autorizado." },
+    "gitDiffCheck": "git diff --check aprobado; archivos nuevos no indexados",
+    "instalaciones": false,
+    "commits": false,
+    "tareasMarcadasCompletas": false
+  },
+  "defectosReportadosAlPrincipal": [
+    { "id": "E2E-001", "archivo": "api/src/index.ts:34", "evidencia": "arranque-depuracion.test.ts falla SQLSTATE 42501 permission denied for table lapida_sincronizacion al ejecutar timer real con rol sigecat_api. 0309 exige sigecat_retencion y contexto retencion; index no los fija.", "correccionNecesaria": "Fijar SET LOCAL ROLE sigecat_retencion y sigecat.contexto=retencion dentro de la Tx de depurarLapidasSincronizacion. Mantener regresión y reejecutar." },
+    { "id": "E2E-002", "archivo": "api/src/index.ts:36", "evidencia": "Inspección: consulta DELETE referencia_duplicado WHERE expira_en<now(); migración y aplicación usan vence_en. Primer fallo de permisos impide alcanzar esta consulta en la ejecución del timer.", "correccionNecesaria": "Usar vence_en. Test de timer incluye referencias vencida y vigente para verificar la corrección con SQL real." },
+    { "id": "E2E-003", "archivo": "api/test/integracion/seguridad/seguridad-bd.test.ts", "evidencia": "npm test falla tres escenarios en líneas 91,123,177: esquema aislado sin tabla grupo, requerida ahora por cargarContexto. relation grupo does not exist provoca también respuesta HTTP 500 en lugar de 403.", "correccionNecesaria": "Propietario de seguridad debe completar fixture con esquema mínimo real necesario por consulta actual de contexto; no debilitar autenticación ni tests." },
+    { "id": "E2E-004", "archivo": "scripts/verificar-cobertura-rf.mjs", "evidencia": "node devuelve MODULE_NOT_FOUND.", "correccionNecesaria": "Principal entrega y verifica script autorizado por T001-15; no afirmar cobertura automatizada aprobada." }
+  ],
+  "limitaciones": [
+    "No acredita WatermelonDB/LokiJS/SQLite, persistencia nativa, PIN local, modo avión, UI, Expo, TLS/APIM desplegado ni Azure Functions host servido por TCP; el arnés usa HttpRequest y handlers reales en proceso conforme plan de HTTP.",
+    "No acredita carga Azure de 50 VU/30 minutos, latencia percibida, comparación con papel ni QR físico; concurrencia PostgreSQL de 50 clientes queda en la suite existente, no duplicada aquí.",
+    "No acredita RF-311 con justificaciones reales 004: sigue puerto vacío explícito; los escenarios verifican faltas sin justificaciones. Actividad/ciclo mínimo no acredita specs 005/008 completas.",
+    "Bootstrap administrador y ciclo base son fixtures SQL; scripts inicial/demo del principal no se usaron ni se dan por verificados.",
+    "Los IDs RF en nombres trazan escenarios backend; no equivalen a completar requisitos con componentes cliente, pruebas físicas o módulos externos pendientes.",
+    "No se declara trabajo terminado mientras npm test tenga fallos. No se omitió, borró, debilitó ni convirtió a expectativa de fallo la regresión de depuración."
+  ]
+}

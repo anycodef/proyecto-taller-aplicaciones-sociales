@@ -1,0 +1,46 @@
+{
+  "version": "1.0",
+  "fecha": "2026-10-11",
+  "agente": "OpenCode",
+  "modelo": "openai/gpt-6.1-sol",
+  "rama": "backend/001-003",
+  "specs": ["specs/005-avance-formativo", "specs/008-historial-ciclos"],
+  "alcance": "Soporte transversal minimo para backend 001-003. No acredita avance 005 ni historial 008 completos. Sin commit, instalaciones ni edicion de specs, constitucion o main index.",
+  "tareas": ["T005-02", "T005-03", "T005-05", "T005-07", "T005-08", "T005-50", "T005-51", "T005-53", "T005-54", "T005-56", "T008-02", "T008-03", "T008-10", "T008-11", "T008-13", "T008-14", "T008-15", "T008-16", "T008-17", "T008-18", "T008-19", "T008-25", "T008-29", "T008-30", "T008-31", "T008-39"],
+  "fuentes": ["AGENTS.md", "docs/constitution.md", "docs/backend-contratos.md", "specs/005-avance-formativo/spec.md", "specs/005-avance-formativo/plan.md", "specs/005-avance-formativo/tasks.md", "specs/008-historial-ciclos/spec.md", "specs/008-historial-ciclos/plan.md", "specs/008-historial-ciclos/tasks.md"],
+  "cambios": [
+    "Dominio puro de ciclo/apertura/cierre/clasificacion/purga y catalogo de seis actividades, cumplimiento derivado y jornada vigente como unica falta.",
+    "Apertura administrativa idempotente por UUID cliente, fechas calendario reales, un unico abierto serializado, sesiones dominicales y parametros en misma transaccion, minoria al inicio del ciclo restaurando rol/contexto tras el puerto de seguridad.",
+    "Cierre administrativo irreversible con ciclo FOR UPDATE, terminacion de delegaciones y revocacion definitiva de credenciales de familia en una transaccion auditada; no desactiva cuentas ni borra asignaciones historicas. Reintento devuelve efectos anteriores.",
+    "Proveedor ciclos solo abiertos. Proveedor actividades por ciclo con timestamp, lapidas y proyeccion explicita sin datos restringidos. Registro local de ambas tablas; reemplazo del pull 003 limpia ciclos anteriores.",
+    "Extension limitada del validador/push 003 para actividades_obligatorias created/updated: autoria/credencial/dispositivo actuales, locks de ciclos/UUID/fechas ordenados y aplicacion antes de sesiones y marcas.",
+    "Actividad y sesion UUID v5 determinista en misma transaccion. Colisiones/negocio invalidos producen resumen de rechazo y aviso durable sin bloquear pushes siguientes; reintento identico aplicado antes del cierre es no-op aceptado.",
+    "Migracion nueva 0506_actividades_trazabilidad.sql; 0505 intacta. Autoria, huella de creacion, sello de sincronizacion y cambio_actividad inmutable con identificador determinista y trigger de ciclo.",
+    "Cambios de fecha/tipo se rechazan si hay marcas aceptadas. Reprogramacion cancela sesion previa y crea la nueva; cancelacion cancela sesiones sin borrar asistencia historica.",
+    "HTTP GET/POST ciclos, GET ciclo abierto, POST cerrar y alias cierre. GET/POST actividades, PATCH actividad y GET cumplimiento. Escritura HTTP adapta camelCase al mismo push transaccional; camino offline nativo sigue disponible. No-store y limite atomico por cuenta 30/min.",
+    "Cumplimiento reutiliza estados/marcas de 003, justificaciones por su puerto, filtra grupos propios en misma transaccion y muestra solo identidadOperativa de registradores.",
+    "Tests PostgreSQL aislados con todas las migraciones, rol real sigecat_api, JWT reales, apertura/idempotencia/minoria, push/pull/catalogo, rechazo durable, reprogramacion/cancelacion, cumplimiento/alcance, cierre/idempotencia/descarte y rollback si falla revocacion."
+  ],
+  "archivos": ["api/src/modulos/ciclos/**", "api/src/modulos/actividades/**", "src/lib/ciclos/**", "src/lib/actividades/**", "api/migraciones/0506_actividades_trazabilidad.sql", "api/src/modulos/sincronizacion/dominio/validacion.ts", "api/src/modulos/sincronizacion/aplicacion/push.ts", "src/lib/sincronizacion/registro-tablas.ts", "api/test/unit/transversal/dominio.test.ts", "api/test/integracion/transversal/transversal-bd.test.ts", "docs/agent-trace/backend-transversal.json"],
+  "integracionPrincipal": [
+    "Importar registrarCiclos() desde modulos/ciclos y registrarActividades() desde modulos/actividades y llamarlos en main index. Cada uno registra HTTP y proveedor pull una sola vez; no registrar los proveedores nuevamente.",
+    "RegistrarActividades tambien conecta registrarActividadSumaFalta con regla de jornada no cancelada. Se exportan proveedorCiclos/proveedorActividades para composiciones alternativas.",
+    "Restringir ciclo:gestionar en matriz de 001 a administracion. El caso de uso ya impone administracion aunque la matriz actual todavia conceda coordinacion. GET abierto usa yo:leer y permite cualquier cuenta autenticada conforme plan 008.",
+    "Filtrar gruposAsignados de cargarContexto por grupos del ciclo abierto; 001 actualmente consulta grupo_catequista sin ese filtro. Necesario para efecto catequistas sin grupo tras cierre sin destruir historia.",
+    "Actualizar OpenAPI/contratos con nuevos handlers/DTO/rutas reales. No se editaron archivos propiedad del agente de documentacion.",
+    "Aplicar 0506 en BD persistente con runner migrador. Pruebas la aplican en BD/esquemas efimeros; no se migro la BD persistente del principal.",
+    "Reinscripcion/emision de nuevo enlace corresponde a 001/002: nunca reactivar la credencial terminada por cierre. No se implemento historial/constancia/indicadores ni motor completo de 008 por este soporte.",
+    "Version/migracion WatermelonDB nativa y pantallas quedan a la integracion principal; esta entrega declara tablas puras y canal push/pull real."
+  ],
+  "verificacion": {
+    "postgresql": "Docker saludable en 127.0.0.1:55432; pruebas aisladas ejecutadas con BD_PRUEBAS_URL y rol sigecat_api.",
+    "transversal": "npm --prefix api test -- --testPathPattern=transversal: 2 suites, 12 tests aprobados, cero omitidos.",
+    "npmTest": "Ultima ejecucion tras todos los cambios de codigo: BD_PRUEBAS_URL=postgres://postgres:postgres@127.0.0.1:55432/sigecat npm test aprobado. App: 1 suite/1 test. API: 16 suites/135 tests, cero omitidos, 10.128 s. Transversal: 12 tests incluidos.",
+    "typecheck": "Ultima ejecucion npm run typecheck aprobada en raiz y API.",
+    "lint": "Ultima ejecucion npm run lint aprobada sin errores ni advertencias.",
+    "gitDiffCheck": "git diff --check aprobado; archivos nuevos no indexados.",
+    "commits": false,
+    "instalaciones": false,
+    "tareasMarcadasCompletas": false
+  }
+}

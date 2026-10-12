@@ -78,6 +78,9 @@ docs/
 - React Native 0.86 sobre Expo SDK 57, con Expo Router para la navegacion
 - TypeScript estricto con rutas tipadas
 - ESLint con `eslint-config-expo`
+- Backend modular Azure Functions v4, Node.js 22 y TypeScript: seguridad, inscripciones, perfiles, asistencia y sincronización
+- PostgreSQL 16 con SQL explícito y migraciones inmutables; Blob Storage privado para retención de evidencias
+- Infraestructura Bicep y workflows con OIDC; contrato [OpenAPI 3.1](api/openapi.json)
 
 ## Desarrollo
 
@@ -93,6 +96,8 @@ npm run lint
 
 ## Estado
 
+El backend de las specs 001–003 está implementado en `backend/001-003`, con soporte mínimo transversal de ciclos y actividades. La guía de ejecución y roles está en [docs/backend-desarrollo.md](docs/backend-desarrollo.md); el contrato para integrar frontend, en [docs/backend-contratos.md](docs/backend-contratos.md). Las comprobaciones locales y los pendientes de despliegue, interfaz y specs posteriores se registran en [docs/backend-implementacion.md](docs/backend-implementacion.md).
+
 Fase 2 cerrada: modelo de dominio, control de acceso por cuatro roles, cola de
 sincronizacion y aplicacion Expo con una pantalla de entrada por rol. Las
 pantallas tienen ruta y alcance definidos; su implementacion corresponde al
@@ -104,7 +109,7 @@ Pendiente antes de la Fase 3, en el orden en que bloquean:
    desarrollo; no funciona en Expo Go).
 2. Proveedor de identidad externo y almacenamiento seguro de tokens
    (`expo-secure-store`).
-3. Backend serverless, PostgreSQL y servicio de objetos para los adjuntos.
+3. Desplegar el backend y PostgreSQL con la configuración Azure/OIDC, y conectar los adjuntos de la spec 004.
 4. Punto de entrada web minimo para que los padres justifiquen por enlace sin
    instalar la app.
 

@@ -1,0 +1,10 @@
+{
+  "compilerOptions": {
+    "target": "ES2022", "module": "Node16", "moduleResolution": "Node16",
+    "strict": true, "esModuleInterop": true, "skipLibCheck": true,
+    "isolatedModules": true,
+    "paths": { "@/lib/*": ["../src/lib/*"] },
+    "types": ["node", "jest"]
+  },
+  "include": ["src/**/*.ts", "scripts/**/*.ts", "test/**/*.ts", "../src/lib/seguridad/**/*.ts", "../src/lib/avisos/**/*.ts", "../src/lib/catequizandos/**/*.ts", "../src/lib/asistencia/**/*.ts", "../src/lib/sincronizacion/**/*.ts"]
+}

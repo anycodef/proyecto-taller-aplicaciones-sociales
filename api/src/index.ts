@@ -1,0 +1,41 @@
+import { registrarSeguridad } from "./modulos/seguridad/http";
+import { registrarAvisos } from "./modulos/avisos/http";
+import { registrarCatequizandos } from "./modulos/catequizandos/http";
+import { registrarInscripciones } from "./modulos/inscripciones/http";
+import { registrarAsistencia } from "./modulos/asistencia/http";
+import { registrarSincronizacion } from "./modulos/sincronizacion/http";
+import { registrarProveedorResumen, participanteRetencion } from "./modulos/catequizandos";
+import { registrarParticipanteRetencion, participanteSeguridad } from "./modulos/seguridad";
+import { participanteRetencionAsistencia, consultarResumenAsistencia } from "./modulos/asistencia";
+import { proveedorAvisos, participanteRetencionAvisos } from "./modulos/avisos";
+import { registrarProveedor } from "./modulos/sincronizacion/aplicacion/registro-proveedores";
+import { registrarCiclos } from "./modulos/ciclos";
+import { registrarActividades } from "./modulos/actividades";
+import { app } from "@azure/functions";
+import { depurarLapidasSincronizacion } from "./modulos/asistencia/infraestructura/lapidas-sincronizacion";
+import { enTransaccion } from "./compartido/bd/transaccion";
+import { consultar } from "./compartido/bd/pool";
+
+registrarProveedorResumen({ nombre: "resumenAsistencia", consultar: (id, cicloId, _contexto, tx) => consultarResumenAsistencia(id, cicloId, tx) });
+registrarParticipanteRetencion(participanteRetencionAsistencia);
+registrarParticipanteRetencion(participanteRetencion);
+registrarParticipanteRetencion(participanteSeguridad);
+registrarParticipanteRetencion(participanteRetencionAvisos);
+registrarProveedor(proveedorAvisos);
+registrarSeguridad();
+registrarAvisos();
+registrarCatequizandos();
+registrarInscripciones();
+registrarAsistencia();
+registrarSincronizacion();
+registrarCiclos();
+registrarActividades();
+app.timer("depurarMetadatos", { schedule: "0 30 9 * * *", handler: async () => {
+  await enTransaccion(async tx => {
+    await tx.query("SET LOCAL ROLE sigecat_retencion");
+    await tx.query("SELECT set_config('sigecat.contexto','retencion',true)");
+    return depurarLapidasSincronizacion(tx);
+  });
+  await consultar("DELETE FROM contador_limite WHERE ventana<floor(extract(epoch FROM now()-interval '1 day')/60)::bigint");
+  await consultar("DELETE FROM referencia_duplicado WHERE vence_en<now()");
+} });

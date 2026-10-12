@@ -44,3 +44,9 @@ example
 
 # log4brains
 /.log4brains
+api/local.settings.json
+api/coverage/
+coverage/
+infra/*.bicepparam
+!infra/*.example.bicepparam
+*.compiled.json
