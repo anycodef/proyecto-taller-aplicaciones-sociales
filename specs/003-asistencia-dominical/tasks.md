@@ -2,14 +2,16 @@
 
 > Tareas para implementar [spec.md](spec.md) según [plan.md](plan.md). Las rige la [constitución](../../docs/constitution.md) y [AGENTS.md](../../AGENTS.md). Si una tarea contradice la spec o el plan, prevalecen ellos y se corrige primero la tarea.
 
-**Total: 113 tareas.** Todas son de primer corte (113). Bloqueadas por aclaración: 6 (T003-102, T003-103, T003-104, T003-105, T003-106 y T003-112). Condicionales de plan B: 2 (T003-06 y T003-07).
+**Total: 116 tareas**, incluidas T003-114/115/116. El backend completo está en alcance; etiquetas de primer corte conservan orden histórico. Decisiones A-301–A-313 aceptadas; seis tareas físicas/condicionales conservan evidencia pendiente, no bloqueos de aprobación backend. Plan B: T003-06/07 condicionales.
 
 ## Leyenda y reglas comunes
+
+Acuerdo final de transporte (ADR 015): HTTP `{ changes, timestamp, experimentalStrategy?, huellaAlcance }`, conjuntos `{ created, updated, deleted }` y push `{ changes }` conservan interfaz WatermelonDB nativa. Adaptadores españoles internos opcionales, sin traducción obligatoria. Filas snake_case, colecciones plurales y SQL singular. Tests de dominio/transporte no requieren veredicto físico WatermelonDB ni acreditan entrega nativa.
 
 | Etiqueta | Significado |
 | --- | --- |
 | **[Primer corte]** | Forma parte del primer corte del proyecto. Por indicación del equipo, toda la spec 003 es primer corte, incluidas las tareas de la sección «Fase 2», que se ejecutan en cuanto las specs 004 y 005 entreguen las piezas de las que dependen. |
-| **[Bloqueada por aclaración]** | Depende de una duda `[NECESITA ACLARACIÓN]` de la spec (supuestos A-301, A-303, A-304 o A-305 del plan, §11). La tarea indica cuál. Las demás tareas avanzan con el supuesto provisional del plan. |
+| **[Bloqueada por aclaración]** | Etiqueta histórica: A-301–A-313 aceptados; la tarea física sigue sin cerrar hasta realizar su medición/entrega. T003-102 usa valores aceptados; las otras conservan dependencias físicas. |
 | **[Plan B]** | Solo se ejecuta si la prueba técnica de la fase 0 (T003-05) descarta WatermelonDB. En ese caso, las tareas T003-67 a T003-73 se rehacen sobre `expo-sqlite` con el mismo protocolo de `src/lib/sincronizacion/protocolo.ts`. |
 
 - Cada tarea dura como máximo 20–30 minutos de trabajo y se cierra en un commit (Conventional Commits) con su registro Agent Trace (principio 9).
@@ -21,7 +23,7 @@
 
 ---
 
-## Fase 0 — Prueba técnica y acuerdos (bloquea el resto)
+## Fase 0 — Prueba técnica y acuerdos (bloquea entrega nativa, no API/dominio)
 
 - [ ] **T003-01** Justificar en la spec las dependencias de la prueba técnica **[Primer corte]**
   - RF: RF-302, RF-307, RNF-302, RNF-305
@@ -302,7 +304,7 @@
 - [ ] **T003-55** Configurar en APIM las políticas de las rutas de sincronización **[Primer corte]**
   - RF: RF-307, RNF-303
   - Depende de: T003-53, T001 (F0-4: Bicep base de APIM)
-  - Hecho cuando: el Bicep fija 30 llamadas/min por cuenta, cuerpo máximo de 512 KB en el push y sin CORS para `/sincronizacion/*`; `az bicep build` termina sin errores y el `what-if` contra el entorno de pruebas muestra las tres políticas; `npm test`, `npm run typecheck` y `npm run lint` pasan.
+   - Hecho cuando: Functions impone 30 llamadas/min por cuenta con contador PostgreSQL atómico compartido, y prueba 429 entre procesos; APIM impone solo global, cuerpo máximo 512 KB y CORS por ruta. Bicep/what-if y tests/typecheck/lint quedan con evidencia de integración/despliegue.
 
 ## Fase 1.4 — Módulo `asistencia` (API)
 
@@ -354,12 +356,12 @@
 - [ ] **T003-65** Implementar el temporizador `generarSesionesDominicales` **[Primer corte]**
   - RF: RF-301
   - Depende de: T003-41, T003-14, T008 (`GET /ciclos/abierto` o lectura del ciclo abierto)
-  - Hecho cuando: pasan `RF-301: generarSesionesDominicales crea misa y catequesis de cada domingo faltante del ciclo abierto` y `RF-301: ejecutarlo dos veces no duplica sesiones`; el disparador queda como temporizador de los lunes a las 03:00 y como función invocable por el plan 008; `npm test`, `npm run typecheck` y `npm run lint` pasan.
+   - Hecho cuando: tests de generación idempotente RF-301 pasan; timer `0 0 8 * * 1` UTC (lunes 03:00 Lima), invocable por 008. Tests/typecheck/lint pasan con evidencia.
 
 - [ ] **T003-66** Implementar `precalentarDomingo` y acotar pool y escalado **[Primer corte]**
   - RF: RNF-303
   - Depende de: T003-08, T001 (F0-4: Function App en Bicep)
-  - Hecho cuando: pasan `RNF-303: precalentarDomingo se programa cada 5 minutos de 7 a 11 los domingos en hora de Lima` y `RNF-303: el pool pg usa el máximo acordado de conexiones por instancia`; el Bicep fija el límite de instancias acordado en T003-08 y `az bicep build` termina sin errores; `npm test`, `npm run typecheck` y `npm run lint` pasan.
+   - Hecho cuando: timer `0 */5 12-16 * * 0` UTC; test RNF-303 verifica pool 3/proceso, worker 1, max 5/grupo, HTTP10, 2048 MB y always-ready0. Bicep y carga verifican inventario de grupos/conexiones; no se afirma que timer precaliente HTTP. Tests/typecheck/lint con evidencia.
 
 ## Fase 1.5 — Cliente (base local, sincronización y pantallas)
 
@@ -584,7 +586,7 @@
 - [ ] **T003-108** Invocar `alCambiarAsistencia` de 004 en la transacción de consolidación **[Primer corte]**
   - RF: RF-309, RF-311
   - Depende de: T003-56, T004 (puerto `alCambiarAsistencia`)
-  - Hecho cuando: pasa `RF-309: una corrección a presente deja sin efecto la justificación de esa ausencia y volver a ausente la restaura` (en la misma transacción); `npm test`, `npm run typecheck` y `npm run lint` pasan.
+   - Hecho cuando: puerto opcional `alCambiarAsistencia(..., tx)` participa en la transacción de consolidación con rollback total al fallar; evento durable se escribe en `evento_asistencia` para consumidores con cursor/idempotencia. Tests de contrato falsos no cierran integración real RF-309 con 004; no duplicar efecto al consumir evento. Integración y checks requieren evidencia.
 
 - [ ] **T003-109** Usar `actividadSumaFalta` del plan 005 en `faltasDelCiclo` **[Primer corte]**
   - RF: RF-311, RF-313
@@ -615,6 +617,16 @@
 ---
 
 ## Cobertura
+
+- [ ] **T003-114** Registrar `resumenAsistencia` para perfil 002 (RF-201, RF-301, RF-311).
+  - Depende de: T003-90, T003-110, T002-96, T002-107.
+  - Hecho cuando: proveedor real compone resumen por ciclo y alcance con periodos históricos, familia sin horas/registrador y perfil ajeno denegado; tests PostgreSQL/HTTP con ids RF y checks con evidencia.
+- [ ] **T003-115** Registrar participante de retención de asistencia (RF-106, RF-108, RF-308).
+  - Depende de: T003-40, T001-126, T002-102.
+  - Hecho cuando: motor conserva asistencia anonimizada sin nombres/código QR/detalles personales en marcas, correcciones, avisos y eventos, en retiro/vencimiento y ciclo cerrado, con rol y contexto SET LOCAL; tests de permisos/rollback/idempotencia citan RF y checks con evidencia.
+- [ ] **T003-116** Verificar lápidas de retención antes de anonimizar (RF-106, RF-108, RF-307, RNF-101).
+  - Depende de: T003-115, T001-126.
+  - Hecho cuando: migración aditiva `0309_lapidas_sincronizacion.sql` permite escribir solo con rol/contexto de retención; guarda colección/UUID original/destinatario/ciclo/fecha, sin niño, QR, nombres ni cuerpos. Tests `RF-106: retiro captura lápidas antes de cambiar IDs`, `RF-307: pull posterior elimina UUID original aunque perdió alcance`, `RNF-101: ledger de lápidas solo guarda metadatos`, `RF-108: purga de lápidas respeta ventana de 60 días` cubren retiro/anulación/vencimiento/rollback y no exponen lápidas ajenas. Checks y timer del principal con evidencia, sin marcar completada por docs.
 
 Cada requisito de la spec y las tareas que lo implementan o verifican. La última columna señala las tareas con el test principal o la medición con umbral.
 

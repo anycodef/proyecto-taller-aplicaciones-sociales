@@ -17,7 +17,9 @@ coordinación, catequistas (muchos menores de edad) y familias.
 - Ejecutar: `npm start` (Expo Go) · `npm run android` · `npm run web`
 - Tipos: `npm run typecheck`
 - Lint: `npm run lint`
-- Tests: `npm test` — aún no existe; lo agrega la primera spec (`jest-expo`).
+- Tests: `npm test` — cliente con `jest-expo` y API, incluida integración PostgreSQL (`BD_PRUEBAS_URL`).
+- Backend: `npm --prefix api install`, `npm --prefix api run build`, `npm --prefix api start`. Desarrollo: `docs/backend-desarrollo.md`.
+- OpenAPI: `node api/scripts/verificar-openapi.mjs`; no requiere dependencias adicionales.
 
 ## Estructura
 - `src/app/` — rutas de Expo Router, una pantalla por archivo. Solo presentan y delegan.
@@ -33,6 +35,11 @@ coordinación, catequistas (muchos menores de edad) y familias.
 - Comentarios solo para explicar el porqué, no el qué.
 
 ## Reglas
+- Acuerdos backend 001–003 (2026-10-11): alcance backend completo, incluidas fases posteriores al primer corte; decisiones de los planes aceptadas, implementación y verificaciones físicas/despliegue pendientes de evidencia. Contratos: `docs/backend-contratos.md`; seguimiento: `docs/backend-implementacion.md`.
+- HTTP: camelCase español; excepción de transporte WatermelonDB conserva `changes`, `timestamp`, `experimentalStrategy`, `created`, `updated`, `deleted`, colecciones plurales y filas snake_case; adaptadores españoles internos opcionales. PostgreSQL: tablas singulares snake_case. QR exclusivamente `SGC1:<uuid>:<emision>` (`codigo_carne` local, `emision` en BD).
+- Flex: pool 3 por proceso, 1 worker, 5 instancias por grupo, concurrencia HTTP 10, 2048 MB, always-ready 0, timers UTC. Límites por cuenta en Functions con contador PostgreSQL atómico; APIM global.
+- Administración exclusivamente ONLINE según constitución; PIN local, nunca contraseña enviada al servidor. No marcar tareas hechas sin evidencia.
+- La pausa temporal de npm durante la instalación del principal terminó. Checks integrales y evidencia final a cargo del principal; no declarar aprobados los que no se ejecutaron. PostgreSQL local usa `PUERTO_POSTGRES` (por defecto 55432).
 - No añadas dependencias ni cambies el modelo de datos sin actualizar antes la spec.
 - No modifiques archivos dentro de `specs/` ni `docs/constitution.md` salvo petición explícita.
 - Cada requisito de la spec tiene un identificador (`RF-001`, `RNF-001`) y al menos un test que lo cita en su nombre.

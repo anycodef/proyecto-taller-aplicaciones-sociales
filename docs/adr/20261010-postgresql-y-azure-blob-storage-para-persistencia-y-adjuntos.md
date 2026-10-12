@@ -1,6 +1,6 @@
 # 010 - Adopción de PostgreSQL para datos estructurados y Azure Blob Storage para almacenamiento de archivos y justificaciones
 
-- Status: accepted
+- Status: superseded by 20261011-excepcion-administrativa-online-y-retencion
 - Date: 2026-10-10
 - Tags: base-de-datos persistencia backend cloud arquitectura
 

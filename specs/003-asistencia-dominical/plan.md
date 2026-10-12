@@ -5,6 +5,8 @@
 
 ## 1. Resumen y alcance
 
+**Acuerdo 2026-10-11:** backend completo de todas las fases; D-301–D-316 y A-301–A-313 aceptados. Prueba técnica WatermelonDB/QR bloquea la entrega nativa, no dominio/API. UI, campo y despliegue no se declaran terminados. Contratos estables en [guía frontend](../../docs/backend-contratos.md); pendientes en [seguimiento](../../docs/backend-implementacion.md).
+
 **Cubre:** RF-301 a RF-313 y RNF-301 a RNF-307. Además, HU-306 (consulta de la familia) como lectura en línea.
 
 | Bloque | RF / RNF |
@@ -42,28 +44,44 @@
 
 ## 3. Modelo de datos
 
+### Acuerdo de integración: lápidas y retiro de consentimiento
+
+Las filas locales de listas, marcas y correcciones incluyen `estado`, `motivo_rechazo` y `recibido_en` para recibir confirmaciones del servidor. El push ignora exclusivamente esos tres campos de respuesta en esas colecciones: WatermelonDB envía la fila raw completa aunque el usuario solo haya cambiado un campo. No pueden alterar la validación, reloj recibido o resultado del servidor y no participan en la huella idempotente. La autoría, valor, sesión, carné y restantes campos de negocio se validan normalmente.
+
+Compatibilidad nativa WatermelonDB: el push descarta `_status` y `_changed` de cada fila antes de validar el esquema de negocio y calcular su huella idempotente; jamás los guarda ni los devuelve en pull. Son metadatos exclusivamente locales, no permisos ni estados de servidor. Los demás campos desconocidos siguen rechazados. Esto cumple el punto 8 del contrato backend oficial: https://watermelondb.dev/docs/Sync/Backend (consultado 2026-10-11).
+
+Contrato/verificador: `esquemaPush = z.preprocess(ignorarMetadatosLocales, z.object(...).strict())`; modelos Zod siguen estrictos sin metadata ni feedback. DTO de entrada permite metadata en las cinco filas; feedback estado/motivo_rechazo/recibido_en solo ListaPush/MarcaPush/CorreccionPush, opcional/writeOnly/ignorado. Outputs independientes conservan whitelist y feedback normal calculado por servidor. Verificador valida listas literales de campos/colecciones y descuenta solo excepciones por schema; autoría nunca se excluye. Ejemplos raw con defaults/reenvío y test PostgreSQL RF-307/RNF-306 comprueban huella, ausencia de metadata, unknown422 y código inválido rechazado pese a estado aceptada enviado.
+
+La migración aditiva `0309_lapidas_sincronizacion.sql` conserva solo colección, UUID de fila anterior, cuenta destinataria, ciclo y fecha de eliminación. No incluye niño, QR, nombres ni contenido de asistencia. Antes de anonimizar identificadores o retirar autoría se encolan las lápidas para los destinatarios anteriores; el pull las entrega aunque la fila anonimizada ya no cumpla su filtro de alcance. Así un retiro posterior a una anulación elimina también los registros ya sincronizados. La bandeja se depura después de la ventana máxima de reconexión.
+
+Un registro pendiente posterior al retiro conserva su rechazo y autor operativo, pero nunca restaura el QR, vínculo al niño retirado ni valores personales. Push y retención bloquean la fila del niño para impedir que una carrera vuelva a introducir datos retirados. Tests RF-106/RF-307 verifican retiro tras anulación, aplicación de lápidas al cliente y pendientes tardíos.
+
 ### 3.1 PostgreSQL (`api/migraciones/`)
+
+Las tablas físicas son singulares: `sesion`, `lista_asistencia`, `marca_asistencia`, `asistencia`, `correccion_asistencia`, `aviso_asistencia`, `evento_asistencia`. Los nombres plurales del esquema local/`changes` son colecciones WatermelonDB, no nombres SQL. Cada adaptador hace el mapeo explícito. `catequizando` y `grupo` son las tablas de 002. Todas las piezas de asistencia incluyen `ciclo_id`/guardia de congelamiento según 008; inmutabilidad se exceptúa únicamente por rol de retención **y** contexto `SET LOCAL` del motor.
 
 **Supuesto de numeración:** cada spec usa su centena (`03NN` para la 003), para que los planes escritos en paralelo no choquen. Si el plan 001 define otra convención, estos archivos se renumeran antes de aplicarse; todavía no hay ninguno aplicado.
 
 | Migración | Tabla / objeto | Columnas clave | RF |
 | --- | --- | --- | --- |
-| `0300_infraestructura_sincronizacion.sql` | función `fijar_actualizado_en()` y convención de columnas | Toda tabla sincronizada lleva `actualizado_en timestamptz` (reloj del servidor, fijado por trigger) y `eliminado_en timestamptz null` (lápida). Si las tablas `catequizandos` y `grupos` del plan 002 no las traen, esta migración las añade con `IF NOT EXISTS` y les engancha el trigger. | RF-307 |
+| `0300_infraestructura_sincronizacion.sql` | función `fijar_actualizado_en()` y convención de columnas | Proyecciones sincronizadas llevan `actualizado_en` servidor y `eliminado_en` lápida. Añadir a `catequizando`/`grupo` de 002 si falta, con trigger y `IF NOT EXISTS` | RF-307 |
 | `0300_infraestructura_sincronizacion.sql` | `bitacora_sincronizacion` | `id`, `cuenta_id`, `dispositivo_id`, `operacion` (`pull`/`push`), `recibido_en`, `duracion_ms`, `bytes_entrada`, `bytes_salida`, `aceptados`, `rechazados`, `descartados_cierre`, `version_esquema` | RF-307, RNF-303, RNF-304 |
 | `0301_parametros_asistencia.sql` | `parametros_asistencia_ciclo` | `ciclo_id` (PK), `zona_horaria` (`America/Lima`), `ventana_misa_inicio` (`07:30`), `ventana_misa_fin` (`09:30`), `hora_fin_domingo` (`23:59:59`), `tolerancia_reloj_min` (10) | RF-302, RF-305, RF-309 |
-| `0302_sesiones.sql` | `sesiones` | `id` = UUID v5(`ciclo_id`, `fecha`, `tipo`, `actividad_id`), `ciclo_id`, `fecha date`, `tipo` (`misa` / `catequesis` / `actividad`), `actividad_id uuid null` (sin FK: la añade el plan 005), `ventana_inicio` / `ventana_fin timestamptz null` (si son nulas se usan los parámetros), `cancelada bool`, `motivo_cancelacion`, `actualizado_por` | RF-301, RF-305, RF-313 |
-| `0303_marcas_asistencia.sql` | `listas_asistencia` | `id` (generado en el dispositivo), `sesion_id`, `grupo_id`, `confirmada_por`, `abierta_en` y `confirmada_en` (hora del celular), `desfase_reloj_ms`, `recibido_en`, `total_presentes`, `total_ausentes` | RF-306, RF-313, RNF-301 |
-| `0303_marcas_asistencia.sql` | `marcas_asistencia` (solo se añaden filas) | `id` (generado en el dispositivo), `sesion_id`, `catequizando_id null` (nulo si el código no se resolvió), `codigo_leido null`, `valor` (`presente` / `ausente`), `tipo_registro` (`escaneo` / `manual` / `lista`), `lista_id null`, `registrado_por`, `dispositivo_id`, `hora_dispositivo`, `desfase_reloj_ms null`, `recibido_en` (hora del servidor, fijada al primer insert), `estado` (`aceptada` / `rechazada`), `motivo_rechazo`. Índice por (`sesion_id`, `catequizando_id`). | RF-302, RF-303, RF-304, RF-306, RF-308 |
-| `0304_asistencias.sql` | `asistencias` (estado consolidado, la escribe solo el servidor) | `id` = UUID v5(`sesion_id`, `catequizando_id`), `UNIQUE(sesion_id, catequizando_id)`, `valor`, `tipo_registro`, `hora_primer_registro`, `recibido_primer_registro`, `corregida bool`, `conflicto bool` | RF-302, RF-308, RF-311, RF-312 |
-| `0305_correcciones_asistencia.sql` | `correcciones_asistencia` (solo se añaden filas) | `id` (generado en el dispositivo), `sesion_id`, `catequizando_id`, `valor_anterior` (`presente` / `ausente` / `sin_registro`), `valor_nuevo`, `motivo null` (obligatorio después del fin del domingo), `corregido_por`, `hora_dispositivo`, `desfase_reloj_ms`, `recibido_en`, `estado`, `motivo_rechazo` | RF-306, RF-309 |
-| `0306_avisos_asistencia.sql` | `avisos_asistencia` | `id` = UUID v5(`tipo`, `sesion_id`, `catequizando_id` o `marca_id`), con lo que es idempotente; `ciclo_id`, `tipo` (`codigo_invalido` / `registro_rechazado` / `conflicto_registro` / `revision_cruzada`), `sesion_id`, `catequizando_id null`, `marca_id null`, `detalle jsonb` (sin datos restringidos), `estado` (`abierto` / `atendido`), `atendido_por`, `atendido_en` | RF-303, RF-308, RF-310 |
-| `0307_eventos_asistencia.sql` | `eventos_asistencia` (bandeja de salida) | `secuencia bigserial`, `tipo` (`asistencia_cambiada`), `ciclo_id`, `catequizando_id`, `fecha`, `creado_en`. La consumen los planes 004, 006 y 007 para recalcular. | RF-309, RF-311 |
+| `0302_sesiones.sql` | `sesion` | UUID v5(ciclo, fecha, tipo, actividad), `ciclo_id`, `fecha`, `tipo`, `actividad_id` (FK añadida por 005), `ventana_inicio/fin`, `cancelada`, `motivo_cancelacion`, `actualizado_por` | RF-301, RF-305, RF-313 |
+| `0303_marcas_asistencia.sql` | `lista_asistencia` | UUID cliente, `ciclo_id`, `sesion_id`, `grupo_id`, `confirmada_por`, `abierta_en`, `confirmada_en`, `desfase_reloj_ms`, `recibido_en`, `total_presentes/ausentes` | RF-306, RF-313, RNF-301 |
+| `0303_marcas_asistencia.sql` | `marca_asistencia` (inmutable) | UUID cliente, `ciclo_id`, `sesion_id`, `catequizando_id` nullable, `codigo_leido`, `valor`, `tipo_registro`, `lista_id`, `registrado_por`, `dispositivo_id`, `hora_dispositivo`, `desfase_reloj_ms`, `recibido_en` fijado al primer insert, `estado`, `motivo_rechazo`; índice sesión/niño | RF-302, RF-303, RF-304, RF-306, RF-308 |
+| `0304_asistencias.sql` | `asistencia` (solo servidor) | UUID v5(sesión, niño), `ciclo_id`, `sesion_id`, `catequizando_id`, UNIQUE(sesión, niño), `valor`, `tipo_registro`, `hora_primer_registro`, `recibido_primer_registro`, `corregida`, `conflicto` | RF-302, RF-308, RF-311, RF-312 |
+| `0305_correcciones_asistencia.sql` | `correccion_asistencia` (inmutable) | UUID cliente, `ciclo_id`, `sesion_id`, `catequizando_id`, `valor_anterior/nuevo`, `motivo` obligatorio tras domingo, `corregido_por`, `hora_dispositivo`, `desfase_reloj_ms`, `recibido_en`, `estado`, `motivo_rechazo` | RF-306, RF-309 |
+| `0306_avisos_asistencia.sql` | `aviso_asistencia` | UUID v5(tipo, sesión, niño/marca), `ciclo_id`, `tipo`, `sesion_id`, `catequizando_id`, `marca_id`, `detalle` sin datos restringidos, `estado`, `atendido_por/en` | RF-303, RF-308, RF-310 |
+| `0307_eventos_asistencia.sql` | `evento_asistencia` | `secuencia bigserial`, `tipo`, `ciclo_id`, `catequizando_id`, `fecha`, `creado_en`; consumidores 004/006/007 con cursor/idempotencia | RF-309, RF-311 |
 
 **Lo que no se guarda (D-303):**
 - La ausencia en misa (RF-305) y la falta (RF-311) se calculan, no se persisten.
 - Las justificaciones aprobadas (plan 004) y los periodos de inscripción y de grupo (plan 002) se leen a través de puertos.
 
 ### 3.2 Almacén local (WatermelonDB sobre SQLite, solo en el build nativo)
+
+Soporte transversal actual: `ciclos` solo pull (`id`, `nombre`, `fecha_inicio`, `fecha_fin`, `estado` abierto); `actividades_obligatorias` pull por ciclo y push COORD (`id`, `ciclo_id`, `nombre`, `tipo`, `fecha`, `estado` vigente/cancelada, `creado_por`, `cuenta_id`, `credencial_id`, `dispositivo_id`). 0506 añade autoría/traza, no transporta huella ni tabla `cambio_actividad`. En push updated se permite para actividad y sesión; deleted sigue vacío. Orden de aplicación actividad → sesión → lista → marca → corrección. Los providers/registradores deben conectarse en el arranque real; definición en archivo no acredita arranque/despliegue.
 
 | Tabla local | Dueño del dato | Sentido | Alcance que baja al celular | RF / RNF |
 | --- | --- | --- | --- | --- |
@@ -98,12 +116,14 @@ Al completarse los pasos:
 
 ## 4. Lógica de dominio (`src/lib/`, TS puro)
 
+**Corrección de estado calculado (RF-305, RF-309, A-310):** `Correccion.valorAnterior` admite `presente`, `ausente` y `sin_registro`; `valorNuevo` sigue limitado a `presente`/`ausente`. El servidor compara el valor anterior con `estadoEnSesion`, usando inscripción/grupo históricos, lista aceptada del grupo y hora efectiva de la corrección, no exige una marca materializada para una ausencia calculada o catequesis sin registro. `pendiente` y `no_aplica` no se convierten en ausencias ni admiten corrección. Sin marca propia no hay autorización de catequista antes del fin del domingo; después solo coordinación con motivo. Cuando solo hay correcciones aceptadas, estas bastan para consolidar: manda la última por recibido/id, los registradores son sus autores operativos y la primera corrección de presencia (o la primera si todas son ausencias) aporta horas dispositivo/servidor y tipo `manual`, sin fabricar escaneo ni marca histórica. Si existen marcas se conserva la regla de la primera marca presente. La migración aditiva `0310_correcciones_sin_registro.sql` amplía únicamente el CHECK de `valor_anterior`; no se modifica 0305 aplicada.
+
 | Archivo | Reglas / firmas ilustrativas | RF |
 | --- | --- | --- |
 | `asistencia/tipos.ts` | `Sesion`, `MarcaAsistencia`, `ListaAsistencia`, `Correccion`, `AsistenciaConsolidada`, `EstadoEnSesion = 'presente' \| 'ausente' \| 'sin_registro' \| 'pendiente' \| 'no_aplica'` | todos |
 | `asistencia/sesiones.ts` | `domingosDelCiclo(inicio, fin): string[]`; `idSesion(cicloId, fecha, tipo, actividadId?)` (UUID v5); `ventanaDe(sesion, parametros)`; `sesionEnCurso(sesiones, ahora)`; `finDelDomingo(fecha, parametros)` | RF-301, RF-302, RF-309, RF-313 |
 | `asistencia/reloj.ts` | `estimarDesfase(horaServidor, enviadoEn, recibidoEn): number`; `horaEfectiva(horaDispositivo, desfaseMs)`; `dentroDeVentana(horaEfectiva, ventana, toleranciaMin)` | RF-302, RF-309 |
-| `asistencia/carne.ts` | `interpretarCodigoQr(texto): string \| null` (acepta un UUID solo o con el prefijo que fije el plan 002); `resolverCarne(codigo, nomina): { estado: 'valido' \| 'inactivo' \| 'desconocido', catequizandoId? }` | RF-302, RF-303 |
+| `asistencia/carne.ts` | `interpretarCodigoQr(texto): { catequizandoId; emision } \| null`, únicamente `SGC1:<uuid>:<emision>`; reutiliza 002. Rechaza UUID suelto, prefijos alternativos y emisión inválida; `resolverCarne` contrasta `codigo_carne` local con emisión vigente | RF-302, RF-303 |
 | `asistencia/escaneo.ts` | `procesarEscaneo(ctx): { resultado: 'registrado' \| 'ya_registrado' \| 'pendiente_validacion' \| 'rechazado' \| 'fuera_de_ventana', mostrarNombre: boolean, marca? }`. Con conexión rechaza un código desconocido o inactivo; sin conexión lo guarda como pendiente de validar. | RF-302, RF-303, RNF-307 |
 | `asistencia/autorizacion.ts` | `puedeEscanear(cuenta)`; `puedeVerNombreAlEscanear(cuenta, nino)` (solo si es de sus grupos); `puedeRegistrarManual(cuenta, nino)` (solo sus grupos); `puedePasarLista(cuenta, grupo)` (cualquier grupo); `puedeCorregir(cuenta, registro, ahora)`; `puedeConfigurarSesiones(cuenta)`. Se apoya en los roles efectivos del plan 001. | RF-302, RF-304, RF-306, RF-309, RF-301 |
 | `asistencia/lista.ts` | `abrirLista(ninosActivosDelGrupo)` (todos presentes); `alternar(borrador, ninoId)`; `confirmarLista(borrador, cuenta, hora) → { lista, marcas[] }` | RF-306, RF-313 |
@@ -113,7 +133,7 @@ Al completarse los pasos:
 | `asistencia/revision-cruzada.ts` | `detectarMisaSinCatequesis(asistenciasDelDomingo, lista): catequizandoId[]` | RF-310 |
 | `asistencia/reporte-misa.ts` | `armarReporteMisa(sesion, asistencias, activosEnFecha, identidadOperativa)`: presentes con hora del celular, hora del servidor, registrador o registradores, tipo; totales presentes / activos; número de registros manuales | RF-304, RF-312 |
 | `asistencia/tablas-sincronizadas.ts` | Definiciones de las tablas de la §3.2 propias de la spec 003 | RF-307 |
-| `sincronizacion/protocolo.ts` | Tipos del formato de WatermelonDB: `CambiosPorTabla = Record<string, { created, updated, deleted }>`, `RespuestaPull { changes, timestamp, experimentalStrategy? }`, `ResumenPush { aceptados, rechazados, descartadosCierre }` | RF-307 |
+| `sincronizacion/protocolo.ts` | Transporte HTTP nativo WatermelonDB: `CambiosPorTabla = Record<string, { created, updated, deleted }>`, `RespuestaPull { changes, timestamp, experimentalStrategy?, huellaAlcance }`, push `{ changes }`, `ResumenPush { aceptados, rechazados, descartadosCierre }`; filas snake_case/colecciones plurales. Adaptadores españoles internos opcionales, no frontera obligatoria | RF-307 |
 | `sincronizacion/alcance.ts` | `huellaAlcance(cuenta)` (hash de roles efectivos y grupos); `filtroPull(definicion, cuenta)`; `requiereReemplazo(huellaCliente, huellaServidor)` | RF-307, RNF-306 |
 | `sincronizacion/orquestador.ts` | `debeSincronizar(evento, estado)` (reconexión, primer plano, después de confirmar una lista o de cada escaneo con red); `esperaReintento(intentos)` (se mueve aquí desde `src/lib/offline/cola-sincronizacion.ts`) | RF-307 |
 | `sincronizacion/pendientes.ts` | `contarPendientes(filasLocales, cuentaId)` | RF-307 |
@@ -131,12 +151,16 @@ Todas las Functions validan el JWT y los roles efectivos en el propio handler, c
 
 ### 5.1 Módulo `sincronizacion`
 
+Las columnas «APIM» describen límites operacionales: **cada límite por cuenta vive en Functions con contador PostgreSQL atómico compartido**. APIM conserva global/cuerpo/CORS. Excepción HTTP acordada en ADR 015: `changes`, `timestamp`, `experimentalStrategy`, `created`, `updated`, `deleted` se conservan nativos, sin traducción obligatoria; filas snake_case y colecciones plurales. Pull añade `huellaAlcance`; query conserva `ultimoPulso`, `versionEsquema`, `huellaAlcance`, `migracion` (JSON de `{ tablas, columnas? }`). POST actual acepta solo `{ changes }` y no consume `ultimoPulso` de query. Schemas detallados en `api/openapi.json` basados en código, no propuestas.
+
 | Método y ruta | Function | Roles | Autorización y comportamiento | APIM | RF |
 | --- | --- | --- | --- | --- | --- |
 | `GET /sincronizacion/cambios?ultimoPulso&versionEsquema&huellaAlcance&migracion` | `sincronizacionPull` | catequista, coordinación (incluida la delegada) | Arma `changes` por tabla con el filtro de alcance (§3.2). Usa `actualizado_en > ultimoPulso - 60 s`: el solapamiento cubre transacciones que confirman tarde, y WatermelonDB trata un `created` ya existente como actualización. Si la huella de alcance cambió o `ultimoPulso` es nulo, responde con `experimentalStrategy: 'replacement'`. Agrega la cabecera `x-hora-servidor` y respuesta gzip si el cliente acepta. | 30 llamadas/min por cuenta; sin CORS (solo la app nativa) | RF-307, RNF-304, RNF-306 |
 | `POST /sincronizacion/cambios?ultimoPulso` | `sincronizacionPush` | catequista, coordinación | Si la cuenta o el enlace están revocados → 401 (rechazo y aviso definidos en plan 001, RF-112). Si el ciclo está cerrado → descarta todo y lo cuenta en la bitácora (RF-802). Si no, aplica en **una transacción**, en orden: sesiones → listas → marcas → correcciones. Inserta con `ON CONFLICT (id) DO NOTHING`, así que reintentar es idempotente. Valida cada fila: autor = cuenta del token, sesión vigente, ventana, carné, alcance. Un rechazo de negocio **no** falla el push: la fila se guarda con `estado='rechazada'` y `motivo_rechazo`, y genera un aviso. Responde `ResumenPush`. | Cuerpo de 512 KB como máximo; 30 llamadas/min por cuenta | RF-303, RF-307, RF-308 |
 
 ### 5.2 Módulo `asistencia`
+
+OpenAPI también cubre soporte transversal de ciclo y catálogo/cumplimiento en `ciclos/http` y `actividades/http`. POST apertura solo ADM; cierre alias `/ciclos/{id}/cerrar` y `/cierre` sin query/cuerpo, efectos auditados/idempotentes. Actividad comparte procesador push; reprogramación sin marcas aceptadas y cancelación con traza. Registro de handlers/providers real se verifica en integración; no sustituye resto de 005/008.
 
 | Método y ruta / disparador | Function | Roles | Autorización | APIM | RF |
 | --- | --- | --- | --- | --- | --- |
@@ -145,17 +169,18 @@ Todas las Functions validan el JWT y los roles efectivos en el propio handler, c
 | `GET /asistencia/avisos?estado` | `listarAvisosAsistencia` | coordinación | Todo el ciclo | 30/min | RF-303, RF-308, RF-310 |
 | `POST /asistencia/avisos/{id}/atencion` | `atenderAvisoAsistencia` | coordinación | Registra quién atendió el aviso y cuándo | 30/min | RF-303, RF-308, RF-310 |
 | `GET /asistencia/catequizandos/{id}/domingos` | `asistenciaDeCatequizando` | familia (solo sus hijos), catequista (sus grupos), coordinación, supervisión | Por alcance; a la familia no se le muestra el registrador | 30/min; CORS a Static Web Apps | HU-306, RF-301, RF-311 |
-| Temporizador semanal (lunes 03:00) | `generarSesionesDominicales` | sistema | Crea de forma idempotente (UUID v5) los domingos del ciclo abierto que falten. El plan 008 también la invoca al abrir un ciclo. | — | RF-301 |
-| Temporizador `*/5 7-11 * * 0` (hora de Lima) | `precalentarDomingo` | sistema | Una consulta trivial para mantener caliente la instancia y el pool (D-314) | — | RNF-303 |
+| Temporizador `0 0 8 * * 1` (UTC; lunes 03:00 Lima) | `generarSesionesDominicales` | sistema | Generación idempotente UUID v5; invocable por 008 | — | RF-301 |
+| Temporizador `0 */5 12-16 * * 0` (UTC; domingo 07–11 Lima) | `precalentarDomingo` | sistema | Consulta trivial en su grupo; no garantiza mantener caliente el grupo HTTP | — | RNF-303 |
 
 **Servicios internos que consumen otros módulos** (llamadas dentro del proceso, no HTTP):
 - `consultarAusencias(cicloId, filtro)`, para el plan 004 (ausencias justificables) y el plan 006 (ausencias a misa).
 - `consultarFaltas(cicloId, filtro)`, para el plan 007.
 - `consultarCumplimientoActividad(actividadId)`, para el plan 005.
 - La bandeja `eventos_asistencia`, para recalcular (planes 004, 006 y 007).
+- `resumenAsistencia(catequizandoId, cicloId, contexto, tx)`: proveedor de `ProveedorResumenPerfil` de 002, misma fuente de ausencias/faltas y proyección por rol; FAM sin horas/registradores.
 
 Puertos que este módulo consume:
-- `FuenteJustificacionesAprobadas`: plan 004. En el primer corte, su adaptador devuelve un conjunto vacío.
+- `FuenteJustificacionesAprobadas`: plan 004. Adaptador vacío/falso solo para desarrollo aislado; nunca acredita integración real ni ausencia de justificaciones en un despliegue que habilite 004.
 - `FuenteInscripciones` (periodos activos y grupo en una fecha) y `ResolutorCarnes`: plan 002.
 - `IdentidadOperativa`: plan 001.
 
@@ -211,7 +236,7 @@ El layout por rol y la protección de rutas con sesión y PIN están definidos e
 | D-311 | **Web solo en línea**, sin WatermelonDB (familia y reportes) | WatermelonDB con LokiJS en la web | Las familias solo consultan (HU-306) y en la web no se toma asistencia. Así no hay datos de niños en navegadores ajenos. |
 | D-312 | **Las correcciones son filas nuevas sincronizadas**, también las de la coordinación | Editar la marca original; endpoint en línea para la coordinación | Traza completa (RF-309) y principio 5 (toda escritura va primero al almacén local). |
 | D-313 | **Bandeja de salida `eventos_asistencia`** en PostgreSQL para avisar cambios a 004, 006 y 007 | Llamadas directas entre módulos; Azure Storage Queues | Es duradera, transaccional junto con el cambio de asistencia, cuesta 0 y no añade recursos de Azure. Los consumidores guardan su propia `secuencia`. |
-| D-314 | **Pool `pg` acotado** (máx. 4 por instancia), **límite de escalado** de la Function App (5 instancias) y **precalentamiento dominical** | PgBouncer integrado (no disponible en el nivel Burstable B1ms); plan Premium (con costo) | Respeta el límite de conexiones de B1ms en el pico (RNF-303) con costo 0. Como el registro es local, una demora del servidor nunca la nota el catequista. |
+| D-314 | Pool `pg` 3 por proceso, 1 worker, máximo 5 instancias **por grupo** Flex, HTTP concurrency 10, memoria 2048 MB, always-ready 0; timers UTC | Pool 4; supuesto de 5 instancias globales; Premium | Un grupo puede usar 15 conexiones, pero HTTP y timers escalan separados: sumar grupos/auxiliares y medir en despliegue. Precalentar un timer no garantiza calentar HTTP. Azure 2026 permite máximo desde 1 (ADR 014); no prometer costo ni capacidad verificados |
 | D-315 | **Validación del carné primero contra la nómina local**; el endpoint solo se usa si el código es desconocido y hay red | Validar siempre en línea | Confirmación en menos de 1 s (RF-302), funciona sin red (RF-303) y casi no consume datos. |
 | D-316 | **Sincronización automática con la app abierta** (reconexión, vuelta a primer plano, lista confirmada) | Tarea en segundo plano con `expo-background-task` | RF-307 pide envío «sin intervención», y esto se cumple al abrir la app sin pulsar nada. La tarea en segundo plano queda como opción si la prueba de campo muestra registros que tardan días en enviarse. |
 
@@ -324,9 +349,9 @@ Todos los tests corren con Jest. El nombre de cada uno cita su RF o RNF. Configu
 | Spec | Este plan necesita | Este plan entrega |
 | --- | --- | --- |
 | 001 | JWT, roles efectivos (incluida la delegación), middleware de autorización, sesión sin conexión con PIN (RF-112), rechazo de pendientes de cuentas revocadas, `identidadOperativa`, infraestructura, APIM, Jest y CI | Lista de columnas prohibidas en el celular; borrado local tras cerrar sesión basado en `registrado_por` |
-| 002 | Tablas `catequizandos` y `grupos` con `actualizado_en` / `eliminado_en`, periodos de inscripción y de grupo (`FuenteInscripciones`), `codigo_carne` y `ResolutorCarnes` | Las tablas locales `catequizandos` y `grupos` (nómina) y su proveedor de sincronización |
+| 002 | SQL `catequizando`/`grupo` con columnas sync; periodos de inscripción/asignación `FuenteInscripciones`, `emision` BD y `ResolutorCarnes` | Colecciones locales `catequizandos`/`grupos`, `codigo_carne` derivado y proveedor sync; `resumenAsistencia` para perfil |
 | 004 | `FuenteJustificacionesAprobadas` | `consultarAusencias`, `eventos_asistencia` (deja sin efecto una justificación si la ausencia pasa a presente, RF-407) |
-| 005 | Tabla `actividades` (id, tipo, fecha) y la FK `sesiones.actividad_id` | Sesiones de actividad, `consultarCumplimientoActividad`, mecanismo de tablas locales para las evaluaciones |
+| 005 | Tabla mínima `actividad_obligatoria` (`0505`, id/ciclo/tipo/fecha/estado) y FK `sesion.actividad_id` | Sesiones/`consultarCumplimientoActividad`; no acredita avance 005 completo |
 | 006 | — | `consultarAusencias` (misa), `eventos_asistencia` |
 | 007 | — | `consultarFaltas`, `eventos_asistencia`, domingos seguidos sin asistencia |
 | 008 | Estado del ciclo (abierto o cerrado), la llamada a `generarSesionesDominicales` al abrir un ciclo | Descarte después del cierre, conteo en la bitácora |
@@ -372,7 +397,9 @@ Todos los tests corren con Jest. El nombre de cada uno cita su RF o RNF. Configu
 
 ## 12. Orden de implementación
 
-**Fase 0 — prueba técnica (bloquea el resto):**
+El orden histórico de fases no reduce el alcance backend actual. Las pruebas nativas siguen pendientes, pero no bloquean construir API/contratos puros. Integraciones externas 004–008 se entregan como puertos y baterías de contrato; no como módulos completos. La tabla mínima `actividad_obligatoria` de `0505` soporta RF-313, y `0002` + `0801` soportan ciclo/guardia, sin completar avance o historial.
+
+**Fase 0 — prueba técnica (bloquea entrega nativa, no API/dominio):**
 1. Build de desarrollo con EAS en un Android de gama baja con WatermelonDB (JSI), el plugin de configuración y `CameraView` leyendo QR con poca luz (R-301, R-305).
 2. Acordar con el plan 001 la numeración de migraciones y la configuración de Jest.
 
@@ -383,7 +410,7 @@ Todos los tests corren con Jest. El nombre de cada uno cita su RF o RNF. Configu
 4. Módulo `asistencia`: procesamiento de marcas, avisos, correcciones, `validarCarne`, `reporteMisa` y temporizadores.
 5. Cliente: base local, esquema, motor y disparadores, pantallas `asistencia/*`, `coordinacion/sesiones`, `coordinacion/avisos-asistencia` y `reportes/misa`.
 6. RF-311 con el adaptador vacío de justificaciones; el comportamiento se prueba con un adaptador falso.
-7. RF-313 con la tabla mínima `actividades` del plan 005. Si no está lista, RF-313 es la última tarea del corte.
+7. RF-313 con `actividad_obligatoria` mínima de `0505`; cumplir backend actual requiere ese soporte, sin declarar avance 005 completo.
 8. Test extremo a extremo de un domingo sin red, carga con k6 y prueba de campo (criterios de finalización, RNF-301 a RNF-307).
 
 **Fase 2 — integración con las demás specs:**

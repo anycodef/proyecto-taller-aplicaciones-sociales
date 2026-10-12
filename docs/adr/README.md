@@ -36,6 +36,7 @@ npm run adr:build
   `superseded by ...`). Si la decisión cambia, se escribe un ADR nuevo que
   reemplaza al anterior.
 - Estados en uso: `proposed`, `accepted`, `deprecated`, `superseded`.
+- Log4brains 1.1.0 exige `- Status: superseded by <slug>` para indicar sustitución: nombre de archivo **sin `.md`**, sin enlace Markdown. Ejemplo: `superseded by 20261011-transporte-nativo-watermelondb`. El índice y el ADR sustituto mantienen los enlaces explicativos; en el histórico solo cambia el campo de estado.
 - La sección "Opciones consideradas" es obligatoria: el valor del ADR está en
   dejar constancia de lo que se descartó y por qué.
 

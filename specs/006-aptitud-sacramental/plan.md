@@ -5,6 +5,8 @@
 
 ## 1. Resumen y alcance
 
+**Integración backend 001–003 (2026-10-11):** 003 expone `consultarAusencias` y eventos durables de asistencia; 001 aporta autorización/seudónimo/auditoría y registro de participantes. Estos puertos no completan el motor de aptitud 006. Consumidor real con cursor/idempotencia y participante de retención se verifican al integrar este módulo; todo timer UTC. Estado de evidencia en [seguimiento](../../docs/backend-implementacion.md).
+
 | Id | Qué cubre este plan |
 | --- | --- |
 | RF-601 | Umbrales por ciclo (máximo de ausencias a misa, mínimo de oraciones, criterio de doctrina), versionados; sin propuesta mientras falte alguno. |

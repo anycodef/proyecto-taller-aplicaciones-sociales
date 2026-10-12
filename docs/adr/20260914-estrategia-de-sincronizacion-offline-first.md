@@ -1,6 +1,6 @@
 # 002 - Estrategia de sincronización de datos Offline-First
 
-- Status: accepted
+- Status: superseded by 20261011-excepcion-administrativa-online-y-retencion
 - Date: 2026-09-14
 - Tags: mobile datos offline
 

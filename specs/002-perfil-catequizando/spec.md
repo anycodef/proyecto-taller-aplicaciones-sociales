@@ -2,6 +2,22 @@
 
 ## Contexto y objetivo
 
+### Acuerdos aprobados para backend/001-003 (2026-10-11)
+
+Se aceptan D-201 a D-214 y C-01 a C-13 del plan como decisiones cerradas. Las marcas históricas de aclaración remiten a esos acuerdos. Se cubren todas las fases backend: documentos (solo estados), correcciones, condiciones, apoderados, grupos, carné y retención. UI, impresión física, tiempos de digitación y módulos externos requieren evidencia propia.
+
+UUID interno, sin DNI. QR exclusivamente `SGC1:<uuid>:<emision>`; BD conserva `emision` y el pull deriva `codigo_carne`. Los periodos de inscripción y asignación se consultan mediante `FuenteInscripciones`, sin usar el grupo actual para reconstruir fechas pasadas. RF-106 de 001 exige borrar condiciones, estados documentales e historial personal, anonimizar el perfil y dejarlo inactivo en las listas; solo borra datos del apoderado si no tiene otros hijos vinculados.
+
+### Dependencias justificadas del cliente
+
+| Paquete | Motivo y alternativa descartada |
+| --- | --- |
+| `qrcode-generator` | Matriz QR en TS puro para pantalla/HTML; evita PNG en servidor |
+| `react-native-svg` | Dibuja matriz sin wrapper QR adicional |
+| `expo-print` | Imprime HTML nativo/web; evita servicio PDF backend |
+
+Se conserva D-210. En nativo se usa el flujo de impresión; compartir PDF requiere justificar `expo-sharing` antes de instalarlo. SDK 57 y mediciones físicas se verifican en las tareas cliente, no se dan por probados en esta entrega documental.
+
 La información de cada niño está repartida entre la cartilla física, la lista impresa de secretaría, el WhatsApp de la coordinación y un Excel que nadie alcanza a mantener. El coordinador pidió, sin que se le sugiriera, "presionar el nombre y que aparezca todo lo que está pasando con el niño". Además, cada año hay más niños con autismo u otras necesidades, y el equipo empezó a considerarlas al formar los grupos.
 
 **Objetivo:** un perfil único por niño que reúna sus datos, el estado de sus documentos de inscripción, sus condiciones a considerar y, a medida que avancen las demás specs, su asistencia, justificaciones y avance formativo; y que la coordinación pueda formar grupos teniendo en cuenta esas condiciones.
@@ -105,6 +121,8 @@ La información de cada niño está repartida entre la cartilla física, la list
 - Una corrección de datos conserva el valor anterior y quién la hizo.
 
 ## Dudas abiertas
+
+Registro histórico: las respuestas C-01–C-13 del plan fueron aceptadas el 2026-10-11. UUID/sin DNI, exoneración, categorías, ficha solo estado, sexo obligatorio y reducción de alcance por hijo quedan decididos; no bloquean backend.
 
 - **[NECESITA ACLARACIÓN]** Identificador del niño: ¿código interno del sistema, DNI obligatorio, o código sin guardar el número de documento? Incluye cómo se detectan duplicados y qué pasa con niños sin DNI o con documento extranjero. Pendiente de consultar con el coordinador.
 - **[NECESITA ACLARACIÓN]** ¿Una familia exonerada del pago cuenta como "boleta entregada" o tiene un estado propio?

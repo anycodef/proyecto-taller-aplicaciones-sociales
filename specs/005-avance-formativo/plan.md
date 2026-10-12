@@ -40,6 +40,10 @@
 
 ## 3. Modelo de datos
 
+**Integración backend 001–003 (2026-10-11):** adelantar `0505` con `actividad_obligatoria` mínima y `crearSesionActividad` no completa avance/oraciones/doctrina 005. `sesionId` es UUID v5 calculable en dispositivo según 003, no otro UUID aleatorio. La FK hacia `sesion` la añade este bloque; si `0505` ya fue aplicada, modificaciones van en migración nueva. `actividadSumaFalta`, cumplimiento, resumen y participante de retención son puertos con integración real pendiente; falsos no acreditan módulo completo.
+
+Contrato físico/transporte actual: `sesion.actividad_id → actividad_obligatoria.id`, sin `actividad_obligatoria.sesion_id`; reprogramación produce otro UUID v5 de sesión y cancela anterior. `estado` es vigente/cancelada. `0506_actividades_trazabilidad.sql` agrega cuenta/credencial/dispositivo/huella_creacion y crea `cambio_actividad`; huella/controles/cambios nunca bajan en la fila sync. HTTP GET/POST/PATCH/cumplimiento y colección nativa ya tienen DTO de código en OpenAPI; no completan avance/oraciones/doctrina. El número 0506 queda ocupado por trazabilidad: listas pendientes futuras toman siguiente número libre.
+
 ### 3.1 PostgreSQL (`api/migraciones/`)
 
 Columnas de control de sincronización (`creado_en_servidor`, `actualizado_en_servidor`, `eliminado_en` o equivalentes): **definidas en plan 003**; se añaden a toda tabla sincronizable. FK a `ciclo` (plan 008), `grupo` y `catequizando` (plan 002), `usuario` (plan 001), sesiones y asistencia (plan 003).
@@ -54,9 +58,9 @@ Columnas de control de sincronización (`creado_en_servidor`, `actualizado_en_se
 | | `instrumento_doctrina` | `id`, `ciclo_id`, `escala_id`, `nombre`, `tipo` (`tema` \| `periodica` \| `final`), `fecha date NULL`, `orden`, `cancelado boolean` | La escala no cambia si ya hay evaluaciones (validado en dominio) | RF-503 |
 | | `evaluacion_doctrina` | `id`, `catequizando_id`, `instrumento_id`, `ciclo_id`, `grupo_id`, `valor_nivel text NULL`, `valor_numerico numeric NULL`, `evaluador_id`, `evaluado_en`, `recibido_en`, `dia_evaluacion` | `CHECK` exactamente un valor; inmutable como `evaluacion_oracion` | RF-503, RF-506 |
 | `0504_correcciones_evaluacion.sql` | `correccion_evaluacion` | `id`, `evaluacion_oracion_id NULL`, `evaluacion_doctrina_id NULL`, `valor_anterior`, `valor_nuevo`, `corregido_por`, `corregido_en`, `recibido_en`, `motivo text NULL`, `por_coordinacion boolean` | `CHECK` exactamente una FK; `CHECK (NOT por_coordinacion OR motivo <> '')`; inmutable | RF-506 |
-| `0505_actividades_obligatorias.sql` | `actividad_obligatoria` | `id`, `ciclo_id`, `nombre`, `tipo` (`jornada` \| `retiro` \| `viacrucis` \| `posada` \| `misa_precepto` \| `semana_santa`), `fecha date`, `sesion_id uuid` (sesión de asistencia del plan 003, UUID del dispositivo), `estado` (`programada` \| `cancelada`), `creado_por` | `UNIQUE(sesion_id)` | RF-504 |
-| | `cambio_actividad` | `id`, `actividad_id`, `campo` (`fecha` \| `estado` \| `nombre`), `valor_anterior`, `valor_nuevo`, `cambiado_por`, `cambiado_en` | Inmutable | RF-504 (cancelada/reprogramada) |
-| `0506_listas_pendientes.sql` | `lista_pendientes_generada` | `id`, `grupo_id`, `ciclo_id`, `generada_por`, `generada_en`, `corte_en` (instante de los datos usados), `cantidad_ninos`, `huella_sha256`, `advertencia_aceptada boolean` | Sin nombres de niños (D-506) | RF-505 |
+| `0505_actividades_obligatorias.sql` | `actividad_obligatoria` | `id`, `ciclo_id`, `nombre`, `tipo`, `fecha`, `estado` vigente/cancelada, `creado_por`, columnas sync; FK desde `sesion.actividad_id` | UUID sesión determinista por actividad/fecha, sin columna editable de sesión en catálogo | RF-504 |
+| `0506_actividades_trazabilidad.sql` | Autoría en `actividad_obligatoria`; `cambio_actividad` | Autoría `cuenta_id`, `credencial_id`, `dispositivo_id`, `huella_creacion` servidor; cambios `id`, `ciclo_id`, `actividad_id`, `campo` nombre/tipo/fecha/estado, valores anterior/nuevo, autor/fecha | Cambio inmutable salvo motor con rol y contexto; DTO sync excluye huella/cambios | RF-504 |
+| `05NN_listas_pendientes.sql` (siguiente libre, no 0506) | `lista_pendientes_generada` | `id`, `grupo_id`, `ciclo_id`, `generada_por`, `generada_en`, `corte_en`, `cantidad_ninos`, `huella_sha256`, `advertencia_aceptada` | Sin nombres (D-506); módulo externo pendiente | RF-505 |
 
 **No hay tabla de cumplimiento de actividades** (RNF-503, D-505): el cumplimiento se lee de la asistencia de la sesión `sesion_id` (plan 003).
 
@@ -166,7 +170,7 @@ Grupos de rutas por rol y la pantalla del perfil del niño: **definidos en plane
 | D-502 | Corrección = fila en `correccion_evaluacion` que apunta a la evaluación corregida; "olvidó la oración" = **nueva** evaluación "aún no". | Tratar toda corrección como nueva evaluación. | RF-506 distingue el error de registro (con plazo, motivo y traza) del cambio real de saber (RF-502); mezclarlos borraría la regla de plazo. |
 | D-503 | Estado vigente calculado en TypeScript (`src/lib/seguimiento`) en cliente y servidor. | Vista SQL con `DISTINCT ON`. | Una sola implementación de la regla (principio 3); el volumen es pequeño (≈100 niños × 10 oraciones × pocas evaluaciones). |
 | D-504 | Doctrina como **instrumento + escala** guardados como datos. | Nota numérica fija; una tabla por método. | El método está pendiente (RF-503): tema semanal, periódica o final son solo distinta cantidad de instrumentos; cambiar la escala no exige migración. |
-| D-505 | Actividad = catálogo + **sesión de asistencia del plan 003** con `sesion_id` generado en el dispositivo; cumplimiento derivado. | Tabla `cumplimiento_actividad` o firma propia. | RNF-503 y RF-504: un solo registro; quien registró la asistencia es la constancia; UUID del cliente (principio 6). |
+| D-505 | Actividad catálogo + sesión 003 con UUID v5(actividad/fecha/ciclo) calculable en cliente; relación `sesion.actividad_id`, cumplimiento derivado | Columna sesión redundante en actividad; tabla de cumplimiento/firma propia | RNF-503/RF-504: un registro de asistencia; reprogramar cancela sesión anterior y genera nueva determinista; no sesión aleatoria |
 | D-506 | Lista de pendientes generada **en el servidor, con conexión**; se guarda metadato + `corte_en` + huella SHA-256, no el contenido. | Generarla en el celular; guardar una copia del texto. | Debe coincidir con las evaluaciones registradas y dejar constancia (RF-505); como el historial es inmutable, el contenido es reproducible al `corte_en` sin duplicar datos personales fuera de la retención. |
 | D-507 | Compartir como **texto plano** con `Share` de React Native (en web usa Web Share cuando existe; si no, texto seleccionable). | `expo-sharing` + PDF (`expo-print`). | Sin dependencias nuevas (principio 1); según la doc de SDK 57, `expo-sharing` comparte archivos locales y en web solo URLs; la familia recibe hoy la lista por mensajería como texto. |
 | D-508 | La lista de evaluación es un borrador en pantalla y se guarda con un solo `database.write`. | Escribir en cada toque. | Escribir por toque generaría correcciones espurias al cambiar de opinión; el grupo es ≤ 20 niños, el riesgo de perder un borrador es bajo. |
@@ -187,7 +191,8 @@ api/
     0503_doctrina.sql
     0504_correcciones_evaluacion.sql
     0505_actividades_obligatorias.sql
-    0506_listas_pendientes.sql
+    0506_actividades_trazabilidad.sql
+    05NN_listas_pendientes.sql             # siguiente libre al implementar RF-505
   src/modulos/
     seguimiento/
       dominio/indice.ts                       # reexporta src/lib/seguimiento
@@ -253,7 +258,7 @@ Una misma batería contra la implementación en memoria y la de PostgreSQL:
 - `RF-502: el repositorio rechaza UPDATE y DELETE de evaluacion_oracion`.
 - `RF-502: insertar dos veces el mismo UUID deja un solo registro` (idempotencia, RNF-502).
 - `RF-506: corrección de coordinación sin motivo viola la restricción`.
-- `RF-504: actividad_obligatoria exige sesion_id único`.
+- `RF-504: sesion referencia actividad y su UUID determinista evita duplicados`.
 - `RF-505: lista_pendientes_generada no tiene columnas con datos de niños` (inspección de esquema).
 
 ### 9.3 HTTP y manejadores de sincronización (`api`)
@@ -265,7 +270,7 @@ Una misma batería contra la implementación en memoria y la de PostgreSQL:
 - `RF-501: push de catálogo por catequista → 403`.
 - `RF-505: familia consulta pendientes de un niño que no es su hijo → rechazado sin revelar existencia`.
 - `RF-505: generar lista registra quién y cuándo, huella reproducible al corte_en; sin advertenciaAceptada → 400`.
-- `RF-504: crear actividad crea la sesión del plan 003 con el mismo sesion_id`.
+- `RF-504: crear actividad crea sesión determinista con actividad_id y fecha`.
 - `RF-504: cumplimiento por catequista solo incluye niños de sus grupos`.
 
 ### 9.4 Flujo extremo a extremo
@@ -283,8 +288,8 @@ Una misma batería contra la implementación en memoria y la de PostgreSQL:
 | RF-501 | `oracion` (0501), `catalogo-oraciones.ts`, manejador `oraciones`, `(coordinacion)/catalogo/oraciones.tsx` | 9.1 RF-501 (×3), 9.3 RF-501 |
 | RF-502 | `evaluacion_oracion` (0502), `historial-evaluaciones.ts`, `oraciones.ts`, manejador `evaluaciones_oracion`, `seguimientoAvanceNino`, `seguimientoHistorialOracion`, lista de evaluación, `resumen-avance.tsx` | 9.1 RF-502 (×7), 9.2, 9.3, 9.4 |
 | RF-503 | `escala_doctrina`, `instrumento_doctrina`, `evaluacion_doctrina` (0503), `doctrina.ts`, manejadores de doctrina, `doctrina/[instrumentoId].tsx`, `resumen-avance.tsx` | 9.1 RF-503 (×2) |
-| RF-504 | `actividad_obligatoria`, `cambio_actividad` (0505), `cumplimiento.ts`, `falta-actividad.ts`, `catalogo-actividades.ts`, puerto `crearSesionActividad` (plan 003), `actividadesCumplimiento`, pantallas de actividades | 9.1 RF-504 (×4), 9.2, 9.3, 9.4 |
-| RF-505 | `lista_pendientes_generada` (0506), `lista-pendientes.ts`, `seguimientoPendientesFamilia`, `seguimientoGenerarLista`, `seguimientoListasGeneradas`, `pendientes.tsx`, `(familia)/hijos/[id]/oraciones.tsx` | 9.1 RF-505, 9.2, 9.3, 9.4 |
+| RF-504 | `actividad_obligatoria` (0505), `cambio_actividad`/autoría (0506), cumplimiento/falta/catálogo, `crearSesionActividad`, HTTP/sync; UI con evidencia propia | 9.1 RF-504 (×4), 9.2, 9.3, 9.4 |
+| RF-505 | `lista_pendientes_generada` (siguiente libre, no 0506), listas/perfil familia/UI pendientes del módulo externo | 9.1 RF-505, 9.2, 9.3, 9.4 |
 | RF-506 | `correccion_evaluacion` (0504), `permisos-evaluacion.ts`, validación en manejadores, historial con "Corregir" | 9.1 RF-506 (×3), 9.2, 9.3 RF-506 (×3) |
 | RNF-501 | `lista-evaluacion.tsx`, D-508 | 9.4 + prueba de campo |
 | RNF-502 | Tablas locales §3.2, manejadores de sync, D-501, D-510 | 9.2 idempotencia, 9.3, 9.4 |
@@ -346,5 +351,5 @@ Incremental ≈ 0: unas 3 000 evaluaciones por ciclo (< 1 MB en el PostgreSQL B1
 | 3 | Pantallas: catálogo, lista de evaluación, historial/corrección, resumen en el perfil + tests HTTP y flujo sin conexión | RF-501, RF-502, RF-506, RNF-501, RNF-502 | Perfil del plan 002 |
 | 4 | Doctrina: dominio, migración 0503, sync, pantallas | RF-503, RF-506 | Fase 2 |
 | 5 | Actividades: dominio, migración 0505, puerto de sesión con 003, cumplimiento, regla de falta | RF-504, RNF-503 | Puerto acordado con plan 003; estado de justificación (004) |
-| 6 | Pendientes: vista de familia (web), generación y registro de listas, migración 0506, política APIM | RF-505 | Enlace de familia (001) |
+| 6 | Pendientes: familia web/listas, migración siguiente libre (0506 ya trazabilidad), límites por cuenta Functions/global APIM | RF-505 | Enlace de familia (001) |
 | 7 | Puerto `ConsultaAvanceFormativo` para el plan 006, flujo extremo a extremo, prueba de campo | Todos | Plan 006 |

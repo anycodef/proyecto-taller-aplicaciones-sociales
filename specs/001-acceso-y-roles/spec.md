@@ -2,6 +2,34 @@
 
 ## Contexto y objetivo
 
+### Acuerdos aprobados para backend/001-003 (2026-10-11)
+
+El alcance comprende el backend completo de 001–003. Se aceptan D-101 a D-121 y S-01 a S-20 del plan con los ajustes de este acuerdo. Las dudas históricas remiten a esas decisiones; mediciones en dispositivo, campo y despliegue conservan sus verificaciones pendientes. La aprobación no cierra tareas ni sustituye tests. Inscripción, cuentas, roles, enlaces, delegación, consentimiento y condiciones son exclusivamente ONLINE, nunca escrituras locales ni pendientes de sincronización (constitución, principio 5 y ADR 013).
+
+RF-106 exige además borrar estados de documentos, historial personal y datos del apoderado sin otros hijos vinculados; anonimizar el perfil y dejarlo inactivo operativamente, conservando asistencia anonimizada y constancia. El motor usa en la misma transacción `SET LOCAL ROLE sigecat_retencion` y `SET LOCAL sigecat.contexto` con `retiro_consentimiento` o `retencion` según la operación. Ambos son necesarios, también en ciclos cerrados.
+
+### Dependencias nuevas justificadas
+
+| Paquete | Uso y justificación |
+| --- | --- |
+| `@azure/functions` | API Node 22, modelo v4 y disparadores HTTP/timer; evita servidor adicional |
+| `pg`, `@types/pg` | SQL/transacciones con tipos, sin ORM; pool 3 por proceso |
+| `jose` | JWT HS256, emisor, audiencia, vencimiento y rotación; evita criptografía JWT propia |
+| `zod` | Validación estricta HTTP/configuración y rechazo de campos desconocidos |
+| `@azure/storage-blob` | Borrado idempotente y reintentos de la bandeja de retención; no habilita carga de documentos de inscripción |
+| `esbuild` | Empaqueta API y dominio compartido con alias, minimiza arranque |
+| `typescript` | Tipado estricto API/cliente; desarrollo |
+| `tsx` | Desarrollo API: ejecuta scripts de migración/semillas TypeScript puro en Node sin generar otro bundle ni introducir framework; alternativa compilar cada script por separado |
+| `@types/node` | Desarrollo API: tipos de Node 22 para crypto, fs, process, Buffer y scripts de migración; sin código de ejecución añadido |
+| `jest`, `ts-jest`, `@types/jest` | Tests API/dominio/integración y transformación TS; desarrollo |
+| `jest-expo`, `@testing-library/react-native` | Tests cliente y pantallas; desarrollo, no acredita UI implementada |
+| `expo-secure-store` | Credencial y verificador PIN protegidos en cliente nativo |
+| `expo-crypto` | UUID cliente, sal y SHA-256 local; evita dependencia criptográfica adicional |
+
+NetInfo y persistencia operativa se justifican en 003. Las dependencias cliente propuestas se instalan al implementar sus tareas y verificar Expo v57; esta aprobación no acredita compatibilidad física.
+
+Ampliación documental: `tsx` y `@types/node` quedan justificados antes de la siguiente instalación. La instalación preliminar del principal ocurrió antes de esta nota; no se presenta como cumplimiento retroactivo del orden del principio 1. T001-DOC incluye OpenAPI 3.1 basado en DTO/handlers actuales y verificador Node sin dependencias externas; verificaciones integrales a cargo del principal.
+
 SIGECAT guarda información de niños de 8 a 13 años (identidad, salud, neurodivergencia) y lo operan catequistas que en su mayoría también son menores de edad. Hoy toda la información administrativa (faltas, justificaciones, avisos de secretaría) vive solo en el celular de la coordinación: cuando faltó tres domingos, el equipo no supo qué responder a los padres y los padres desautorizaron a los catequistas jóvenes.
 
 **Objetivo:** que cada persona entre con su propia credencial y vea exactamente lo que sus roles le permiten, que el equipo pueda operar un domingo sin la coordinación y que los datos de menores estén protegidos desde el diseño: mínimos, con consentimiento, con plazo de vida y con la identidad de los catequistas menores oculta.
@@ -138,6 +166,8 @@ Una misma cuenta puede tener varios roles a la vez (por ejemplo, catequista y fa
 - Un enlace revocado deja de funcionar, y los registros pendientes de ese celular se rechazan con aviso a la coordinación.
 
 ## Dudas abiertas
+
+Registro histórico: las respuestas S-01–S-20 del plan fueron aceptadas el 2026-10-11. Estas preguntas no reabren decisiones backend; aprobación efectiva del texto y verificaciones físicas mantienen evidencia propia.
 
 - **[NECESITA ACLARACIÓN]** ¿Qué pasa si la coordinación falta sin haber delegado (el incidente real de tres domingos)?
 - **[NECESITA ACLARACIÓN]** ¿Solo la coordinación puede delegar? ¿Hay un periodo máximo?

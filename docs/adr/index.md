@@ -2,6 +2,16 @@
 
 # Architecture knowledge base
 
+## Acuerdos backend 001–003 aceptados (2026-10-11)
+
+- [011 — Enlace y PIN local](20261011-identidad-propia-enlace-pin-local.md)
+- [012 — Marcas inmutables y contratos](20261011-marcas-inmutables-y-contratos-sincronizacion.md), transporte sustituido por ADR 015.
+- [013 — Excepción administrativa ONLINE y retención](20261011-excepcion-administrativa-online-y-retencion.md), sustituye ADR 002 y 010.
+- [014 — Servidores Azure Flex](20261011-configuracion-servidores-azure-flex.md), sustituye ADR 004.
+- [015 — Transporte nativo WatermelonDB](20261011-transporte-nativo-watermelondb.md), conserva claves nativas HTTP; adaptación interna opcional.
+
+Decisiones aceptadas no equivalen a implementación verificada. [Seguimiento](../backend-implementacion.md) · [Contratos frontend](../backend-contratos.md).
+
 Welcome 👋 to the architecture knowledge base of proyecto-taller-aplicaciones-sociales.
 You will find here all the Architecture Decision Records (ADR) of the project.
 
