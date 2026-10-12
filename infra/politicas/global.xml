@@ -1,0 +1,14 @@
+<policies>
+  <inbound>
+    <cors allow-credentials="false" terminate-unmatched-request="true">
+      <allowed-origins><origin>__URL_WEB__</origin></allowed-origins>
+      <allowed-methods preflight-result-max-age="300"><method>GET</method><method>POST</method><method>PUT</method><method>PATCH</method><method>DELETE</method></allowed-methods>
+      <allowed-headers><header>authorization</header><header>content-type</header><header>ocp-apim-subscription-key</header></allowed-headers>
+      <expose-headers><header>x-hora-servidor</header><header>retry-after</header></expose-headers>
+    </cors>
+    <set-header name="x-functions-key" exists-action="override"><value>{{clave-host-funciones}}</value></set-header>
+  </inbound>
+  <backend><forward-request /></backend>
+  <outbound />
+  <on-error />
+</policies>

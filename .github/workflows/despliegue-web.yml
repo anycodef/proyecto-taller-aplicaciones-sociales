@@ -1,0 +1,59 @@
+name: Publicar artefacto frontend aprobado
+on:
+  workflow_dispatch:
+    inputs:
+      ejecucion_frontend:
+        description: ID de la ejecucion main que genero el artefacto frontend-web
+        required: true
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: despliegue-web-prod
+  cancel-in-progress: false
+jobs:
+  publicar:
+    if: github.ref == 'refs/heads/main' && vars.FRONTEND_HABILITADO == 'true'
+    environment: prod
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+      id-token: write
+    steps:
+      - name: Validar origen del artefacto
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EJECUCION: ${{ inputs.ejecucion_frontend }}
+          REPOSITORIO: ${{ github.repository }}
+        run: |
+          gh api "repos/$REPOSITORIO/actions/runs/$EJECUCION" --jq '{head_branch,conclusion,event}' > "$RUNNER_TEMP/origen.json"
+          python3 -c 'import json,os; o=json.load(open(os.environ["RUNNER_TEMP"]+"/origen.json")); assert o["head_branch"]=="main" and o["conclusion"]=="success" and o["event"] in ["push","workflow_dispatch"], "Artefacto frontend no aprobado"'
+      - uses: actions/download-artifact@v4
+        with:
+          name: frontend-web
+          path: frontend-web
+          github-token: ${{ github.token }}
+          run-id: ${{ inputs.ejecucion_frontend }}
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      - name: Obtener token de publicacion efimero en runner
+        id: token
+        env:
+          NOMBRE_WEB: ${{ vars.AZURE_NOMBRE_WEB }}
+        run: |
+          TOKEN=$(az staticwebapp secrets list --resource-group rg-sigecat-prod --name "$NOMBRE_WEB" --query properties.apiKey --output tsv)
+          printf '::add-mask::%s\n' "$TOKEN"
+          printf 'valor=%s\n' "$TOKEN" >> "$GITHUB_OUTPUT"
+      - uses: Azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ steps.token.outputs.valor }}
+          action: upload
+          app_location: frontend-web
+          api_location: ''
+          output_location: ''
+          skip_app_build: true
+          skip_api_build: true

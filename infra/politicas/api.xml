@@ -1,0 +1,41 @@
+<policies>
+  <inbound>
+    <base />
+    <choose>
+      <when condition="@(!(context.Request.Method == &quot;POST&quot; &amp;&amp; context.Request.Url.Path.StartsWith(&quot;/v1/acceso/&quot;, StringComparison.Ordinal)))">
+        <validate-jwt header-name="Authorization" require-scheme="Bearer" require-expiration-time="true" require-signed-tokens="true" failed-validation-httpcode="401" failed-validation-error-message="acceso_denegado" output-token-variable-name="jwtValidado">
+          <issuer-signing-keys><key id="__JWT_KID__">{{jwt-clave-apim}}</key>__CLAVE_ANTERIOR__</issuer-signing-keys>
+          <audiences><audience>sigecat-api</audience></audiences>
+          <issuers><issuer>sigecat</issuer></issuers>
+        </validate-jwt>
+        <choose>
+          <when condition="@(((Jwt)context.Variables[&quot;jwtValidado&quot;]).Algorithm != &quot;HS256&quot;)">
+            <return-response><set-status code="401" reason="Unauthorized" /><set-header name="Content-Type" exists-action="override"><value>application/json</value></set-header><set-body>{"codigo":"acceso_denegado"}</set-body></return-response>
+          </when>
+        </choose>
+      </when>
+    </choose>
+    <choose>
+      <when condition="@(context.Request.Method == &quot;POST&quot; &amp;&amp; context.Request.Url.Path == &quot;/v1/sincronizacion/cambios&quot;)">
+        <validate-content unspecified-content-type-action="ignore" max-size="524288" size-exceeded-action="prevent" errors-variable-name="erroresCuerpo" />
+      </when>
+    </choose>
+  </inbound>
+  <backend><base /></backend>
+  <outbound>
+    <base />
+    <choose>
+      <when condition="@(context.Request.Url.Path.Contains(&quot;/perfil&quot;) || context.Request.Url.Path.Contains(&quot;/condiciones&quot;) || context.Request.Url.Path.Contains(&quot;/documentos&quot;) || context.Request.Url.Path.Contains(&quot;/identidad-real&quot;))">
+        <set-header name="Cache-Control" exists-action="override"><value>no-store</value></set-header>
+      </when>
+    </choose>
+  </outbound>
+  <on-error>
+    <base />
+    <choose>
+      <when condition="@(context.LastError.Source == &quot;validate-jwt&quot;)">
+        <return-response><set-status code="401" reason="Unauthorized" /><set-header name="Content-Type" exists-action="override"><value>application/json</value></set-header><set-body>{"codigo":"acceso_denegado"}</set-body></return-response>
+      </when>
+    </choose>
+  </on-error>
+</policies>
