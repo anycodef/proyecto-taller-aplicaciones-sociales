@@ -449,7 +449,7 @@
   - Depende de: T001-79
   - Hecho cuando: `src/app/_layout.tsx` usa `Stack.Protected` con `guard` (sin `redirectTo`, que exige SDK 58), existen `src/app/(equipo)/_layout.tsx` y `src/app/(familia)/_layout.tsx`, y `asistencia.tsx`, `coordinacion.tsx` y `familia.tsx` están en su grupo sin cambiar la URL; pasan `RF-102: sin sesión no se muestran las rutas de (equipo) ni de (familia)` y `RF-102: una sesión de familia no muestra rutas de (equipo)`; `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T001-81** Adaptar la pantalla de inicio a la entrada por enlace **[Primer corte]**
+- [x] **T001-81** Adaptar la pantalla de inicio a la entrada por enlace **[Primer corte]**
   - RF: RF-101
   - Depende de: T001-80
   - Hecho cuando: `src/app/index.tsx` muestra "Abre tu enlace personal" sin sesión (y "Pegar enlace" en Android) y redirige al inicio del rol con sesión; el test RNTL `RF-101: sin sesión el inicio pide abrir el enlace personal` pasa; `npm test`, `npm run typecheck` y `npm run lint` pasan.

@@ -3,6 +3,13 @@ import { createContext, useContext, useEffect, useMemo, useState, type ReactNode
 import { rolesEfectivos, type ContextoAcceso, type Rol } from "@/lib/seguridad/contexto-acceso";
 
 import { obtenerAlmacenSesion, type SesionAlmacenada } from "./almacen-seguro";
+import {
+  cerrarSesionViva,
+  crearGestorSesionPorDefecto,
+  guardarSesionViva,
+  type ActivacionPendiente,
+  type GestorSesion,
+} from "./sesion";
 
 export type TipoSesion = "ninguna" | "equipo" | "familia";
 
@@ -11,12 +18,25 @@ export type EstadoSesionApp = {
   tipo: TipoSesion;
   contexto: ContextoAcceso | null;
   rolesEfectivos: Rol[];
+  jwt: string | null;
+  ultimaRenovacion: number | null;
+  bloqueada: boolean;
+  intentosFallidos: number;
 };
 
-export type SesionCargada = { tipo: TipoSesion; contexto: ContextoAcceso };
+export type SesionCargada = {
+  tipo: TipoSesion;
+  contexto: ContextoAcceso;
+  ultimaRenovacion?: number;
+  bloqueada?: boolean;
+  intentosFallidos?: number;
+};
 
 export type ContextoSesionValor = EstadoSesionApp & {
-  iniciarSesion(tipo: TipoSesion, contexto: ContextoAcceso): void;
+  gestor: GestorSesion;
+  activacion: ActivacionPendiente | null;
+  guardarActivacion(activacion: ActivacionPendiente | null): void;
+  iniciarSesion(tipo: TipoSesion, contexto: ContextoAcceso, jwt?: string | null): void;
   cerrarSesion(): void;
 };
 
@@ -27,6 +47,10 @@ const ESTADO_VACIO: EstadoSesionApp = {
   tipo: "ninguna",
   contexto: null,
   rolesEfectivos: [],
+  jwt: null,
+  ultimaRenovacion: null,
+  bloqueada: false,
+  intentosFallidos: 0,
 };
 
 /**
@@ -50,7 +74,14 @@ export async function cargarSesionGuardada(): Promise<SesionCargada | null> {
   const almacen = obtenerAlmacenSesion();
   for (const cuentaId of await almacen.listarCuentas()) {
     const sesion = await almacen.leerSesion(cuentaId);
-    if (sesion && !sesion.bloqueada) return { tipo: sesion.tipo, contexto: contextoDeSesion(sesion) };
+    if (!sesion) continue;
+    return {
+      tipo: sesion.tipo,
+      contexto: contextoDeSesion(sesion),
+      ultimaRenovacion: sesion.ultimaRenovacionServidor,
+      bloqueada: sesion.bloqueada,
+      intentosFallidos: sesion.intentosFallidos,
+    };
   }
   return null;
 }
@@ -58,11 +89,17 @@ export async function cargarSesionGuardada(): Promise<SesionCargada | null> {
 export function ProveedorSesion({
   children,
   cargar = cargarSesionGuardada,
+  gestor: gestorExterno,
 }: {
   children: ReactNode;
   cargar?: () => Promise<SesionCargada | null>;
+  gestor?: GestorSesion;
 }) {
   const [estado, setEstado] = useState<EstadoSesionApp>({ ...ESTADO_VACIO, cargando: true });
+  const [activacion, setActivacion] = useState<ActivacionPendiente | null>(null);
+
+  /** Estado vivo de la sesion: JWT y cuenta, ambos solo en memoria. */
+  const [gestor] = useState<GestorSesion>(() => gestorExterno ?? crearGestorSesionPorDefecto());
 
   useEffect(() => {
     let vigente = true;
@@ -81,6 +118,10 @@ export function ProveedorSesion({
               tipo: cargada.tipo,
               contexto: cargada.contexto,
               rolesEfectivos: rolesEfectivos(cargada.contexto),
+              jwt: null,
+              ultimaRenovacion: cargada.ultimaRenovacion ?? null,
+              bloqueada: cargada.bloqueada ?? false,
+              intentosFallidos: cargada.intentosFallidos ?? 0,
             }
           : ESTADO_VACIO
       );
@@ -93,11 +134,28 @@ export function ProveedorSesion({
   const valor = useMemo<ContextoSesionValor>(
     () => ({
       ...estado,
-      iniciarSesion: (tipo, contexto) =>
-        setEstado({ cargando: false, tipo, contexto, rolesEfectivos: rolesEfectivos(contexto) }),
-      cerrarSesion: () => setEstado(ESTADO_VACIO),
+      gestor,
+      activacion,
+      guardarActivacion: setActivacion,
+      iniciarSesion: (tipo, contexto, jwt = null) => {
+        guardarSesionViva(contexto, jwt);
+        setEstado({
+          cargando: false,
+          tipo,
+          contexto,
+          rolesEfectivos: rolesEfectivos(contexto),
+          jwt,
+          ultimaRenovacion: null,
+          bloqueada: false,
+          intentosFallidos: 0,
+        });
+      },
+      cerrarSesion: () => {
+        cerrarSesionViva();
+        setEstado(ESTADO_VACIO);
+      },
     }),
-    [estado]
+    [estado, gestor, activacion]
   );
 
   return <ContextoSesion.Provider value={valor}>{children}</ContextoSesion.Provider>;

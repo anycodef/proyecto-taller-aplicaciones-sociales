@@ -1,11 +1,13 @@
 import * as Crypto from "expo-crypto";
+import { router } from "expo-router";
 
-import type { ClienteHttp } from "@/plataforma/api/cliente";
+import { crearClienteHttp, type ClienteHttp } from "@/plataforma/api/cliente";
+import { claveSuscripcionApi, ES_DESARROLLO, urlBaseApi } from "@/plataforma/config";
 import type { ContextoAcceso } from "@/lib/seguridad/contexto-acceso";
 import { registrarIntento, verificadorPin } from "@/lib/seguridad/pin";
 import { estadoSesionLocal, type EstadoSesion } from "@/lib/seguridad/sesion-local";
 
-import { contextoAlmacenable, type AlmacenSesion, type SesionAlmacenada } from "./almacen-seguro";
+import { contextoAlmacenable, obtenerAlmacenSesion, type AlmacenSesion, type SesionAlmacenada } from "./almacen-seguro";
 
 export const LONGITUD_SAL_BYTES = 16;
 
@@ -40,11 +42,94 @@ export type ResultadoDesbloqueo = {
   bloqueoReportado: boolean;
 };
 
+export type EntradaFamilia = {
+  jwt: string;
+  contexto: ContextoAcceso;
+};
+
 export type GestorSesion = {
   activarEquipo(tokenEnlace: string): Promise<ActivacionPendiente>;
   fijarPin(activacion: ActivacionPendiente, pin: string): Promise<SesionAlmacenada>;
   desbloquear(cuentaId: string, pin: string): Promise<ResultadoDesbloqueo>;
+  entrarFamilia(tokenEnlace: string): Promise<EntradaFamilia>;
+  renovarSesion(cuentaId: string): Promise<string | null>;
 };
+
+/**
+ * El enlace de familia se queda solo en memoria: permite volver a entrar
+ * cuando vence el JWT sin guardar el token en el dispositivo (RF-110).
+ */
+let tokenFamiliaEnMemoria: string | null = null;
+
+export function guardarTokenFamilia(token: string): void {
+  tokenFamiliaEnMemoria = token;
+}
+
+export function leerTokenFamilia(): string | null {
+  return tokenFamiliaEnMemoria;
+}
+
+/**
+ * Token de un enlace pegado a mano. Vive solo en memoria para no ponerlo en
+ * la URL, donde si queda en el historial y en los registros (D-102).
+ */
+let tokenPendienteEnMemoria: string | null = null;
+
+export function guardarTokenPendiente(token: string | null): void {
+  tokenPendienteEnMemoria = token;
+}
+
+export function leerTokenPendiente(): string | null {
+  return tokenPendienteEnMemoria;
+}
+
+/** Sesion viva: JWT y cuenta activa, solo en memoria. */
+let jwtVivo: string | null = null;
+let cuentaViva: string | null = null;
+let gestorVivo: GestorSesion | null = null;
+
+export function guardarSesionViva(contexto: ContextoAcceso, jwt: string | null): void {
+  jwtVivo = jwt;
+  cuentaViva = contexto.cuentaId;
+}
+
+export function cerrarSesionViva(): void {
+  jwtVivo = null;
+  cuentaViva = null;
+}
+
+export function leerJwtVivo(): string | null {
+  return jwtVivo;
+}
+
+/**
+ * Gestor con el cliente real. Sin URL de API configurada avisa en vez de
+ * romper la app al arrancar.
+ */
+export function crearGestorSesionPorDefecto(): GestorSesion {
+  const url = urlBaseApi();
+  const cliente: ClienteHttp = url
+    ? crearClienteHttp({
+        urlBase: url,
+        claveSuscripcion: claveSuscripcionApi(),
+        obtenerToken: async () => jwtVivo,
+        renovarSesion: async () =>
+          cuentaViva ? (await gestorVivo?.renovarSesion(cuentaViva)) ?? null : null,
+        irASinAcceso: (rechazados) => {
+          router.replace({ pathname: "/acceso/sin-acceso", params: { rechazados: String(rechazados) } });
+        },
+        enDesarrollo: ES_DESARROLLO,
+      })
+    : {
+        solicitar: async () => {
+          throw new Error("api_sin_configurar");
+        },
+      };
+
+  const gestor = crearGestorSesion({ almacen: obtenerAlmacenSesion(), cliente });
+  gestorVivo = gestor;
+  return gestor;
+}
 
 function salPorDefecto(): string {
   const bytes = Crypto.getRandomBytes(LONGITUD_SAL_BYTES);
@@ -183,5 +268,38 @@ export function crearGestorSesion(opciones: GestorSesionOpciones): GestorSesion 
     };
   }
 
-  return { activarEquipo, fijarPin, desbloquear };
+  async function entrarFamilia(tokenEnlace: string): Promise<EntradaFamilia> {
+    const respuesta = await cliente.solicitar<{ jwt: string; contexto: ContextoAcceso }>(
+      "POST",
+      "/acceso/familia/entrar",
+      { token: tokenEnlace }
+    );
+    guardarTokenFamilia(tokenEnlace);
+    return { jwt: respuesta.jwt, contexto: respuesta.contexto };
+  }
+
+  /** Renueva la credencial del equipo y guarda el nuevo token de renovacion. */
+  async function renovarSesion(cuentaId: string): Promise<string | null> {
+    const sesion = await almacen.leerSesion(cuentaId);
+    if (!sesion?.tokenRenovacion) return null;
+
+    const dispositivoId = await almacen.obtenerDispositivoId();
+    const respuesta = await cliente.solicitar<RespuestaActivacionServidor>("POST", "/acceso/renovar", {
+      tokenRenovacion: sesion.tokenRenovacion,
+      dispositivoId,
+    });
+
+    await almacen.guardarSesion({
+      ...sesion,
+      tokenRenovacion: respuesta.tokenRenovacion ?? sesion.tokenRenovacion,
+      ultimaRenovacionServidor: respuesta.ultimaRenovacion
+        ? Date.parse(respuesta.ultimaRenovacion)
+        : sesion.ultimaRenovacionServidor,
+      instanteMaximoVisto: ahora(),
+    });
+
+    return respuesta.jwt;
+  }
+
+  return { activarEquipo, fijarPin, desbloquear, entrarFamilia, renovarSesion };
 }
