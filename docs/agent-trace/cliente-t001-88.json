@@ -1,0 +1,18 @@
+{
+  "version": "1.0",
+  "fecha": "2026-10-19",
+  "agente": "OpenCode",
+  "modelo": "minimax-m3.1-flash-free",
+  "tarea": "T001-88",
+  "solicitud": "El usuario pide continuar con el frontend que se puede avanzar",
+  "commitPrevisto": "feat(cliente): crear el alta de cuentas en el celular",
+  "alcance": ["src/app/(equipo)/cuentas/nueva.tsx", "src/__tests__/cuenta-alta.test.tsx"],
+  "criterio": "T001-88: src/app/(equipo)/cuentas/nueva.tsx genera el id con randomUUID, ofrece solo los roles permitidos y trata la identidad real como campo que se escribe pero no se lee; pasan los tests RF-105: el alta exige seudonimo si la persona es menor y RF-102: COORD solo puede elegir los roles catequista y familia.",
+  "comprobaciones": ["npm run test:app", "npm run typecheck", "npm run lint"],
+  "resultados": {
+    "tests": "Pasan los dos tests de la tarea dentro de la suite de 40 del cliente",
+    "typecheck": "Pasa raiz y API",
+    "lint": "Pasa sin errores ni advertencias"
+  },
+  "notas": "Los roles que se ofrecen salen de rolesAsignables, que replica la regla de la API: administracion puede todos y la coordinacion solo catequista y familia (S-19). El seudonimo de un menor no puede coincidir con su nombre real, con validarAlta de src/lib. La identidad real se escribe y no se vuelve a leer. Durante las pruebas aparecio un fallo real: dos referencias a una variable mal escrita hacian que el alta fallara en silencio; los tests lo detectaron y quedaron corregidos."
+}

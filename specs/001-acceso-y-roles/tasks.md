@@ -484,7 +484,7 @@
   - Depende de: T001-62, T001-80
   - Hecho cuando: `src/app/(equipo)/cuentas/index.tsx` y `[id].tsx` muestran las cuentas con su `identidad_operativa`, roles y estado; el test RNTL `RNF-105: COORD ve desde el celular las cuentas que gestiona` pasa; `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T001-88** Crear el alta de cuentas en el celular **[Primer corte]**
+- [x] **T001-88** Crear el alta de cuentas en el celular **[Primer corte]**
   - RF: RF-102, RF-105, RNF-105
   - Depende de: T001-61, T001-87
   - Hecho cuando: `src/app/(equipo)/cuentas/nueva.tsx` genera el `id` con `randomUUID`, ofrece solo los roles permitidos y trata la identidad real como campo que se escribe pero no se lee; pasan `RF-105: el alta exige seudónimo si la persona es menor` y `RF-102: COORD solo puede elegir los roles catequista y familia`; `npm test`, `npm run typecheck` y `npm run lint` pasan.
