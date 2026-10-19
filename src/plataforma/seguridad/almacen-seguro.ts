@@ -154,3 +154,13 @@ export function crearAlmacenSesion(opciones: {
     borrarSesion,
   };
 }
+
+let almacenSesionUnico: AlmacenSesion | null = null;
+
+/** Almacen seguro del proceso, sobre SecureStore. */
+export function obtenerAlmacenSesion(): AlmacenSesion {
+  if (!almacenSesionUnico) {
+    almacenSesionUnico = crearAlmacenSesion({ almacen: crearAlmacenSecureStore() });
+  }
+  return almacenSesionUnico;
+}

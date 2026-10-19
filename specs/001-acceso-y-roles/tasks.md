@@ -439,7 +439,7 @@
   - Depende de: T001-38, T001-77
   - Hecho cuando: `sesion.ts` desbloquea con `estadoSesionLocal` y, al quinto fallo, borra el token de renovación y el verificador, marca `bloqueada` y llama a `/acceso/bloqueo` si hay red; pasan `RF-111: con 5 fallos seguidos el celular queda bloqueado y borra el token`, `RF-111: al bloquear con red se reporta el bloqueo al servidor` y `RF-112: el PIN desbloquea sin conexión si no pasaron 14 días desde la última renovación`; `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T001-79** Crear el proveedor de contexto de sesión **[Primer corte]**
+- [x] **T001-79** Crear el proveedor de contexto de sesión **[Primer corte]**
   - RF: RF-102
   - Depende de: T001-77
   - Hecho cuando: `src/plataforma/seguridad/contexto-sesion.tsx` expone el tipo de sesión (`ninguna`, `equipo`, `familia`), su estado y el contexto; el test RNTL `RF-102: el proveedor de sesión expone los roles efectivos del contexto` pasa; `npm test`, `npm run typecheck` y `npm run lint` pasan.
