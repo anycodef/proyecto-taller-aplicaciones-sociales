@@ -494,7 +494,7 @@
   - Depende de: T001-65, T001-66, T001-87
   - Hecho cuando: `src/components/seguridad/compartir-enlace.tsx` comparte la URL con `Share.share` del núcleo de RN y la ficha permite generar y revocar con confirmación; pasan `RF-110: compartir usa la hoja de compartir del sistema, sin servicio de mensajería` y `RF-111: revocar desde la ficha pide confirmación y llama al endpoint`; `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T001-90** Crear la pantalla de avisos del sistema **[Primer corte]**
+- [x] **T001-90** Crear la pantalla de avisos del sistema **[Primer corte]**
   - RF: RF-112
   - Depende de: T001-68, T001-80
   - Hecho cuando: `src/app/(equipo)/avisos-sistema.tsx` muestra "Se rechazaron N registros del celular de <seudónimo>" y permite marcarlo como leído; el test RNTL `RF-112: avisos-sistema muestra la cantidad rechazada y el seudónimo` pasa; `npm test`, `npm run typecheck` y `npm run lint` pasan.
