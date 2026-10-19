@@ -1,0 +1,18 @@
+{
+  "version": "1.0",
+  "fecha": "2026-10-19",
+  "agente": "OpenCode",
+  "modelo": "minimax-m3.1-flash-free",
+  "tarea": "T001-82",
+  "solicitud": "El usuario pide continuar con el frontend usando docs/mockups como referencia visual",
+  "commitPrevisto": "feat(cliente): crear la pantalla de activacion del equipo",
+  "alcance": ["src/app/acceso/equipo.tsx", "src/__tests__/activacion-equipo.test.tsx"],
+  "criterio": "T001-82: src/app/acceso/equipo.tsx lee el token con expo-linking, llama a activar y pasa a fijar-pin; sin red indica que la activacion necesita conexion y en escritorio o sin la app explica como instalarla; pasa el test RNTL RF-111: abrir el enlace del equipo activa la credencial y pasa a fijar el PIN.",
+  "comprobaciones": ["npm run test:app", "npm run typecheck", "npm run lint"],
+  "resultados": {
+    "tests": "Pasa el test RNTL de la tarea dentro de la suite de 28 del cliente",
+    "typecheck": "Pasa raiz y API",
+    "lint": "Pasa sin errores ni advertencias"
+  },
+  "notas": "La pantalla sigue el mockup p-02: etiqueta ACTIVAR MI CUENTA, activity indicator, Verificando tu enlace, aviso de la primera vez que hace falta internet y boton Reintentar. El token sale del fragmento con extraerTokenDeUrl de src/lib o del token pendiente en memoria cuando el usuario lo pego a mano. En web, cuando no hay token, explica que hay que abrir el enlace en el celular. La prueba simula el enlace profundo con useURL de expo-linking y comprueba que se llama a activarEquipo con el token y que se navega a /acceso/fijar-pin. No verificado en un dispositivo real."
+}

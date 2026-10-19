@@ -454,7 +454,7 @@
   - Depende de: T001-80
   - Hecho cuando: `src/app/index.tsx` muestra "Abre tu enlace personal" sin sesión (y "Pegar enlace" en Android) y redirige al inicio del rol con sesión; el test RNTL `RF-101: sin sesión el inicio pide abrir el enlace personal` pasa; `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T001-82** Crear la pantalla de activación del equipo **[Primer corte]**
+- [x] **T001-82** Crear la pantalla de activación del equipo **[Primer corte]**
   - RF: RF-111
   - Depende de: T001-36, T001-77, T001-80
   - Hecho cuando: `src/app/acceso/equipo.tsx` lee el token con `expo-linking`, llama a `activar` y pasa a `fijar-pin`; sin red indica que la activación necesita conexión y en escritorio o sin la app explica cómo instalarla; pasa el test RNTL `RF-111: abrir el enlace del equipo activa la credencial y pasa a fijar el PIN`; `npm test`, `npm run typecheck` y `npm run lint` pasan.
