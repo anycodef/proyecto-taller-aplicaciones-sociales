@@ -1,0 +1,18 @@
+{
+  "version": "1.0",
+  "fecha": "2026-10-19",
+  "agente": "OpenCode",
+  "modelo": "minimax-m3.1-flash-free",
+  "tarea": "T001-91",
+  "solicitud": "El usuario pide continuar con el frontend que se puede avanzar",
+  "commitPrevisto": "test(cliente): probar la administracion de cuentas desde el celular",
+  "alcance": ["src/__tests__/administracion-cuentas.test.tsx"],
+  "criterio": "T001-91: el test de pantalla con RNTL y servidor falso RNF-105: COORD crea una cuenta, asigna el rol y genera el enlace desde la app pasa.",
+  "comprobaciones": ["npm run test:app", "npm run typecheck", "npm run lint"],
+  "resultados": {
+    "tests": "Pasa el test de la tarea dentro de la suite de 40 del cliente",
+    "typecheck": "Pasa raiz y API",
+    "lint": "Pasa sin errores ni advertencias"
+  },
+  "notas": "El recorrido completo con servidor falso: da de alta la cuenta con su seudonimo, rol e identidad real, comprueba el cuerpo enviado con el UUID generado en el dispositivo y luego genera el enlace desde la ficha y comprueba que se comparte con la hoja del sistema. expo-crypto se simula en la prueba porque el modulo nativo no responde en Jest."
+}

@@ -499,7 +499,7 @@
   - Depende de: T001-68, T001-80
   - Hecho cuando: `src/app/(equipo)/avisos-sistema.tsx` muestra "Se rechazaron N registros del celular de <seudónimo>" y permite marcarlo como leído; el test RNTL `RF-112: avisos-sistema muestra la cantidad rechazada y el seudónimo` pasa; `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T001-91** Probar la administración de cuentas desde el celular **[Primer corte]**
+- [x] **T001-91** Probar la administración de cuentas desde el celular **[Primer corte]**
   - RF: RNF-105
   - Depende de: T001-88, T001-89
   - Hecho cuando: el test de pantalla con RNTL y servidor falso `RNF-105: COORD crea una cuenta, asigna el rol y genera el enlace desde la app` pasa (la delegación la añade T001-107); `npm test`, `npm run typecheck` y `npm run lint` pasan.
