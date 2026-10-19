@@ -10,6 +10,7 @@ import {
   Tarjeta,
 } from '@/components/ui';
 import { PuntosPin, TecladoPin } from '@/components/seguridad/teclado-pin';
+import { CompartirEnlace } from '@/components/seguridad/compartir-enlace';
 import { colores, espacio, tipografia } from '@/tema';
 import { useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
@@ -99,6 +100,16 @@ export default function Galeria() {
       <Seccion titulo="PIN">
         <PuntosPin valor={pin} />
         <TecladoPin valor={pin} alCambiar={setPin} />
+      </Seccion>
+
+      <Seccion titulo="Compartir enlace">
+        <Tarjeta>
+          <Text style={[tipografia.cuerpoFuerte, { color: colores.texto }]}>Enlace de acceso</Text>
+          <Text style={[tipografia.nota, { color: colores.textoSuave }]}>
+            Se genera en el servidor y se comparte con la hoja del sistema, sin servicio de mensajería.
+          </Text>
+          <CompartirEnlace cuentaId="galeria" tipo="equipo" />
+        </Tarjeta>
       </Seccion>
     </ScrollView>
   );

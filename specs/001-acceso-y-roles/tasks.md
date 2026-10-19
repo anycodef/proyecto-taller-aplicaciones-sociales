@@ -489,7 +489,7 @@
   - Depende de: T001-61, T001-87
   - Hecho cuando: `src/app/(equipo)/cuentas/nueva.tsx` genera el `id` con `randomUUID`, ofrece solo los roles permitidos y trata la identidad real como campo que se escribe pero no se lee; pasan `RF-105: el alta exige seudónimo si la persona es menor` y `RF-102: COORD solo puede elegir los roles catequista y familia`; `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T001-89** Generar, compartir y revocar enlaces desde la ficha **[Primer corte]**
+- [x] **T001-89** Generar, compartir y revocar enlaces desde la ficha **[Primer corte]**
   - RF: RF-110, RF-111, RNF-104, RNF-105
   - Depende de: T001-65, T001-66, T001-87
   - Hecho cuando: `src/components/seguridad/compartir-enlace.tsx` comparte la URL con `Share.share` del núcleo de RN y la ficha permite generar y revocar con confirmación; pasan `RF-110: compartir usa la hoja de compartir del sistema, sin servicio de mensajería` y `RF-111: revocar desde la ficha pide confirmación y llama al endpoint`; `npm test`, `npm run typecheck` y `npm run lint` pasan.

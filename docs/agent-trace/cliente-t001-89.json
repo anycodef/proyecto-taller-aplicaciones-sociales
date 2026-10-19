@@ -1,0 +1,23 @@
+{
+  "version": "1.0",
+  "fecha": "2026-10-19",
+  "agente": "OpenCode",
+  "modelo": "minimax-m3.1-flash-free",
+  "tarea": "T001-89",
+  "solicitud": "El usuario pide continuar con el frontend que se puede avanzar",
+  "commitPrevisto": "feat(cliente): generar, compartir y revocar enlaces desde la ficha",
+  "alcance": [
+    "src/components/seguridad/compartir-enlace.tsx",
+    "src/app/(equipo)/cuentas/[id].tsx",
+    "src/__tests__/cuenta-enlace.test.tsx",
+    "src/app/galeria.tsx"
+  ],
+  "criterio": "T001-89: src/components/seguridad/compartir-enlace.tsx comparte la URL con Share.share del nucleo de RN y la ficha permite generar y revocar con confirmacion; pasan los tests RF-110: compartir usa la hoja de compartir del sistema, sin servicio de mensajeria y RF-111: revocar desde la ficha pide confirmacion y llama al endpoint.",
+  "comprobaciones": ["npm run test:app", "npm run typecheck", "npm run lint"],
+  "resultados": {
+    "tests": "Pasan los dos tests de la tarea dentro de la suite de 40 del cliente",
+    "typecheck": "Pasa raiz y API",
+    "lint": "Pasa sin errores ni advertencias"
+  },
+  "notas": "El enlace se comparte con la hoja del sistema, sin servicio de mensajeria, y la URL se muestra una sola vez: la app no la guarda. La revocacion pide confirmacion con Alert antes de llamar al endpoint. El componente nuevo se anade a la galeria, como pide AGENTS.md."
+}
