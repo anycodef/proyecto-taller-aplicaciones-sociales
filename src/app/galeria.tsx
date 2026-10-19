@@ -11,6 +11,7 @@ import {
 } from '@/components/ui';
 import { PuntosPin, TecladoPin } from '@/components/seguridad/teclado-pin';
 import { CompartirEnlace } from '@/components/seguridad/compartir-enlace';
+import { ComponenteConsentimiento } from '@/components/seguridad/consentimiento';
 import { colores, espacio, tipografia } from '@/tema';
 import { useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
@@ -110,6 +111,21 @@ export default function Galeria() {
           </Text>
           <CompartirEnlace cuentaId="galeria" tipo="equipo" />
         </Tarjeta>
+      </Seccion>
+
+      <Seccion titulo="Consentimiento">
+        <ComponenteConsentimiento
+          texto={{
+            id: 'texto-ejemplo',
+            version: 'v1',
+            contenido:
+              'Yo, apoderado del catequizando, autorizo el tratamiento de sus datos para formar grupos y preparar los sacramentos. La constancia sacramental se conserva sin vencimiento.',
+            contenidoSha256: 'a'.repeat(64),
+            incluyeClausulaConstancia: true,
+            vigenteDesde: '2026-10-19T12:00:00.000Z',
+          }}
+          alAceptar={() => undefined}
+        />
       </Seccion>
     </ScrollView>
   );

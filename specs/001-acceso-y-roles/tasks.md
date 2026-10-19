@@ -552,7 +552,7 @@
   - Depende de: T001-50, T001-52, T001-99
   - Hecho cuando: `http/consentimientos.ts` expone `GET /consentimientos/texto-vigente` (COORD y FAM) y `POST /consentimientos` (COORD, canal `presencial`); el test `RF-106: COORD registra un consentimiento presencial con la versión vigente` pasa, junto con los cuatro casos HTTP de cada endpoint; `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T001-101** Crear el componente de consentimiento presencial **[Primer corte]**
+- [x] **T001-101** Crear el componente de consentimiento presencial **[Primer corte]**
   - RF: RF-106
   - Depende de: T001-80, T001-100
   - Hecho cuando: `src/components/seguridad/consentimiento.tsx` muestra el texto vigente completo y el botón "El apoderado acepta", listo para el asistente de inscripción de 002; el test RNTL `RF-106: el componente muestra el texto vigente completo y registra la aceptación` pasa; `npm test`, `npm run typecheck` y `npm run lint` pasan.

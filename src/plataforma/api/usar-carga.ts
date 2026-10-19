@@ -18,13 +18,14 @@ function describirError(error: unknown): string {
 }
 
 /** Carga datos de la API y permite repetir la consulta. */
-export function useCarga<T>(cargar: () => Promise<T>): EstadoCarga<T> {
+export function useCarga<T>(cargar: () => Promise<T>, activo = true): EstadoCarga<T> {
   const [datos, setDatos] = useState<T | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [cargando, setCargando] = useState(true);
   const [vuelta, setVuelta] = useState(0);
 
   useEffect(() => {
+    if (!activo) return;
     let vigente = true;
     void (async () => {
       try {
@@ -42,7 +43,7 @@ export function useCarga<T>(cargar: () => Promise<T>): EstadoCarga<T> {
     return () => {
       vigente = false;
     };
-  }, [cargar, vuelta]);
+  }, [cargar, vuelta, activo]);
 
   const recargar = useCallback(() => {
     setCargando(true);
