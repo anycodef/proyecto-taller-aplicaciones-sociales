@@ -469,7 +469,7 @@
   - Depende de: T001-78, T001-83
   - Hecho cuando: `src/app/acceso/desbloquear.tsx` muestra "Te quedan N días sin conexión", en `requiere-conexion` solo deja consultar y al quinto fallo muestra "Pide un enlace nuevo a la coordinación"; pasan los tests RNTL `RF-112: desbloquear muestra los días restantes sin conexión`, `RF-112: en requiere-conexion no se permiten registros nuevos` y `RF-111: al quinto fallo se pide un enlace nuevo`; `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T001-85** Crear la entrada web de familias **[Primer corte]**
+- [x] **T001-85** Crear la entrada web de familias **[Primer corte]**
   - RF: RF-110 (D-117)
   - Depende de: T001-36, T001-76, T001-80
   - Hecho cuando: `src/app/acceso/familia.tsx` lee `#t=`, llama a `entrar`, borra el fragmento con `history.replaceState`, guarda el token solo en memoria y reemplaza la ruta por `(familia)/`; el test `RF-110: la entrada de familia borra el fragmento de la URL y no guarda el token en almacenamiento` pasa; `npm test`, `npm run typecheck` y `npm run lint` pasan.

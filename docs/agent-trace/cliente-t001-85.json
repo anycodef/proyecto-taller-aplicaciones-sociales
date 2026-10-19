@@ -1,0 +1,18 @@
+{
+  "version": "1.0",
+  "fecha": "2026-10-19",
+  "agente": "OpenCode",
+  "modelo": "minimax-m3.1-flash-free",
+  "tarea": "T001-85",
+  "solicitud": "El usuario pide continuar con el frontend usando docs/mockups como referencia visual",
+  "commitPrevisto": "feat(cliente): crear la entrada web de familias",
+  "alcance": ["src/app/acceso/familia.tsx", "src/__tests__/entrada-familia.test.tsx"],
+  "criterio": "T001-85: src/app/acceso/familia.tsx lee #t=, llama a entrar, borra el fragmento con history.replaceState, guarda el token solo en memoria y reemplaza la ruta por (familia)/; el test RF-110: la entrada de familia borra el fragmento de la URL y no guarda el token en almacenamiento pasa.",
+  "comprobaciones": ["npm run test:app", "npm run typecheck", "npm run lint"],
+  "resultados": {
+    "tests": "Pasa el test de la tarea dentro de la suite de 28 del cliente",
+    "typecheck": "Pasa raiz y API",
+    "lint": "Pasa sin errores ni advertencias"
+  },
+  "notas": "El token del enlace de familia queda solo en memoria en sesion.ts, como pide el plan 6.2, para poder volver a entrar cuando venza el JWT sin guardarlo en el dispositivo. La prueba comprueba que la URL que queda en la barra ya no trae el fragmento y que nada del token se escribe en el almacen. La pantalla entra al grupo (familia) con router.replace, cuya URL sigue siendo /familia. No verificado en un navegador real."
+}
