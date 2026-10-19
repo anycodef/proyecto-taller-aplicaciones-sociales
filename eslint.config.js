@@ -5,8 +5,8 @@ const expoConfig = require("eslint-config-expo/flat");
 module.exports = defineConfig([
   expoConfig,
   {
-    // dist: salida de `expo export`. .log4brains: sitio de ADRs generado.
-    ignores: ["dist/**", "api/dist/**", ".log4brains/**", "coverage/**", "api/coverage/**"],
+    // dist: salida de `expo export`. .log4brains: sitio de ADRs generado. .expo: tipos de ruta generados.
+    ignores: ["dist/**", "api/dist/**", ".log4brains/**", "coverage/**", "api/coverage/**", ".expo/**"],
   },
   {
     files: ["src/lib/**/*.{ts,tsx}"],

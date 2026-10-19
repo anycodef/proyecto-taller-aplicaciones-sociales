@@ -479,7 +479,7 @@
   - Depende de: T001-80
   - Hecho cuando: `src/app/acceso/sin-acceso.tsx` muestra el mismo mensaje para enlace inválido, revocado o cuenta desactivada y, si hubo pendientes rechazados, "N registros no pudieron enviarse"; pasan `RF-101: sin-acceso muestra el mismo mensaje sea cual sea la causa` y `RF-112: sin-acceso informa cuántos registros no pudieron enviarse`; `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T001-87** Crear la lista y la ficha de cuentas **[Primer corte]**
+- [x] **T001-87** Crear la lista y la ficha de cuentas **[Primer corte]**
   - RF: RNF-105, RF-105
   - Depende de: T001-62, T001-80
   - Hecho cuando: `src/app/(equipo)/cuentas/index.tsx` y `[id].tsx` muestran las cuentas con su `identidad_operativa`, roles y estado; el test RNTL `RNF-105: COORD ve desde el celular las cuentas que gestiona` pasa; `npm test`, `npm run typecheck` y `npm run lint` pasan.

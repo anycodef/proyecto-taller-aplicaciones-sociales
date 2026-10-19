@@ -1,10 +1,12 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 
 import { rolesEfectivos, type ContextoAcceso, type Rol } from "@/lib/seguridad/contexto-acceso";
+import { crearApiSeguridad, type ApiSeguridad, type ClienteHttp } from "@/lib/seguridad/api";
 
 import { obtenerAlmacenSesion, type SesionAlmacenada } from "./almacen-seguro";
 import {
   cerrarSesionViva,
+  crearClientePorDefecto,
   crearGestorSesionPorDefecto,
   guardarSesionViva,
   type ActivacionPendiente,
@@ -34,6 +36,8 @@ export type SesionCargada = {
 
 export type ContextoSesionValor = EstadoSesionApp & {
   gestor: GestorSesion;
+  cliente: ClienteHttp;
+  api: ApiSeguridad;
   activacion: ActivacionPendiente | null;
   guardarActivacion(activacion: ActivacionPendiente | null): void;
   iniciarSesion(tipo: TipoSesion, contexto: ContextoAcceso, jwt?: string | null): void;
@@ -90,16 +94,20 @@ export function ProveedorSesion({
   children,
   cargar = cargarSesionGuardada,
   gestor: gestorExterno,
+  cliente: clienteExterno,
 }: {
   children: ReactNode;
   cargar?: () => Promise<SesionCargada | null>;
   gestor?: GestorSesion;
+  cliente?: ClienteHttp;
 }) {
   const [estado, setEstado] = useState<EstadoSesionApp>({ ...ESTADO_VACIO, cargando: true });
   const [activacion, setActivacion] = useState<ActivacionPendiente | null>(null);
 
   /** Estado vivo de la sesion: JWT y cuenta, ambos solo en memoria. */
   const [gestor] = useState<GestorSesion>(() => gestorExterno ?? crearGestorSesionPorDefecto());
+  const [cliente] = useState<ClienteHttp>(() => clienteExterno ?? crearClientePorDefecto());
+  const [api] = useState<ApiSeguridad>(() => crearApiSeguridad(cliente));
 
   useEffect(() => {
     let vigente = true;
@@ -135,6 +143,8 @@ export function ProveedorSesion({
     () => ({
       ...estado,
       gestor,
+      cliente,
+      api,
       activacion,
       guardarActivacion: setActivacion,
       iniciarSesion: (tipo, contexto, jwt = null) => {
@@ -155,7 +165,7 @@ export function ProveedorSesion({
         setEstado(ESTADO_VACIO);
       },
     }),
-    [estado, gestor, activacion]
+    [estado, gestor, cliente, api, activacion]
   );
 
   return <ContextoSesion.Provider value={valor}>{children}</ContextoSesion.Provider>;

@@ -103,30 +103,34 @@ export function leerJwtVivo(): string | null {
 }
 
 /**
- * Gestor con el cliente real. Sin URL de API configurada avisa en vez de
+ * Cliente HTTP con la sesion viva. Sin URL de API configurada avisa en vez de
  * romper la app al arrancar.
  */
-export function crearGestorSesionPorDefecto(): GestorSesion {
+export function crearClientePorDefecto(): ClienteHttp {
   const url = urlBaseApi();
-  const cliente: ClienteHttp = url
-    ? crearClienteHttp({
-        urlBase: url,
-        claveSuscripcion: claveSuscripcionApi(),
-        obtenerToken: async () => jwtVivo,
-        renovarSesion: async () =>
-          cuentaViva ? (await gestorVivo?.renovarSesion(cuentaViva)) ?? null : null,
-        irASinAcceso: (rechazados) => {
-          router.replace({ pathname: "/acceso/sin-acceso", params: { rechazados: String(rechazados) } });
-        },
-        enDesarrollo: ES_DESARROLLO,
-      })
-    : {
-        solicitar: async () => {
-          throw new Error("api_sin_configurar");
-        },
-      };
+  if (!url) {
+    return {
+      solicitar: async () => {
+        throw new Error("api_sin_configurar");
+      },
+    };
+  }
 
-  const gestor = crearGestorSesion({ almacen: obtenerAlmacenSesion(), cliente });
+  return crearClienteHttp({
+    urlBase: url,
+    claveSuscripcion: claveSuscripcionApi(),
+    obtenerToken: async () => jwtVivo,
+    renovarSesion: async () => (cuentaViva ? (await gestorVivo?.renovarSesion(cuentaViva)) ?? null : null),
+    irASinAcceso: (rechazados) => {
+      router.replace({ pathname: "/acceso/sin-acceso", params: { rechazados: String(rechazados) } });
+    },
+    enDesarrollo: ES_DESARROLLO,
+  });
+}
+
+/** Gestor con el cliente real. */
+export function crearGestorSesionPorDefecto(): GestorSesion {
+  const gestor = crearGestorSesion({ almacen: obtenerAlmacenSesion(), cliente: crearClientePorDefecto() });
   gestorVivo = gestor;
   return gestor;
 }

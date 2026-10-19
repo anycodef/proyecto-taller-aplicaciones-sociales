@@ -47,3 +47,12 @@ export type Accion = keyof typeof MATRIZ_PERMISOS;
 export function permisoPara(accion: string): Permiso | undefined {
   return Object.hasOwn(MATRIZ_PERMISOS, accion) ? MATRIZ_PERMISOS[accion as Accion] : undefined;
 }
+
+/**
+ * Roles que quien administra puede asignar. La administracion puede todos;
+ * la coordinacion solo catequista y familia (S-19). Misma regla que la API.
+ */
+export function rolesAsignables(rolesPropios: readonly Rol[]): Rol[] {
+  if (rolesPropios.includes("administracion")) return ["administracion", "coordinacion", "catequista", "familia", "supervision"];
+  return ["catequista", "familia"];
+}
