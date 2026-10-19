@@ -72,7 +72,7 @@
   - Depende de: T002-03
   - Hecho cuando: `codificarCarne` e `interpretarCodigoCarne` pasan `RF-302: el QR solo contiene SGC1, el uuid y la emisión`, `RF-302: un código mal formado se interpreta como inválido` e `RF-302: interpretar lo codificado devuelve el mismo id y emisión` (supuesto C-13, D-202); y `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T002-11** Instalar `qrcode-generator` e implementar `matrizQr` y `svgDeMatriz` **[Primer corte]**
+- [x] **T002-11** Instalar `qrcode-generator` e implementar `matrizQr` y `svgDeMatriz` **[Primer corte]**
   - RF: RF-302 (003)
   - Depende de: T002-01, T002-10
   - Hecho cuando: `qrcode-generator` figura en `package.json` con versión exacta; pasan `RF-302: matrizQr es cuadrada, determinista y usa corrección M` y `RF-302: svgDeMatriz pinta un módulo por cada celda oscura`; el test de pureza de T002-03 sigue en verde; y `npm test`, `npm run typecheck` y `npm run lint` pasan.
@@ -247,7 +247,7 @@
 
 ### 1.6 Cliente
 
-- [ ] **T002-44** Implementar `src/lib/catequizandos/api.ts` **[Primer corte]**
+- [x] **T002-44** Implementar `src/lib/catequizandos/api.ts` **[Primer corte]**
   - RF: RF-201, RF-202, RF-206, RF-207, RF-302 (003)
   - Depende de: T002-14, T001 (F1: cliente HTTP `src/plataforma/api/cliente.ts`)
   - Hecho cuando: expone funciones tipadas de los endpoints de fase 1 con el cliente HTTP inyectado (sin importar Expo ni `@/plataforma`); pasa `RF-202: inscribir envía el UUID generado en el cliente y reintenta con el mismo`; y `npm test`, `npm run typecheck` y `npm run lint` pasan.
@@ -302,7 +302,7 @@
   - Depende de: T002-30, T002-31, T002-53
   - Hecho cuando: `nuevo.tsx` propone rango y modalidad según la regla habitual y `[id].tsx` renombra, ajusta, cierra y asigna catequistas, con la edición desactivada sin conexión; pasan `RF-206: al crear un grupo de 11 años se propone separar por sexo` y `RF-206: sin conexión no se edita un grupo`; y `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T002-55** Instalar `react-native-svg` y crear `codigo-qr.tsx` y `tarjeta-carne.tsx` **[Primer corte]**
+- [x] **T002-55** Instalar `react-native-svg` y crear `codigo-qr.tsx` y `tarjeta-carne.tsx` **[Primer corte]**
   - RF: RF-302 (003)
   - Depende de: T002-01, T002-11
   - Hecho cuando: `react-native-svg` se instaló con `npx expo install` (versión del SDK 57); `codigo-qr.tsx` pinta `matrizQr` y `tarjeta-carne.tsx` muestra nombre, grupo y QR; pasa `RF-302: codigo-qr pinta tantos módulos oscuros como la matriz`; y `npm test`, `npm run typecheck` y `npm run lint` pasan.
@@ -312,12 +312,12 @@
   - Depende de: T002-28, T002-42, T002-55
   - Hecho cuando: `src/app/(equipo)/catequizandos/[id]/carne.tsx` arma el carné desde la nómina local y reemite solo con conexión; pasan `RF-302: sin conexión el carné muestra el código SGC1 de la nómina local` y `RF-302: sin conexión no se puede reemitir`; y `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T002-57** Generar el HTML de la hoja de carnés en `carne.ts` **[Primer corte]**
+- [x] **T002-57** Generar el HTML de la hoja de carnés en `carne.ts` **[Primer corte]**
   - RF: RF-302 (003)
   - Depende de: T002-11
   - Hecho cuando: la función pura `hojaCarnesHtml(carnes)` usa `svgDeMatriz` y escapa los nombres; pasan `RF-302: la hoja tiene un carné por niño` y `RF-302: la hoja escapa caracteres HTML en los nombres`; y `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T002-58** Instalar `expo-print` y construir la hoja imprimible por grupo **[Primer corte]**
+- [x] **T002-58** Instalar `expo-print` y construir la hoja imprimible por grupo **[Primer corte]**
   - RF: RF-302 (003)
   - Depende de: T002-01, T002-43, T002-57
   - Hecho cuando: `expo-print` se instaló con `npx expo install`; `src/app/(equipo)/coordinacion/grupos/[id]/carnes.tsx` exige conexión y usa `Print.printToFileAsync({ html })` en nativo y `Print.printAsync()` en web, con la API comprobada en la documentación v57; pasa `RF-302: la pantalla de carnés pide la hoja al servidor y la imprime` con `expo-print` simulado; y `npm test`, `npm run typecheck` y `npm run lint` pasan.
