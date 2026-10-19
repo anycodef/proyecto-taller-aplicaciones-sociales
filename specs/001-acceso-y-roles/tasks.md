@@ -474,7 +474,7 @@
   - Depende de: T001-36, T001-76, T001-80
   - Hecho cuando: `src/app/acceso/familia.tsx` lee `#t=`, llama a `entrar`, borra el fragmento con `history.replaceState`, guarda el token solo en memoria y reemplaza la ruta por `(familia)/`; el test `RF-110: la entrada de familia borra el fragmento de la URL y no guarda el token en almacenamiento` pasa; `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T001-86** Crear la pantalla genérica de acceso denegado **[Primer corte]**
+- [x] **T001-86** Crear la pantalla genérica de acceso denegado **[Primer corte]**
   - RF: RF-101, RF-112
   - Depende de: T001-80
   - Hecho cuando: `src/app/acceso/sin-acceso.tsx` muestra el mismo mensaje para enlace inválido, revocado o cuenta desactivada y, si hubo pendientes rechazados, "N registros no pudieron enviarse"; pasan `RF-101: sin-acceso muestra el mismo mensaje sea cual sea la causa` y `RF-112: sin-acceso informa cuántos registros no pudieron enviarse`; `npm test`, `npm run typecheck` y `npm run lint` pasan.
