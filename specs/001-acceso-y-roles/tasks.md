@@ -424,7 +424,7 @@
   - Depende de: T001-74
   - Hecho cuando: `src/plataforma/seguridad/almacen-seguro.ts` gestiona `sigecat.dispositivo`, `sigecat.cuentas` y `sigecat.sesion.<cuentaId>`; con SecureStore simulado pasan `RF-111: dispositivoId se genera una sola vez y se reutiliza`, `RF-112: la sesión guardada no contiene nombres y pesa menos de 2 KB` y `RNF-102: sigecat.cuentas lista las cuentas registradas en el celular`; `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T001-76** Implementar el cliente HTTP con renovación automática **[Primer corte]**
+- [x] **T001-76** Implementar el cliente HTTP con renovación automática **[Primer corte]**
   - RF: RF-101, RNF-103
   - Depende de: T001-41, T001-74
   - Hecho cuando: `src/plataforma/api/cliente.ts` inyecta el JWT y la clave de suscripción, renueva una vez ante un 401 y reintenta, y lleva a `acceso/sin-acceso` ante `credencial_terminada`; con `fetch` falso pasan `RF-101: ante 401 el cliente renueva una vez y reintenta`, `RF-101: con credencial_terminada el cliente lleva a sin-acceso` y `RNF-103: el cliente rechaza una URL base sin HTTPS fuera de desarrollo`; `npm test`, `npm run typecheck` y `npm run lint` pasan.
