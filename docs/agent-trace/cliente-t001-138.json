@@ -1,0 +1,18 @@
+{
+  "version": "1.0",
+  "fecha": "2026-10-19",
+  "agente": "OpenCode",
+  "modelo": "minimax-m3.1-flash-free",
+  "tarea": "T001-138",
+  "solicitud": "El usuario pide continuar con las pantallas que se pueden hacer",
+  "commitPrevisto": "feat(cliente): crear la pantalla de auditoria",
+  "alcance": ["src/app/(equipo)/auditoria.tsx", "src/__tests__/auditoria.test.tsx"],
+  "criterio": "T001-138: src/app/(equipo)/auditoria.tsx filtra por nino y fechas y muestra seudonimos; el test RNTL RF-109: ADM consulta los eventos de un nino por fechas pasa.",
+  "comprobaciones": ["npm run test:app", "npm run typecheck", "npm run lint"],
+  "resultados": {
+    "tests": "46 pasan en el cliente: los de esta tarea mas los 40 anteriores",
+    "typecheck": "Pasa raiz y API",
+    "lint": "Pasa sin errores ni advertencias"
+  },
+  "notas": "La consulta usa GET /auditoria con catequizandoId, desde y hasta, y la pantalla solo muestra el seudonimo del autor, nunca su identidad real. Limitacion: la API no tiene un buscador de ninos, asi que el filtro por nino pide el identificador; cuando exista, se cambiara por un selector. La pantalla no tiene mockup propio en docs/mockups."
+}

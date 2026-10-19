@@ -741,7 +741,7 @@
   - Depende de: T001-40, T001-46, T001-50
   - Hecho cuando: `http/auditoria.ts` expone `GET /auditoria?catequizandoId&desde&hasta` solo para ADM, con `nombreVisible` del autor; pasan `RF-105: la auditoría y los avisos muestran el seudónimo` y `RF-109: solo administración consulta la auditoría`, junto con los cuatro casos HTTP; `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T001-138** Crear la pantalla de auditoría
+- [x] **T001-138** Crear la pantalla de auditoría
   - RF: RF-109
   - Depende de: T001-80, T001-137
   - Hecho cuando: `src/app/(equipo)/auditoria.tsx` filtra por niño y fechas y muestra seudónimos; el test RNTL `RF-109: ADM consulta los eventos de un niño por fechas` pasa; `npm test`, `npm run typecheck` y `npm run lint` pasan.
