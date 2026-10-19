@@ -509,7 +509,7 @@
   - Depende de: T001-74
   - Hecho cuando: `app.json` declara `intentFilters` con `autoVerify` para `/acceso/`; existen `public/.well-known/assetlinks.json` (con la huella de EAS como parámetro a completar en T001-96) y `public/staticwebapp.config.json` (fallback de navegación, `Referrer-Policy: no-referrer`, CSP y HSTS); el test `RNF-103: staticwebapp.config.json declara HSTS y Referrer-Policy no-referrer` pasa; `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T001-93** Escribir el extremo a extremo de sesión del cliente **[Primer corte]**
+- [x] **T001-93** Escribir el extremo a extremo de sesión del cliente **[Primer corte]**
   - RF: RF-111, RF-112
   - Depende de: T001-39, T001-78
   - Hecho cuando: `src/plataforma/seguridad/__tests__/flujo-sesion.test.tsx` cubre los pasos 1, 2, 3 y 5 de la §9.5 (activar y fijar PIN, desbloquear el día 13 y el día 15, cinco fallos, renovación antes del push con puertos falsos) y el test `RF-112: flujo de sesión del celular de extremo a extremo` pasa; `npm test`, `npm run typecheck` y `npm run lint` pasan.

@@ -1,0 +1,18 @@
+{
+  "version": "1.0",
+  "fecha": "2026-10-19",
+  "agente": "OpenCode",
+  "modelo": "minimax-m3.1-flash-free",
+  "tarea": "T001-93",
+  "solicitud": "El usuario pide continuar con el frontend que se puede avanzar",
+  "commitPrevisto": "test(cliente): escribir el extremo a extremo de la sesion del celular",
+  "alcance": ["src/plataforma/seguridad/__tests__/flujo-sesion.test.tsx"],
+  "criterio": "T001-93: src/plataforma/seguridad/__tests__/flujo-sesion.test.tsx cubre los pasos 1, 2, 3 y 5 de la seccion 9.5 del plan con SecureStore simulado y un servidor falso; pasa el test RF-112: flujo de sesion del celular de extremo a extremo.",
+  "comprobaciones": ["npm run test:app", "npm run typecheck", "npm run lint"],
+  "resultados": {
+    "tests": "Pasa el test de la tarea dentro de la suite del cliente",
+    "typecheck": "Pasa raiz y API",
+    "lint": "Pasa sin errores ni advertencias"
+  },
+  "notas": "El recorrido usa el gestor de sesion real con un almacen simulado y un servidor falso: activa el enlace y fija el PIN sin dejar nada guardado antes, desbloquea el dia 13 y el dia 15 con el reloj inyectado, bloquea el celular al quinto fallo comprobando que el token de renovacion desaparece del almacen, y comprueba con alReconectar que la renovacion ocurre antes del push. El paso 4 del plan, cerrar sesion, lo cubre T001-120 porque depende de la purga de pendientes de la spec 003."
+}
