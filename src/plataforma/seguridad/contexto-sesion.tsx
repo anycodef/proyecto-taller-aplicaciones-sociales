@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useMemo, useState, type ReactNode
 
 import { rolesEfectivos, type ContextoAcceso, type Rol } from "@/lib/seguridad/contexto-acceso";
 import { crearApiSeguridad, type ApiSeguridad, type ClienteHttp } from "@/lib/seguridad/api";
+import { crearApiCatequizandos, type ApiCatequizandos } from "@/lib/catequizandos/api";
 
 import { obtenerAlmacenSesion, type SesionAlmacenada } from "./almacen-seguro";
 import {
@@ -38,6 +39,7 @@ export type ContextoSesionValor = EstadoSesionApp & {
   gestor: GestorSesion;
   cliente: ClienteHttp;
   api: ApiSeguridad;
+  apiCatequizandos: ApiCatequizandos;
   activacion: ActivacionPendiente | null;
   guardarActivacion(activacion: ActivacionPendiente | null): void;
   iniciarSesion(tipo: TipoSesion, contexto: ContextoAcceso, jwt?: string | null): void;
@@ -108,6 +110,7 @@ export function ProveedorSesion({
   const [gestor] = useState<GestorSesion>(() => gestorExterno ?? crearGestorSesionPorDefecto());
   const [cliente] = useState<ClienteHttp>(() => clienteExterno ?? crearClientePorDefecto());
   const [api] = useState<ApiSeguridad>(() => crearApiSeguridad(cliente));
+  const [apiCatequizandos] = useState<ApiCatequizandos>(() => crearApiCatequizandos(cliente));
 
   useEffect(() => {
     let vigente = true;
@@ -145,6 +148,7 @@ export function ProveedorSesion({
       gestor,
       cliente,
       api,
+      apiCatequizandos,
       activacion,
       guardarActivacion: setActivacion,
       iniciarSesion: (tipo, contexto, jwt = null) => {
@@ -165,7 +169,7 @@ export function ProveedorSesion({
         setEstado(ESTADO_VACIO);
       },
     }),
-    [estado, gestor, cliente, api, activacion]
+    [estado, gestor, cliente, api, apiCatequizandos, activacion]
   );
 
   return <ContextoSesion.Provider value={valor}>{children}</ContextoSesion.Provider>;

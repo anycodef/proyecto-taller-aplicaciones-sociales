@@ -1,0 +1,25 @@
+{
+  "version": "1.0",
+  "fecha": "2026-10-19",
+  "agente": "OpenCode",
+  "modelo": "minimax-m3.1-flash-free",
+  "tarea": "T002-55",
+  "solicitud": "El usuario pide continuar con las tareas de la spec 002 que se puedan realizar",
+  "commitPrevisto": "feat(carné): pintar el QR y la tarjeta del carné",
+  "alcance": [
+    "src/components/catequizandos/codigo-qr.tsx",
+    "src/components/catequizandos/tarjeta-carne.tsx",
+    "src/__tests__/carne-componente.test.tsx",
+    "src/app/galeria.tsx",
+    "package.json",
+    "package-lock.json"
+  ],
+  "criterio": "T002-55: react-native-svg se instala con npx expo install, codigo-qr.tsx pinta matrizQr y tarjeta-carne.tsx muestra nombre, grupo y QR; pasa RF-302: codigo-qr pinta tantos modulos oscuros como la matriz.",
+  "comprobaciones": ["npm run test:app", "npm run typecheck", "npm run lint"],
+  "resultados": {
+    "tests": "Pasan los tests de la tarea dentro de la suite del cliente",
+    "typecheck": "Pasa raiz y API",
+    "lint": "Pasa sin errores ni advertencias"
+  },
+  "notas": "El QR se pinta con react-native-svg, sin imagen PNG ni servicio en el servidor, y la matriz se calcula en el dispositivo: el carné se ve sin conexion. La tarjeta sigue el mockup p-18: SIGECAT - CARNE, el nombre, el grupo, el QR enmarcado y la emision. Los componentes nuevos se anaden a la galeria, como pide AGENTS.md. En la prueba se simula react-native-svg para contar los modulos oscuros que se pintan."
+}

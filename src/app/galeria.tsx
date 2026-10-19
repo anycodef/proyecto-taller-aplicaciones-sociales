@@ -12,6 +12,7 @@ import {
 import { PuntosPin, TecladoPin } from '@/components/seguridad/teclado-pin';
 import { CompartirEnlace } from '@/components/seguridad/compartir-enlace';
 import { ComponenteConsentimiento } from '@/components/seguridad/consentimiento';
+import { TarjetaCarne } from '@/components/catequizandos/tarjeta-carne';
 import { colores, espacio, tipografia } from '@/tema';
 import { useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
@@ -125,6 +126,16 @@ export default function Galeria() {
             vigenteDesde: '2026-10-19T12:00:00.000Z',
           }}
           alAceptar={() => undefined}
+        />
+      </Seccion>
+
+      <Seccion titulo="Carné">
+        <TarjetaCarne
+          nombres="Mateo Alejandro"
+          apellidos="Vargas Mendoza"
+          grupo="Grupo A"
+          emision={1}
+          codigoCarne="SGC1:3f2504e0-4f89-41d3-9a0c-0305e82c3301:1"
         />
       </Seccion>
     </ScrollView>
