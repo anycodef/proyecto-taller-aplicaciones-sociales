@@ -8,6 +8,7 @@
     "scheme": "sigecat",
     "userInterfaceStyle": "automatic",
     "android": {
+      "package": "org.sigecat.app",
       "adaptiveIcon": {
         "backgroundColor": "#1e3a8a",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -28,6 +29,12 @@
           "backgroundColor": "#1e3a8a",
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 76
+        }
+      ],
+      [
+        "expo-secure-store",
+        {
+          "configureAndroidBackup": false
         }
       ]
     ],

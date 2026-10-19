@@ -414,7 +414,7 @@
 
 ### Cliente
 
-- [ ] **T001-74** Instalar `expo-secure-store` y `expo-crypto` y configurar `app.json` **[Primer corte]**
+- [x] **T001-74** Instalar `expo-secure-store` y `expo-crypto` y configurar `app.json` **[Primer corte]**
   - RF: RF-111, RF-112
   - Depende de: T001-01
   - Hecho cuando: ambos paquetes están instalados con `npx expo install`; `app.json` tiene `android.package` y el plugin de `expo-secure-store` con la copia de seguridad de Android excluida (verificado en la documentación v57); `npx expo config --type public` muestra el plugin; `npm test`, `npm run typecheck` y `npm run lint` pasan.

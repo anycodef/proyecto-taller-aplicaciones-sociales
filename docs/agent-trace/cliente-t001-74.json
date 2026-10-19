@@ -1,0 +1,26 @@
+{
+  "version": "1.0",
+  "fecha": "2026-10-19",
+  "agente": "OpenCode",
+  "modelo": "minimax-m3.1-flash-free",
+  "tarea": "T001-74",
+  "solicitud": "El usuario pide empezar las tareas del Orden 1 y cumplir literalmente el Hecho cuando de cada una",
+  "commitPrevisto": "feat(cliente): instalar el almacen seguro y el criptografico de Expo",
+  "alcance": ["package.json", "package-lock.json", "app.json", "src/__tests__/config-app.test.ts"],
+  "criterio": "T001-74: expo-secure-store y expo-crypto instalados con npx expo install; app.json con android.package y el plugin de expo-secure-store con la copia de seguridad de Android excluida; npx expo config --type public muestra el plugin.",
+  "comprobaciones": [
+    "npx expo install expo-secure-store expo-crypto",
+    "npx expo config --type public",
+    "npm run test:app",
+    "npm run typecheck",
+    "npm run lint"
+  ],
+  "resultados": {
+    "instalacion": "expo-secure-store 57.0.4 y expo-crypto 57.0.4",
+    "config": "plugins incluye [expo-secure-store, { configureAndroidBackup: false }] y android.package = org.sigecat.app",
+    "tests": "3 pasan en el cliente (config-app, infra-jest y base del dominio)",
+    "typecheck": "Pasa raíz y API",
+    "lint": "Pasa sin advertencias"
+  },
+  "notas": "La copia de seguridad de Android se excluye con configureAndroidBackup: false, la opcion que documenta la version 57 de expo-secure-store; el plugin queda visible en expo config. El nombre de paquete org.sigecat.app es una decision de este commit porque el repositorio no fijaba ninguno. No se verifico en un dispositivo real: la evidencia es de configuracion."
+}
