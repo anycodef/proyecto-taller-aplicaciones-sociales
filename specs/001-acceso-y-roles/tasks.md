@@ -459,7 +459,7 @@
   - Depende de: T001-36, T001-77, T001-80
   - Hecho cuando: `src/app/acceso/equipo.tsx` lee el token con `expo-linking`, llama a `activar` y pasa a `fijar-pin`; sin red indica que la activación necesita conexión y en escritorio o sin la app explica cómo instalarla; pasa el test RNTL `RF-111: abrir el enlace del equipo activa la credencial y pasa a fijar el PIN`; `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T001-83** Crear el teclado de PIN y la pantalla para fijarlo **[Primer corte]**
+- [x] **T001-83** Crear el teclado de PIN y la pantalla para fijarlo **[Primer corte]**
   - RF: RF-111
   - Depende de: T001-37, T001-82
   - Hecho cuando: `src/components/seguridad/teclado-pin.tsx` y `src/app/acceso/fijar-pin.tsx` piden el PIN dos veces con `validarFormatoPin`; el test RNTL `RF-111: fijar-pin rechaza 3 o 7 dígitos y exige confirmar el PIN` pasa; `npm test`, `npm run typecheck` y `npm run lint` pasan.

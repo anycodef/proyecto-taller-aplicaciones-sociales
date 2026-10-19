@@ -9,6 +9,7 @@ import {
   PantallaResultado,
   Tarjeta,
 } from '@/components/ui';
+import { PuntosPin, TecladoPin } from '@/components/seguridad/teclado-pin';
 import { colores, espacio, tipografia } from '@/tema';
 import { useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
@@ -17,6 +18,7 @@ export default function Galeria() {
   const [verResultado, setVerResultado] = useState(false);
   const [nombre, setNombre] = useState('');
   const [sexo, setSexo] = useState<string | null>(null);
+  const [pin, setPin] = useState('');
 
   if (verResultado) {
     return (
@@ -92,6 +94,11 @@ export default function Galeria() {
 
       <Seccion titulo="Pantalla de resultado">
         <Boton etiqueta="Ver pantalla de bloqueo" variante="secundario" alPresionar={() => setVerResultado(true)} />
+      </Seccion>
+
+      <Seccion titulo="PIN">
+        <PuntosPin valor={pin} />
+        <TecladoPin valor={pin} alCambiar={setPin} />
       </Seccion>
     </ScrollView>
   );
