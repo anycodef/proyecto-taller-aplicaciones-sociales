@@ -464,7 +464,7 @@
   - Depende de: T001-37, T001-82
   - Hecho cuando: `src/components/seguridad/teclado-pin.tsx` y `src/app/acceso/fijar-pin.tsx` piden el PIN dos veces con `validarFormatoPin`; el test RNTL `RF-111: fijar-pin rechaza 3 o 7 dígitos y exige confirmar el PIN` pasa; `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T001-84** Crear la pantalla de desbloqueo **[Primer corte]**
+- [x] **T001-84** Crear la pantalla de desbloqueo **[Primer corte]**
   - RF: RF-111, RF-112
   - Depende de: T001-78, T001-83
   - Hecho cuando: `src/app/acceso/desbloquear.tsx` muestra "Te quedan N días sin conexión", en `requiere-conexion` solo deja consultar y al quinto fallo muestra "Pide un enlace nuevo a la coordinación"; pasan los tests RNTL `RF-112: desbloquear muestra los días restantes sin conexión`, `RF-112: en requiere-conexion no se permiten registros nuevos` y `RF-111: al quinto fallo se pide un enlace nuevo`; `npm test`, `npm run typecheck` y `npm run lint` pasan.

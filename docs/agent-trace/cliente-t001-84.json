@@ -1,0 +1,18 @@
+{
+  "version": "1.0",
+  "fecha": "2026-10-19",
+  "agente": "OpenCode",
+  "modelo": "minimax-m3.1-flash-free",
+  "tarea": "T001-84",
+  "solicitud": "El usuario pide continuar con el frontend usando docs/mockups como referencia visual",
+  "commitPrevisto": "feat(cliente): crear la pantalla de desbloqueo",
+  "alcance": ["src/app/acceso/desbloquear.tsx", "src/__tests__/desbloquear.test.tsx"],
+  "criterio": "T001-84: src/app/acceso/desbloquear.tsx muestra Te quedan N dias sin conexion, en requiere-conexion solo deja consultar y al quinto fallo muestra Pide un enlace nuevo a la coordinacion; pasan los tests RNTL RF-112: desbloquear muestra los dias restantes sin conexion, RF-112: en requiere-conexion no se permiten registros nuevos y RF-111: al quinto fallo se pide un enlace nuevo.",
+  "comprobaciones": ["npm run test:app", "npm run typecheck", "npm run lint"],
+  "resultados": {
+    "tests": "Pasan los cuatro tests RNTL de la tarea dentro de la suite de 28 del cliente",
+    "typecheck": "Pasa raiz y API",
+    "lint": "Pasa sin errores ni advertencias"
+  },
+  "notas": "La pantalla cubre los tres estados del mockup: p-04 con el teclado y el aviso de dias restantes, p-05 con Conectate para seguirregistrar y Abrir en modo consulta, y p-06 con el celular bloqueado. El estado sale de estadoSesionLocal de src/lib, asi que el limite de 14 dias y el bloqueo por 5 intentos son los del dominio. El texto de dias restantes sigue la tarea, Te quedan N dias sin conexion, y no el del mockup. No se muestra el seudonimo porque no se guarda en el celular: el plan 3.3 no lo incluye y el nombre real de un catequista menor no sale de la vista. Falta la deteccion de red, que llega con NetInfo en la spec 003."
+}
