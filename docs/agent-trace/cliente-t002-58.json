@@ -1,0 +1,23 @@
+{
+  "version": "1.0",
+  "fecha": "2026-10-19",
+  "agente": "OpenCode",
+  "modelo": "minimax-m3.1-flash-free",
+  "tarea": "T002-58",
+  "solicitud": "El usuario pide continuar con las tareas de la spec 002 que se puedan realizar",
+  "commitPrevisto": "feat(carné): construir la hoja imprimible por grupo",
+  "alcance": [
+    "src/app/(equipo)/coordinacion/grupos/[id]/carnes.tsx",
+    "src/__tests__/carnes-grupo.test.tsx",
+    "package.json",
+    "package-lock.json"
+  ],
+  "criterio": "T002-58: expo-print se instala con npx expo install y la pantalla src/app/(equipo)/coordinacion/grupos/[id]/carnes.tsx exige conexion y usa Print.printToFileAsync({ html }) en nativo y Print.printAsync() en web, con la API comprobada en la documentacion v57; pasa RF-302: la pantalla de carnes pide la hoja al servidor y la imprime con expo-print simulado.",
+  "comprobaciones": ["npm run test:app", "npm run typecheck", "npm run lint"],
+  "resultados": {
+    "tests": "Pasan los tests de la tarea dentro de la suite del cliente",
+    "typecheck": "Pasa raiz y API",
+    "lint": "Pasa sin errores ni advertencias"
+  },
+  "notas": "La pantalla pide los carnes al servidor con GET /grupos/{id}/carnes, arma el HTML en el dispositivo y lo imprime: en nativo con printToFileAsync, que deja el PDF en la cache, y en web con printAsync, que imprime la pagina. Compartir el PDF requeriria expo-sharing, que la spec deja pendiente de justificar, asi que no se instala. No verificado en un dispositivo real."
+}

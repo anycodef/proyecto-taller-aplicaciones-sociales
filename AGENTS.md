@@ -47,6 +47,8 @@ coordinación, catequistas (muchos menores de edad) y familias.
 - La identidad real de un catequista menor de edad nunca sale en vistas, reportes ni exportaciones: usa `identidadOperativa`.
 - Todo registro nuevo lleva un UUID generado en el cliente; una migración ya aplicada no se edita.
 - Commits con Conventional Commits, uno por tarea, con su registro Agent Trace incluido.
+- Referencia visual de pantallas: `docs/mockups/` (ver su README). La spec manda sobre el mockup.
+- UI: reutiliza `src/components/ui` y `src/tema`; no hardcodees colores ni medidas. Todo componente nuevo se añade a `src/app/galeria.tsx`.
 
 ## Al terminar cualquier tarea
 - Ejecuta `npm test`, `npm run typecheck` y `npm run lint`, y confirma en tu respuesta que todo pasa.

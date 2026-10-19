@@ -1,0 +1,22 @@
+{
+  "version": "1.0",
+  "fecha": "2026-10-19",
+  "agente": "OpenCode",
+  "modelo": "minimax-m3.1-flash-free",
+  "tarea": "T002-44",
+  "solicitud": "El usuario pide continuar con las tareas de la spec 002 que se puedan realizar",
+  "commitPrevisto": "feat(carné): tipar la API de catequizandos en el cliente",
+  "alcance": [
+    "src/lib/catequizandos/api.ts",
+    "src/lib/catequizandos/__tests__/api.test.ts",
+    "src/plataforma/seguridad/contexto-sesion.tsx"
+  ],
+  "criterio": "T002-44: src/lib/catequizandos/api.ts expone funciones tipadas de los endpoints de fase 1 con el cliente HTTP inyectado, sin importar Expo ni @/plataforma; pasa RF-202: inscribir envia el UUID generado en el cliente y reintenta con el mismo.",
+  "comprobaciones": ["npm run test:app", "npm run typecheck", "npm run lint"],
+  "resultados": {
+    "tests": "Pasan los tests de la tarea dentro de la suite del cliente",
+    "typecheck": "Pasa raiz y API",
+    "lint": "Pasa sin errores ni advertencias"
+  },
+  "notas": "La fachada se amplia con los endpoints de fase 1 que faltaban: carnes del grupo, grupos del ciclo, sugerencias, ciclo abierto y gestion de grupos, con los cuerpos tal como los valida la API. prepararInscripcion genera el UUID una sola vez por borrador, de modo que un reintento viaja con el mismo id y la escritura es idempotente. El proveedor expone la fachada junto al cliente, sin que src/lib importe nada de la plataforma."
+}

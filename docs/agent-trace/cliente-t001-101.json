@@ -1,0 +1,23 @@
+{
+  "version": "1.0",
+  "fecha": "2026-10-19",
+  "agente": "OpenCode",
+  "modelo": "minimax-m3.1-flash-free",
+  "tarea": "T001-101",
+  "solicitud": "El usuario pide continuar con las pantallas que se pueden hacer",
+  "commitPrevisto": "feat(cliente): crear el componente de consentimiento presencial",
+  "alcance": [
+    "src/components/seguridad/consentimiento.tsx",
+    "src/__tests__/consentimiento.test.tsx",
+    "src/app/galeria.tsx",
+    "src/plataforma/api/usar-carga.ts"
+  ],
+  "criterio": "T001-101: src/components/seguridad/consentimiento.tsx muestra el texto vigente completo y el boton El apoderado acepta, listo para el asistente de inscripcion de 002; el test RNTL RF-106: el componente muestra el texto vigente completo y registra la aceptacion pasa.",
+  "comprobaciones": ["npm run test:app", "npm run typecheck", "npm run lint"],
+  "resultados": {
+    "tests": "46 pasan en el cliente: los de esta tarea mas los 40 anteriores",
+    "typecheck": "Pasa raiz y API",
+    "lint": "Pasa sin errores ni advertencias"
+  },
+  "notas": "El componente sigue el mockup p-13: paso del asistente, titulo, la indicacion de entregar el celular, el texto completo en un marco desplazable y el boton El apoderado acepta. El texto se consulta con GET /consentimientos/texto-vigente y nunca se guarda en el celular: es un dato restringido que solo se consulta con conexion. El componente avisa por alAceptar el texto que la persona acepto, y quien lo usa (el asistente de 002) registra el consentimiento con el id del nino y del apoderado. Para la galeria, el texto puede venir por prop, asi que la galeria no llama al servidor. useCarga acepta un flag activo para no pedir nada cuando el dato ya viene."
+}

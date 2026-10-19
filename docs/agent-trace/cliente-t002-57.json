@@ -1,0 +1,18 @@
+{
+  "version": "1.0",
+  "fecha": "2026-10-19",
+  "agente": "OpenCode",
+  "modelo": "minimax-m3.1-flash-free",
+  "tarea": "T002-57",
+  "solicitud": "El usuario pide continuar con las tareas de la spec 002 que se puedan realizar",
+  "commitPrevisto": "feat(carné): generar el HTML de la hoja de carnés",
+  "alcance": ["src/lib/catequizandos/carne.ts", "src/lib/catequizandos/__tests__/carne.test.ts"],
+  "criterio": "T002-57: la funcion pura hojaCarnesHtml(carnes) usa svgDeMatriz y escapa los nombres; pasan RF-302: la hoja tiene un carne por nino y RF-302: la hoja escapa caracteres HTML en los nombres.",
+  "comprobaciones": ["npm run test:app", "npm run typecheck", "npm run lint"],
+  "resultados": {
+    "tests": "Pasan los tests de la tarea dentro de la suite del cliente",
+    "typecheck": "Pasa raiz y API",
+    "lint": "Pasa sin errores ni advertencias"
+  },
+  "notas": "La hoja se arma en el dispositivo, sin PDF en el servidor: una tarjeta por nino con su QR en SVG y los nombres escapados, para que un nombre con angle brackets no rompa la impresion. El texto del consentimiento y los datos de ninos no viajan al servidor en ningun momento."
+}

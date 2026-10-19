@@ -1,0 +1,24 @@
+{
+  "version": "1.0",
+  "fecha": "2026-10-19",
+  "agente": "OpenCode",
+  "modelo": "minimax-m3.1-flash-free",
+  "tarea": "T001-107",
+  "solicitud": "El usuario pide continuar con las pantallas que se pueden hacer",
+  "commitPrevisto": "feat(cliente): crear las pantallas de delegacion",
+  "alcance": [
+    "src/lib/seguridad/fechas.ts",
+    "src/lib/seguridad/__tests__/fechas.test.ts",
+    "src/app/(equipo)/delegaciones/index.tsx",
+    "src/app/(equipo)/delegaciones/nueva.tsx",
+    "src/__tests__/delegaciones.test.tsx"
+  ],
+  "criterio": "T001-107: src/app/(equipo)/delegaciones/index.tsx y nueva.tsx listan las delegaciones vigentes y pasadas, crean una con hasta = fin del dia en Lima y permiten revocarla; pasan los tests RNF-105: COORD delega desde la app y RF-104: la lista muestra delegante, delegado, periodo y revocacion.",
+  "comprobaciones": ["npm run test:app", "npm run typecheck", "npm run lint"],
+  "resultados": {
+    "tests": "46 pasan en el cliente: los de esta tarea mas los 40 anteriores",
+    "typecheck": "Pasa raiz y API",
+    "lint": "Pasa sin errores ni advertencias"
+  },
+  "notas": "El fin del dia en Lima se calcula con el desfase fijo de Peru, UTC-5, en un modulo puro de src/lib/seguridad/fechas.ts con su prueba: no depende de la zona horaria del dispositivo ni de Intl. La lista muestra solo el seudonimo de quien delega y de quien recibe. Solo se ofrecen como destino cuentas catequistas activas, que son las que la API admite para delegar. Las pantallas de delegacion no tienen mockup propio en docs/mockups."
+}

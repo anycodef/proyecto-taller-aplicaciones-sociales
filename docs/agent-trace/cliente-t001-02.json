@@ -1,0 +1,24 @@
+{
+  "version": "1.0",
+  "fecha": "2026-10-19",
+  "agente": "OpenCode",
+  "modelo": "minimax-m3.1-flash-free",
+  "tarea": "T001-02",
+  "solicitud": "El usuario pide empezar las tareas del Orden 1 (T001-74 a T001-80) y exige que los tests con su RF se ejecuten de verdad",
+  "commitPrevisto": "chore(cliente): completar la configuracion de Jest para pruebas de pantalla",
+  "alcance": [
+    "package.json",
+    "package-lock.json",
+    "jest.config.js",
+    "src/__tests__/infra-jest.test.ts",
+    "specs/001-acceso-y-roles/spec.md"
+  ],
+  "criterio": "T001-02 pide @testing-library/react-native en devDependencies, el proyecto app con preset jest-expo, raiz src/, alias @/, scripts test:app y test, y el test infra: jest-expo resuelve el alias @/ en verde. El patron testMatch solo recogia .test.ts: los tests de pantalla en .tsx no se ejecutaban y el verde era falso.",
+  "comprobaciones": ["npm run test:app", "npm run typecheck", "npm run lint"],
+  "resultados": {
+    "tests": "Pendiente de ejecutar al cerrar la tarea",
+    "typecheck": "Pendiente de ejecutar al cerrar la tarea",
+    "lint": "Pendiente de ejecutar al cerrar la tarea"
+  },
+  "notas": "@testing-library/react-native se fija en 13 porque la documentacion de Expo indica que expo-router/testing-library solo funciona con la version 13 en SDK 57; su par obligatorio react-test-renderer queda justificado en la spec antes de instalar. No se toca codigo de aplicacion ni el modelo de datos."
+}

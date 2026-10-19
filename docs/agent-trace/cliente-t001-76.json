@@ -1,0 +1,18 @@
+{
+  "version": "1.0",
+  "fecha": "2026-10-19",
+  "agente": "OpenCode",
+  "modelo": "minimax-m3.1-flash-free",
+  "tarea": "T001-76",
+  "solicitud": "El usuario pide empezar las tareas del Orden 1 y cumplir literalmente el Hecho cuando de cada una",
+  "commitPrevisto": "feat(cliente): implementar el cliente HTTP con renovacion automatica",
+  "alcance": ["src/plataforma/api/cliente.ts", "src/plataforma/api/__tests__/cliente.test.ts"],
+  "criterio": "T001-76: src/plataforma/api/cliente.ts inyecta el JWT y la clave de suscripcion, renueva una vez ante un 401 y reintenta, y lleva a acceso/sin-acceso ante credencial_terminada; con fetch falso pasan RF-101: ante 401 el cliente renueva una vez y reintenta, RF-101: con credencial_terminada el cliente lleva a sin-acceso y RNF-103: el cliente rechaza una URL base sin HTTPS fuera de desarrollo.",
+  "comprobaciones": ["npm run test:app", "npm run typecheck", "npm run lint"],
+  "resultados": {
+    "tests": "9 pasan en el cliente: los 3 de esta tarea mas los de T001-75, la configuracion y el alias",
+    "typecheck": "Pasa raiz y API",
+    "lint": "Pasa sin advertencias"
+  },
+  "notas": "La clave de suscripcion viaja en ocp-apim-subscription-key, el nombre que ya acepta la politica global de APIM. Con credencial_terminada no se renueva: la credencial ya no sirve y solo se avisa a la coordinacion. La navegacion a acceso/sin-acceso entra como funcion inyectada para que el cliente no dependa del router. Evidencia con fetch falso, no contra un despliegue real."
+}

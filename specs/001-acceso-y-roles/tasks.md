@@ -414,102 +414,102 @@
 
 ### Cliente
 
-- [ ] **T001-74** Instalar `expo-secure-store` y `expo-crypto` y configurar `app.json` **[Primer corte]**
+- [x] **T001-74** Instalar `expo-secure-store` y `expo-crypto` y configurar `app.json` **[Primer corte]**
   - RF: RF-111, RF-112
   - Depende de: T001-01
   - Hecho cuando: ambos paquetes están instalados con `npx expo install`; `app.json` tiene `android.package` y el plugin de `expo-secure-store` con la copia de seguridad de Android excluida (verificado en la documentación v57); `npx expo config --type public` muestra el plugin; `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T001-75** Implementar el almacén seguro del celular **[Primer corte]**
+- [x] **T001-75** Implementar el almacén seguro del celular **[Primer corte]**
   - RF: RF-111, RF-112, RNF-102
   - Depende de: T001-74
   - Hecho cuando: `src/plataforma/seguridad/almacen-seguro.ts` gestiona `sigecat.dispositivo`, `sigecat.cuentas` y `sigecat.sesion.<cuentaId>`; con SecureStore simulado pasan `RF-111: dispositivoId se genera una sola vez y se reutiliza`, `RF-112: la sesión guardada no contiene nombres y pesa menos de 2 KB` y `RNF-102: sigecat.cuentas lista las cuentas registradas en el celular`; `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T001-76** Implementar el cliente HTTP con renovación automática **[Primer corte]**
+- [x] **T001-76** Implementar el cliente HTTP con renovación automática **[Primer corte]**
   - RF: RF-101, RNF-103
   - Depende de: T001-41, T001-74
   - Hecho cuando: `src/plataforma/api/cliente.ts` inyecta el JWT y la clave de suscripción, renueva una vez ante un 401 y reintenta, y lleva a `acceso/sin-acceso` ante `credencial_terminada`; con `fetch` falso pasan `RF-101: ante 401 el cliente renueva una vez y reintenta`, `RF-101: con credencial_terminada el cliente lleva a sin-acceso` y `RNF-103: el cliente rechaza una URL base sin HTTPS fuera de desarrollo`; `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T001-77** Implementar la activación y el PIN en la sesión del celular **[Primer corte]**
+- [x] **T001-77** Implementar la activación y el PIN en la sesión del celular **[Primer corte]**
   - RF: RF-111
   - Depende de: T001-37, T001-75, T001-76
   - Hecho cuando: `src/plataforma/seguridad/sesion.ts` activa el enlace, fija el PIN (sal de 16 bytes y SHA-256 con `expo-crypto`, D-103) y solo entonces guarda la credencial; pasan `RF-111: la credencial se guarda en SecureStore solo después de fijar el PIN` y `RF-111: el PIN nunca se envía al servidor`; `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T001-78** Implementar el desbloqueo y el bloqueo por PIN en el celular **[Primer corte]**
+- [x] **T001-78** Implementar el desbloqueo y el bloqueo por PIN en el celular **[Primer corte]**
   - RF: RF-111, RF-112
   - Depende de: T001-38, T001-77
   - Hecho cuando: `sesion.ts` desbloquea con `estadoSesionLocal` y, al quinto fallo, borra el token de renovación y el verificador, marca `bloqueada` y llama a `/acceso/bloqueo` si hay red; pasan `RF-111: con 5 fallos seguidos el celular queda bloqueado y borra el token`, `RF-111: al bloquear con red se reporta el bloqueo al servidor` y `RF-112: el PIN desbloquea sin conexión si no pasaron 14 días desde la última renovación`; `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T001-79** Crear el proveedor de contexto de sesión **[Primer corte]**
+- [x] **T001-79** Crear el proveedor de contexto de sesión **[Primer corte]**
   - RF: RF-102
   - Depende de: T001-77
   - Hecho cuando: `src/plataforma/seguridad/contexto-sesion.tsx` expone el tipo de sesión (`ninguna`, `equipo`, `familia`), su estado y el contexto; el test RNTL `RF-102: el proveedor de sesión expone los roles efectivos del contexto` pasa; `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T001-80** Proteger las rutas con `Stack.Protected` y moverlas a sus grupos **[Primer corte]**
+- [x] **T001-80** Proteger las rutas con `Stack.Protected` y moverlas a sus grupos **[Primer corte]**
   - RF: RF-102
   - Depende de: T001-79
   - Hecho cuando: `src/app/_layout.tsx` usa `Stack.Protected` con `guard` (sin `redirectTo`, que exige SDK 58), existen `src/app/(equipo)/_layout.tsx` y `src/app/(familia)/_layout.tsx`, y `asistencia.tsx`, `coordinacion.tsx` y `familia.tsx` están en su grupo sin cambiar la URL; pasan `RF-102: sin sesión no se muestran las rutas de (equipo) ni de (familia)` y `RF-102: una sesión de familia no muestra rutas de (equipo)`; `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T001-81** Adaptar la pantalla de inicio a la entrada por enlace **[Primer corte]**
+- [x] **T001-81** Adaptar la pantalla de inicio a la entrada por enlace **[Primer corte]**
   - RF: RF-101
   - Depende de: T001-80
   - Hecho cuando: `src/app/index.tsx` muestra "Abre tu enlace personal" sin sesión (y "Pegar enlace" en Android) y redirige al inicio del rol con sesión; el test RNTL `RF-101: sin sesión el inicio pide abrir el enlace personal` pasa; `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T001-82** Crear la pantalla de activación del equipo **[Primer corte]**
+- [x] **T001-82** Crear la pantalla de activación del equipo **[Primer corte]**
   - RF: RF-111
   - Depende de: T001-36, T001-77, T001-80
   - Hecho cuando: `src/app/acceso/equipo.tsx` lee el token con `expo-linking`, llama a `activar` y pasa a `fijar-pin`; sin red indica que la activación necesita conexión y en escritorio o sin la app explica cómo instalarla; pasa el test RNTL `RF-111: abrir el enlace del equipo activa la credencial y pasa a fijar el PIN`; `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T001-83** Crear el teclado de PIN y la pantalla para fijarlo **[Primer corte]**
+- [x] **T001-83** Crear el teclado de PIN y la pantalla para fijarlo **[Primer corte]**
   - RF: RF-111
   - Depende de: T001-37, T001-82
   - Hecho cuando: `src/components/seguridad/teclado-pin.tsx` y `src/app/acceso/fijar-pin.tsx` piden el PIN dos veces con `validarFormatoPin`; el test RNTL `RF-111: fijar-pin rechaza 3 o 7 dígitos y exige confirmar el PIN` pasa; `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T001-84** Crear la pantalla de desbloqueo **[Primer corte]**
+- [x] **T001-84** Crear la pantalla de desbloqueo **[Primer corte]**
   - RF: RF-111, RF-112
   - Depende de: T001-78, T001-83
   - Hecho cuando: `src/app/acceso/desbloquear.tsx` muestra "Te quedan N días sin conexión", en `requiere-conexion` solo deja consultar y al quinto fallo muestra "Pide un enlace nuevo a la coordinación"; pasan los tests RNTL `RF-112: desbloquear muestra los días restantes sin conexión`, `RF-112: en requiere-conexion no se permiten registros nuevos` y `RF-111: al quinto fallo se pide un enlace nuevo`; `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T001-85** Crear la entrada web de familias **[Primer corte]**
+- [x] **T001-85** Crear la entrada web de familias **[Primer corte]**
   - RF: RF-110 (D-117)
   - Depende de: T001-36, T001-76, T001-80
   - Hecho cuando: `src/app/acceso/familia.tsx` lee `#t=`, llama a `entrar`, borra el fragmento con `history.replaceState`, guarda el token solo en memoria y reemplaza la ruta por `(familia)/`; el test `RF-110: la entrada de familia borra el fragmento de la URL y no guarda el token en almacenamiento` pasa; `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T001-86** Crear la pantalla genérica de acceso denegado **[Primer corte]**
+- [x] **T001-86** Crear la pantalla genérica de acceso denegado **[Primer corte]**
   - RF: RF-101, RF-112
   - Depende de: T001-80
   - Hecho cuando: `src/app/acceso/sin-acceso.tsx` muestra el mismo mensaje para enlace inválido, revocado o cuenta desactivada y, si hubo pendientes rechazados, "N registros no pudieron enviarse"; pasan `RF-101: sin-acceso muestra el mismo mensaje sea cual sea la causa` y `RF-112: sin-acceso informa cuántos registros no pudieron enviarse`; `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T001-87** Crear la lista y la ficha de cuentas **[Primer corte]**
+- [x] **T001-87** Crear la lista y la ficha de cuentas **[Primer corte]**
   - RF: RNF-105, RF-105
   - Depende de: T001-62, T001-80
   - Hecho cuando: `src/app/(equipo)/cuentas/index.tsx` y `[id].tsx` muestran las cuentas con su `identidad_operativa`, roles y estado; el test RNTL `RNF-105: COORD ve desde el celular las cuentas que gestiona` pasa; `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T001-88** Crear el alta de cuentas en el celular **[Primer corte]**
+- [x] **T001-88** Crear el alta de cuentas en el celular **[Primer corte]**
   - RF: RF-102, RF-105, RNF-105
   - Depende de: T001-61, T001-87
   - Hecho cuando: `src/app/(equipo)/cuentas/nueva.tsx` genera el `id` con `randomUUID`, ofrece solo los roles permitidos y trata la identidad real como campo que se escribe pero no se lee; pasan `RF-105: el alta exige seudónimo si la persona es menor` y `RF-102: COORD solo puede elegir los roles catequista y familia`; `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T001-89** Generar, compartir y revocar enlaces desde la ficha **[Primer corte]**
+- [x] **T001-89** Generar, compartir y revocar enlaces desde la ficha **[Primer corte]**
   - RF: RF-110, RF-111, RNF-104, RNF-105
   - Depende de: T001-65, T001-66, T001-87
   - Hecho cuando: `src/components/seguridad/compartir-enlace.tsx` comparte la URL con `Share.share` del núcleo de RN y la ficha permite generar y revocar con confirmación; pasan `RF-110: compartir usa la hoja de compartir del sistema, sin servicio de mensajería` y `RF-111: revocar desde la ficha pide confirmación y llama al endpoint`; `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T001-90** Crear la pantalla de avisos del sistema **[Primer corte]**
+- [x] **T001-90** Crear la pantalla de avisos del sistema **[Primer corte]**
   - RF: RF-112
   - Depende de: T001-68, T001-80
   - Hecho cuando: `src/app/(equipo)/avisos-sistema.tsx` muestra "Se rechazaron N registros del celular de <seudónimo>" y permite marcarlo como leído; el test RNTL `RF-112: avisos-sistema muestra la cantidad rechazada y el seudónimo` pasa; `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T001-91** Probar la administración de cuentas desde el celular **[Primer corte]**
+- [x] **T001-91** Probar la administración de cuentas desde el celular **[Primer corte]**
   - RF: RNF-105
   - Depende de: T001-88, T001-89
   - Hecho cuando: el test de pantalla con RNTL y servidor falso `RNF-105: COORD crea una cuenta, asigna el rol y genera el enlace desde la app` pasa (la delegación la añade T001-107); `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T001-92** Configurar App Links y la cabecera de seguridad de Static Web Apps **[Primer corte]**
+- [x] **T001-92** Configurar App Links y la cabecera de seguridad de Static Web Apps **[Primer corte]**
   - RF: RF-111, RNF-103
   - Depende de: T001-74
   - Hecho cuando: `app.json` declara `intentFilters` con `autoVerify` para `/acceso/`; existen `public/.well-known/assetlinks.json` (con la huella de EAS como parámetro a completar en T001-96) y `public/staticwebapp.config.json` (fallback de navegación, `Referrer-Policy: no-referrer`, CSP y HSTS); el test `RNF-103: staticwebapp.config.json declara HSTS y Referrer-Policy no-referrer` pasa; `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T001-93** Escribir el extremo a extremo de sesión del cliente **[Primer corte]**
+- [x] **T001-93** Escribir el extremo a extremo de sesión del cliente **[Primer corte]**
   - RF: RF-111, RF-112
   - Depende de: T001-39, T001-78
   - Hecho cuando: `src/plataforma/seguridad/__tests__/flujo-sesion.test.tsx` cubre los pasos 1, 2, 3 y 5 de la §9.5 (activar y fijar PIN, desbloquear el día 13 y el día 15, cinco fallos, renovación antes del push con puertos falsos) y el test `RF-112: flujo de sesión del celular de extremo a extremo` pasa; `npm test`, `npm run typecheck` y `npm run lint` pasan.
@@ -552,7 +552,7 @@
   - Depende de: T001-50, T001-52, T001-99
   - Hecho cuando: `http/consentimientos.ts` expone `GET /consentimientos/texto-vigente` (COORD y FAM) y `POST /consentimientos` (COORD, canal `presencial`); el test `RF-106: COORD registra un consentimiento presencial con la versión vigente` pasa, junto con los cuatro casos HTTP de cada endpoint; `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T001-101** Crear el componente de consentimiento presencial **[Primer corte]**
+- [x] **T001-101** Crear el componente de consentimiento presencial **[Primer corte]**
   - RF: RF-106
   - Depende de: T001-80, T001-100
   - Hecho cuando: `src/components/seguridad/consentimiento.tsx` muestra el texto vigente completo y el botón "El apoderado acepta", listo para el asistente de inscripción de 002; el test RNTL `RF-106: el componente muestra el texto vigente completo y registra la aceptación` pasa; `npm test`, `npm run typecheck` y `npm run lint` pasan.
@@ -584,7 +584,7 @@
   - Depende de: T001-105
   - Hecho cuando: `aplicacion/revocar-delegacion.ts` fija `revocada_en` y `revocada_por`; el test `RF-104: una revocación surte efecto en la petición siguiente` pasa, junto con los cuatro casos HTTP; `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T001-107** Crear las pantallas de delegación
+- [x] **T001-107** Crear las pantallas de delegación
   - RF: RF-104, RNF-105
   - Depende de: T001-87, T001-106
   - Hecho cuando: `src/app/(equipo)/delegaciones/index.tsx` y `nueva.tsx` listan delegaciones vigentes y pasadas, crean una con `hasta` = fin del día en Lima y permiten revocarla; pasan `RNF-105: COORD delega desde la app` y `RF-104: la lista muestra delegante, delegado, periodo y revocación`; `npm test`, `npm run typecheck` y `npm run lint` pasan.
@@ -741,7 +741,7 @@
   - Depende de: T001-40, T001-46, T001-50
   - Hecho cuando: `http/auditoria.ts` expone `GET /auditoria?catequizandoId&desde&hasta` solo para ADM, con `nombreVisible` del autor; pasan `RF-105: la auditoría y los avisos muestran el seudónimo` y `RF-109: solo administración consulta la auditoría`, junto con los cuatro casos HTTP; `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T001-138** Crear la pantalla de auditoría
+- [x] **T001-138** Crear la pantalla de auditoría
   - RF: RF-109
   - Depende de: T001-80, T001-137
   - Hecho cuando: `src/app/(equipo)/auditoria.tsx` filtra por niño y fechas y muestra seudónimos; el test RNTL `RF-109: ADM consulta los eventos de un niño por fechas` pasa; `npm test`, `npm run typecheck` y `npm run lint` pasan.

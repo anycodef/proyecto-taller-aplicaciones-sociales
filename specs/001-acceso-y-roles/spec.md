@@ -23,8 +23,10 @@ RF-106 exige además borrar estados de documentos, historial personal y datos de
 | `@types/node` | Desarrollo API: tipos de Node 22 para crypto, fs, process, Buffer y scripts de migración; sin código de ejecución añadido |
 | `jest`, `ts-jest`, `@types/jest` | Tests API/dominio/integración y transformación TS; desarrollo |
 | `jest-expo`, `@testing-library/react-native` | Tests cliente y pantallas; desarrollo, no acredita UI implementada |
+| `react-test-renderer` | Par de `@testing-library/react-native` 13, la única versión compatible con `expo-router/testing-library` en SDK 57; desarrollo |
 | `expo-secure-store` | Credencial y verificador PIN protegidos en cliente nativo |
 | `expo-crypto` | UUID cliente, sal y SHA-256 local; evita dependencia criptográfica adicional |
+| `expo-clipboard` | Leer el enlace pegado a mano en Android; evita el `Clipboard` del núcleo de React Native, que está deprecado y se retirará |
 
 NetInfo y persistencia operativa se justifican en 003. Las dependencias cliente propuestas se instalan al implementar sus tareas y verificar Expo v57; esta aprobación no acredita compatibilidad física.
 

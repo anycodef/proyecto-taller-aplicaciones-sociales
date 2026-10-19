@@ -1,0 +1,28 @@
+{
+  "version": "1.0",
+  "fecha": "2026-10-19",
+  "agente": "OpenCode",
+  "modelo": "minimax-m3.1-flash-free",
+  "tarea": "T001-81",
+  "solicitud": "El usuario pide continuar con el frontend usando docs/mockups como referencia visual",
+  "commitPrevisto": "feat(cliente): adaptar la pantalla de inicio a la entrada por enlace",
+  "alcance": [
+    "src/app/index.tsx",
+    "src/plataforma/config.ts",
+    "src/plataforma/seguridad/sesion.ts",
+    "src/plataforma/seguridad/contexto-sesion.tsx",
+    "src/__tests__/inicio.test.tsx",
+    "package.json",
+    "package-lock.json",
+    "specs/001-acceso-y-roles/spec.md"
+  ],
+  "criterio": "T001-81: src/app/index.tsx muestra Abre tu enlace personal sin sesion (y Pegar enlace en Android) y redirige al inicio del rol con sesion; el test RNTL RF-101: sin sesion el inicio pide abrir el enlace personal pasa.",
+  "comprobaciones": ["npm run test:app", "npm run typecheck", "npm run lint", "npx expo export --platform web"],
+  "resultados": {
+    "tests": "28 pasan en el cliente tras el lote completo de pantallas",
+    "typecheck": "Pasa raiz y API",
+    "lint": "Pasa sin errores ni advertencias",
+    "export": "Empaquetado web con las 12 rutas, incluidas /acceso/equipo y /acceso/fijar-pin"
+  },
+  "notas": "Se instala expo-clipboard para leer el enlace pegado a mano y se justifica antes en la spec: el Clipboard del nucleo de React Native esta deprecado y se retira. El token pegado no viaja por la URL: queda solo en memoria y la pantalla de activacion lo lee de alli. La redireccion por rol va a /coordinacion para coordinacion, /familia para familia y /asistencia para el resto. Base de la API y clave de APIM se leen de EXPO_PUBLIC_URL_API y EXPO_PUBLIC_CLAVE_APIM, con la URL local de Functions en desarrollo; sin configurar, el gestor avisa api_sin_configurar en vez de romper el arranque. Los tipos de ruta los genera el CLI de Expo en .expo, que no se versiona: tras cambiar el arbol de rutas hay que regenerarlos."
+}

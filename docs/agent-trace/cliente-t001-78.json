@@ -1,0 +1,21 @@
+{
+  "version": "1.0",
+  "fecha": "2026-10-19",
+  "agente": "OpenCode",
+  "modelo": "minimax-m3.1-flash-free",
+  "tarea": "T001-78",
+  "solicitud": "El usuario pide empezar las tareas del Orden 1 y cumplir literalmente el Hecho cuando de cada una",
+  "commitPrevisto": "feat(cliente): implementar el desbloqueo y el bloqueo por PIN",
+  "alcance": [
+    "src/plataforma/seguridad/sesion.ts",
+    "src/plataforma/seguridad/__tests__/sesion.test.ts"
+  ],
+  "criterio": "T001-78: sesion.ts desbloquea con estadoSesionLocal y, al quinto fallo, borra el token de renovacion y el verificador, marca bloqueada y llama a /acceso/bloqueo si hay red; pasan RF-111: con 5 fallos seguidos el celular queda bloqueado y borra el token, RF-111: al bloquear con red se reporta el bloqueo al servidor y RF-112: el PIN desbloquea sin conexion si no pasaron 14 dias desde la ultima renovacion.",
+  "comprobaciones": ["npm run test:app", "npm run typecheck", "npm run lint"],
+  "resultados": {
+    "tests": "14 pasan en el cliente: los 3 de esta tarea mas los 11 anteriores",
+    "typecheck": "Pasa raiz y API",
+    "lint": "Pasa sin advertencias"
+  },
+  "notas": "El quinto fallo borra el token de renovacion, la sal y el verificador del PIN y marca la sesion bloqueada; el aviso a /acceso/bloqueo se intenta y su fallo no deshace el bloqueo local. La comprobacion de red se hace por el resultado de la llamada porque NetInfo llega con la spec 003 (T003-74). La sesion bloqueada ya no reintenta el aviso. Evidencia con cliente y reloj falsos."
+}

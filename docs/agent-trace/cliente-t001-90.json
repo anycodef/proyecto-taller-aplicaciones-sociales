@@ -1,0 +1,18 @@
+{
+  "version": "1.0",
+  "fecha": "2026-10-19",
+  "agente": "OpenCode",
+  "modelo": "minimax-m3.1-flash-free",
+  "tarea": "T001-90",
+  "solicitud": "El usuario pide continuar con el frontend que se puede avanzar",
+  "commitPrevisto": "feat(cliente): crear la pantalla de avisos del sistema",
+  "alcance": ["src/app/(equipo)/avisos-sistema.tsx", "src/__tests__/avisos-sistema.test.tsx"],
+  "criterio": "T001-90: src/app/(equipo)/avisos-sistema.tsx muestra Se rechazaron N registros del celular de <seudonimo> y permite marcarlo como leido; el test RNTL RF-112: avisos-sistema muestra la cantidad rechazada y el seudonimo pasa.",
+  "comprobaciones": ["npm run test:app", "npm run typecheck", "npm run lint"],
+  "resultados": {
+    "tests": "Pasa el test de la tarea dentro de la suite de 40 del cliente",
+    "typecheck": "Pasa raiz y API",
+    "lint": "Pasa sin errores ni advertencias"
+  },
+  "notas": "Los avisos salen de GET /avisos-coordinacion y se marcan con POST /avisos-coordinacion/{id}/leido. Solo se muestra el seudonimo de la cuenta, nunca su identidad real."
+}

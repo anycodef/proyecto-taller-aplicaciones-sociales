@@ -1,0 +1,18 @@
+{
+  "version": "1.0",
+  "fecha": "2026-10-19",
+  "agente": "OpenCode",
+  "modelo": "minimax-m3.1-flash-free",
+  "tarea": "T001-86",
+  "solicitud": "El usuario pide continuar con el frontend usando docs/mockups como referencia visual",
+  "commitPrevisto": "feat(cliente): crear la pantalla generica de acceso denegado",
+  "alcance": ["src/app/acceso/sin-acceso.tsx", "src/__tests__/sin-acceso.test.tsx"],
+  "criterio": "T001-86: src/app/acceso/sin-acceso.tsx muestra el mismo mensaje para enlace invalido, revocado o cuenta desactivada y, si hubo pendientes rechazados, N registros no pudieron enviarse; pasan los tests RF-101: sin-acceso muestra el mismo mensaje sea cual sea la causa y RF-112: sin-acceso informa cuantos registros no pudieron enviarse.",
+  "comprobaciones": ["npm run test:app", "npm run typecheck", "npm run lint"],
+  "resultados": {
+    "tests": "Pasan los dos tests de la tarea dentro de la suite de 28 del cliente",
+    "typecheck": "Pasa raiz y API",
+    "lint": "Pasa sin errores ni advertencias"
+  },
+  "notas": "La pantalla no recibe la causa: por eso el mensaje es siempre el mismo y no revela si el enlace existio, se revoco o la cuenta se desactivo. El numero de registros rechazados llega como parametro de ruta desde el cliente HTTP, que lo cuenta antes de llevar a esta pantalla. Sigue el mockup p-07 con la tarjeta Que hacer. La prueba comprueba que el texto no menciona causas concretas y que con 3 pendientes aparece el aviso de 3 registros."
+}

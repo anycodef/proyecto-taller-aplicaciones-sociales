@@ -1,0 +1,26 @@
+{
+  "version": "1.0",
+  "fecha": "2026-10-19",
+  "agente": "OpenCode",
+  "modelo": "minimax-m3.1-flash-free",
+  "tarea": "T001-80",
+  "solicitud": "El usuario pide empezar las tareas del Orden 1 y cumplir literalmente el Hecho cuando de cada una",
+  "commitPrevisto": "feat(cliente): proteger las rutas con Stack.Protected y moverlas a sus grupos",
+  "alcance": [
+    "src/app/_layout.tsx",
+    "src/app/(equipo)/_layout.tsx",
+    "src/app/(equipo)/asistencia.tsx",
+    "src/app/(equipo)/coordinacion.tsx",
+    "src/app/(familia)/_layout.tsx",
+    "src/app/(familia)/familia.tsx",
+    "src/__tests__/rutas.test.tsx"
+  ],
+  "criterio": "T001-80: src/app/_layout.tsx usa Stack.Protected con guard (sin redirectTo, que exige SDK 58), existen src/app/(equipo)/_layout.tsx y src/app/(familia)/_layout.tsx, y asistencia.tsx, coordinacion.tsx y familia.tsx estan en su grupo sin cambiar la URL; pasan RF-102: sin sesion no se muestran las rutas de (equipo) ni de (familia) y RF-102: una sesion de familia no muestra rutas de (equipo).",
+  "comprobaciones": ["npm run test:app", "npm run typecheck", "npm run lint"],
+  "resultados": {
+    "tests": "17 pasan en el cliente: los 2 de esta tarea mas los 15 anteriores",
+    "typecheck": "Pasa raiz y API",
+    "lint": "Pasa sin advertencias"
+  },
+  "notas": "Las pantallas se movieron con git mv, de modo que las URLs /asistencia, /coordinacion y /familia no cambian: los grupos de expo-router no entran en la URL. La prueba usa expo-router/testing-library con el arbol real de src/app y comprueba que el navegador de la raiz registra (equipo) y (familia) solo con la sesion correspondiente. Limitacion del entorno: navegar en el test a una URL protegida con la pila nativa lanza Couldn't find a navigation context al redirigir, por eso la afirmacion se hace sobre las rutas registradas y no sobre la navegacion. No se verifico en un dispositivo real."
+}

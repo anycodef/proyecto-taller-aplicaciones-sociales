@@ -1,0 +1,18 @@
+{
+  "version": "1.0",
+  "fecha": "2026-10-19",
+  "agente": "OpenCode",
+  "modelo": "minimax-m3.1-flash-free",
+  "tarea": "T001-77",
+  "solicitud": "El usuario pide empezar las tareas del Orden 1 y cumplir literalmente el Hecho cuando de cada una",
+  "commitPrevisto": "feat(cliente): implementar la activacion y el PIN en la sesion del celular",
+  "alcance": ["src/plataforma/seguridad/sesion.ts", "src/plataforma/seguridad/__tests__/sesion.test.ts"],
+  "criterio": "T001-77: src/plataforma/seguridad/sesion.ts activa el enlace, fija el PIN con sal de 16 bytes y SHA-256 de expo-crypto y solo entonces guarda la credencial; pasan RF-111: la credencial se guarda en SecureStore solo despues de fijar el PIN y RF-111: el PIN nunca se envia al servidor.",
+  "comprobaciones": ["npm run test:app", "npm run typecheck", "npm run lint"],
+  "resultados": {
+    "tests": "11 pasan en el cliente: los 2 de esta tarea mas los 9 anteriores",
+    "typecheck": "Pasa raiz y API",
+    "lint": "Pasa sin advertencias"
+  },
+  "notas": "La activacion devuelve una activacion pendiente sin escribir nada en el celular; la credencial llega al almacen seguro solo al fijar el PIN, como pide el plan 6.2. La sal son 16 bytes de expo-crypto y el hash es SHA-256 de expo-crypto a traves de la funcion verificadorPin de src/lib. La prueba comprueba que ninguna peticion registrada contenga el PIN, su sal ni su hash. Evidencia con cliente falso, no contra el servidor real."
+}

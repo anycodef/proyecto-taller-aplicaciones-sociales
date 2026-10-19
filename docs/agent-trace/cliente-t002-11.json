@@ -1,0 +1,23 @@
+{
+  "version": "1.0",
+  "fecha": "2026-10-19",
+  "agente": "OpenCode",
+  "modelo": "minimax-m3.1-flash-free",
+  "tarea": "T002-11",
+  "solicitud": "El usuario pide continuar con las tareas de la spec 002 que se puedan realizar",
+  "commitPrevisto": "feat(carné): calcular la matriz QR en el dispositivo",
+  "alcance": [
+    "src/lib/catequizandos/carne.ts",
+    "src/lib/catequizandos/__tests__/carne.test.ts",
+    "package.json",
+    "package-lock.json"
+  ],
+  "criterio": "T002-11: qrcode-generator figura en package.json con version exacta; pasan RF-302: matrizQr es cuadrada, determinista y usa correccion M y RF-302: svgDeMatriz pinta un modulo por cada celda oscura.",
+  "comprobaciones": ["npm run test:app", "npm run typecheck", "npm run lint"],
+  "resultados": {
+    "tests": "Pasan los tests de la tarea dentro de la suite del cliente",
+    "typecheck": "Pasa raiz y API",
+    "lint": "Pasa sin errores ni advertencias"
+  },
+  "notas": "qrcode-generator queda con version exacta (2.0.4) porque la tarea lo pide. La matriz se calcula en el dispositivo, sin pedir nada al servidor, con correccion M y sin datos del nino: solo el codigo SGC1. La funcion queda en src/lib, en TS puro, y la usa tanto la pantalla como la hoja imprimible."
+}

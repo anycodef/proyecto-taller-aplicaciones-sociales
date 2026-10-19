@@ -1,0 +1,23 @@
+{
+  "version": "1.0",
+  "fecha": "2026-10-19",
+  "agente": "OpenCode",
+  "modelo": "minimax-m3.1-flash-free",
+  "tarea": "T001-83",
+  "solicitud": "El usuario pide continuar con el frontend usando docs/mockups como referencia visual",
+  "commitPrevisto": "feat(cliente): crear el teclado de PIN y la pantalla para fijarlo",
+  "alcance": [
+    "src/components/seguridad/teclado-pin.tsx",
+    "src/app/acceso/fijar-pin.tsx",
+    "src/app/galeria.tsx",
+    "src/__tests__/fijar-pin.test.tsx"
+  ],
+  "criterio": "T001-83: src/components/seguridad/teclado-pin.tsx y src/app/acceso/fijar-pin.tsx piden el PIN dos veces con validarFormatoPin; el test RNTL RF-111: fijar-pin rechaza 3 o 7 digitos y exige confirmar el PIN pasa.",
+  "comprobaciones": ["npm run test:app", "npm run typecheck", "npm run lint"],
+  "resultados": {
+    "tests": "Pasan los dos tests RNTL de la tarea dentro de la suite de 28 del cliente",
+    "typecheck": "Pasa raiz y API",
+    "lint": "Pasa sin errores ni advertencias"
+  },
+  "notas": "El teclado y los puntos del PIN siguen el mockup p-03 y usan src/components/ui y src/tema: no hay colores ni medidas escritas a mano. El componente nuevo se anade a src/app/galeria.tsx, como pide AGENTS.md. El flujo es de dos pasos: crear y repetir, y el PIN se valida con validarFormatoPin de src/lib. El teclado no deja pasar de 6 digitos y la segunda vez exige repetirlo. Desviacion del mockup: los puntos muestran siempre 6 espacios porque el celular no guarda la longitud del PIN, que el plan no lista entre los datos de la sesion."
+}

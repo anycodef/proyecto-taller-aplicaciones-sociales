@@ -1,0 +1,21 @@
+{
+  "version": "1.0",
+  "fecha": "2026-10-19",
+  "agente": "OpenCode",
+  "modelo": "minimax-m3.1-flash-free",
+  "tarea": "T001-75",
+  "solicitud": "El usuario pide empezar las tareas del Orden 1 y cumplir literalmente el Hecho cuando de cada una",
+  "commitPrevisto": "feat(cliente): implementar el almacen seguro del celular",
+  "alcance": [
+    "src/plataforma/seguridad/almacen-seguro.ts",
+    "src/plataforma/seguridad/__tests__/almacen-seguro.test.ts"
+  ],
+  "criterio": "T001-75: src/plataforma/seguridad/almacen-seguro.ts gestiona sigecat.dispositivo, sigecat.cuentas y sigecat.sesion.<cuentaId>; con SecureStore simulado pasan RF-111: dispositivoId se genera una sola vez y se reutiliza, RF-112: la sesion guardada no contiene nombres y pesa menos de 2 KB y RNF-102: sigecat.cuentas lista las cuentas registradas en el celular.",
+  "comprobaciones": ["npm run test:app", "npm run typecheck", "npm run lint"],
+  "resultados": {
+    "tests": "6 pasan en el cliente: los 3 de esta tarea mas config-app, infra-jest y el del dominio",
+    "typecheck": "Pasa raiz y API",
+    "lint": "Pasa sin advertencias"
+  },
+  "notas": "El almacen real se apoya en expo-secure-store y el identificador del dispositivo en expo-crypto; ambos se inyectan para probar sin dispositivo. El contexto guardado es el reducido (roles e identificadores) y no incluye la identidad operativa ni nombres, como pide el plan 3.3. Se rechaza una sesion de mas de 2048 bytes porque SecureStore no acepta ese tamano en algunas versiones de iOS. Evidencia de codigo y pruebas, no de dispositivo real."
+}
