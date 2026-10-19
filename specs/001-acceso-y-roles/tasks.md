@@ -434,7 +434,7 @@
   - Depende de: T001-37, T001-75, T001-76
   - Hecho cuando: `src/plataforma/seguridad/sesion.ts` activa el enlace, fija el PIN (sal de 16 bytes y SHA-256 con `expo-crypto`, D-103) y solo entonces guarda la credencial; pasan `RF-111: la credencial se guarda en SecureStore solo después de fijar el PIN` y `RF-111: el PIN nunca se envía al servidor`; `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T001-78** Implementar el desbloqueo y el bloqueo por PIN en el celular **[Primer corte]**
+- [x] **T001-78** Implementar el desbloqueo y el bloqueo por PIN en el celular **[Primer corte]**
   - RF: RF-111, RF-112
   - Depende de: T001-38, T001-77
   - Hecho cuando: `sesion.ts` desbloquea con `estadoSesionLocal` y, al quinto fallo, borra el token de renovación y el verificador, marca `bloqueada` y llama a `/acceso/bloqueo` si hay red; pasan `RF-111: con 5 fallos seguidos el celular queda bloqueado y borra el token`, `RF-111: al bloquear con red se reporta el bloqueo al servidor` y `RF-112: el PIN desbloquea sin conexión si no pasaron 14 días desde la última renovación`; `npm test`, `npm run typecheck` y `npm run lint` pasan.

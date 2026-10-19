@@ -2,7 +2,8 @@ import * as Crypto from "expo-crypto";
 
 import type { ClienteHttp } from "@/plataforma/api/cliente";
 import type { ContextoAcceso } from "@/lib/seguridad/contexto-acceso";
-import { verificadorPin } from "@/lib/seguridad/pin";
+import { registrarIntento, verificadorPin } from "@/lib/seguridad/pin";
+import { estadoSesionLocal, type EstadoSesion } from "@/lib/seguridad/sesion-local";
 
 import { contextoAlmacenable, type AlmacenSesion, type SesionAlmacenada } from "./almacen-seguro";
 
@@ -32,9 +33,17 @@ export type GestorSesionOpciones = {
   ahora?: () => number;
 };
 
+export type ResultadoDesbloqueo = {
+  estado: EstadoSesion | "pin_invalido";
+  intentosFallidos: number;
+  sesion: SesionAlmacenada | null;
+  bloqueoReportado: boolean;
+};
+
 export type GestorSesion = {
   activarEquipo(tokenEnlace: string): Promise<ActivacionPendiente>;
   fijarPin(activacion: ActivacionPendiente, pin: string): Promise<SesionAlmacenada>;
+  desbloquear(cuentaId: string, pin: string): Promise<ResultadoDesbloqueo>;
 };
 
 function salPorDefecto(): string {
@@ -95,5 +104,84 @@ export function crearGestorSesion(opciones: GestorSesionOpciones): GestorSesion 
     return sesion;
   }
 
-  return { activarEquipo, fijarPin };
+  /**
+   * Reporta el bloqueo al servidor. Sin red la llamada falla y el bloqueo
+   * local se mantiene igual: el enlace queda terminado para el servidor.
+   */
+  async function reportarBloqueo(tokenRenovacion: string): Promise<boolean> {
+    try {
+      const dispositivoId = await almacen.obtenerDispositivoId();
+      await cliente.solicitar("POST", "/acceso/bloqueo", { tokenRenovacion, dispositivoId });
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async function desbloquear(cuentaId: string, pin: string): Promise<ResultadoDesbloqueo> {
+    const sesion = await almacen.leerSesion(cuentaId);
+    if (!sesion) {
+      return { estado: "pin_invalido", intentosFallidos: 0, sesion: null, bloqueoReportado: false };
+    }
+    if (sesion.bloqueada) {
+      return {
+        estado: "bloqueada",
+        intentosFallidos: sesion.intentosFallidos,
+        sesion,
+        bloqueoReportado: false,
+      };
+    }
+
+    const hash = await calcularHash(`${sesion.pinSal ?? ""}:${pin}`);
+
+    if (sesion.pinHash && hash === sesion.pinHash) {
+      const actualizada: SesionAlmacenada = { ...sesion, intentosFallidos: 0, instanteMaximoVisto: ahora() };
+      await almacen.guardarSesion(actualizada);
+      const estado = estadoSesionLocal({
+        ahoraDispositivo: ahora(),
+        instanteMaximoVisto: actualizada.instanteMaximoVisto,
+        ultimaRenovacion: actualizada.ultimaRenovacionServidor ?? 0,
+        intentosFallidos: 0,
+        bloqueada: false,
+      });
+      return { estado, intentosFallidos: 0, sesion: actualizada, bloqueoReportado: false };
+    }
+
+    const intento = registrarIntento(
+      { intentosFallidos: sesion.intentosFallidos, bloqueada: sesion.bloqueada },
+      false
+    );
+
+    if (!intento.bloqueada) {
+      const actualizada: SesionAlmacenada = { ...sesion, intentosFallidos: intento.intentosFallidos };
+      await almacen.guardarSesion(actualizada);
+      return {
+        estado: "pin_invalido",
+        intentosFallidos: actualizada.intentosFallidos,
+        sesion: actualizada,
+        bloqueoReportado: false,
+      };
+    }
+
+    const tokenRenovacion = sesion.tokenRenovacion;
+    const bloqueada: SesionAlmacenada = {
+      ...sesion,
+      tokenRenovacion: undefined,
+      pinSal: undefined,
+      pinHash: undefined,
+      intentosFallidos: intento.intentosFallidos,
+      bloqueada: true,
+    };
+    await almacen.guardarSesion(bloqueada);
+    const bloqueoReportado = tokenRenovacion ? await reportarBloqueo(tokenRenovacion) : false;
+
+    return {
+      estado: "bloqueada",
+      intentosFallidos: bloqueada.intentosFallidos,
+      sesion: bloqueada,
+      bloqueoReportado,
+    };
+  }
+
+  return { activarEquipo, fijarPin, desbloquear };
 }
