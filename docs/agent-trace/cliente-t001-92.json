@@ -1,0 +1,23 @@
+{
+  "version": "1.0",
+  "fecha": "2026-10-19",
+  "agente": "OpenCode",
+  "modelo": "minimax-m3.1-flash-free",
+  "tarea": "T001-92",
+  "solicitud": "El usuario pide continuar con el frontend que se puede avanzar",
+  "commitPrevisto": "feat(cliente): configurar los App Links y la cabecera de seguridad de la web",
+  "alcance": [
+    "app.json",
+    "public/.well-known/assetlinks.json",
+    "public/staticwebapp.config.json",
+    "src/__tests__/app-links.test.ts"
+  ],
+  "criterio": "T001-92: app.json declara intentFilters con autoVerify para /acceso/, existen public/.well-known/assetlinks.json con la huella de EAS como parametro a completar en T001-96 y public/staticwebapp.config.json con el fallback de navegacion, Referrer-Policy no-referrer, CSP y HSTS; pasa el test RNF-103: staticwebapp.config.json declara HSTS y Referrer-Policy no-referrer.",
+  "comprobaciones": ["npm run test:app", "npm run typecheck", "npm run lint"],
+  "resultados": {
+    "tests": "Pasan los tests de la tarea dentro de la suite del cliente",
+    "typecheck": "Pasa raiz y API",
+    "lint": "Pasa sin errores ni advertencias"
+  },
+  "notas": "El dominio web lo define el despliegue de Static Web Apps y el repositorio no lo fija todavia: app.json usa sigecat.app y assetlinks.json deja la huella del build EAS como parametro, que completa T001-96 cuando exista el binario firmado. La CSP permite los scripts en linea que genera el empaquetado web de Expo. La carpeta public se copia al directorio de exportacion, asi que el despliegue la sirve sin cambios."
+}

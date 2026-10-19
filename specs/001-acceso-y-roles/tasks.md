@@ -504,7 +504,7 @@
   - Depende de: T001-88, T001-89
   - Hecho cuando: el test de pantalla con RNTL y servidor falso `RNF-105: COORD crea una cuenta, asigna el rol y genera el enlace desde la app` pasa (la delegación la añade T001-107); `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T001-92** Configurar App Links y la cabecera de seguridad de Static Web Apps **[Primer corte]**
+- [x] **T001-92** Configurar App Links y la cabecera de seguridad de Static Web Apps **[Primer corte]**
   - RF: RF-111, RNF-103
   - Depende de: T001-74
   - Hecho cuando: `app.json` declara `intentFilters` con `autoVerify` para `/acceso/`; existen `public/.well-known/assetlinks.json` (con la huella de EAS como parámetro a completar en T001-96) y `public/staticwebapp.config.json` (fallback de navegación, `Referrer-Policy: no-referrer`, CSP y HSTS); el test `RNF-103: staticwebapp.config.json declara HSTS y Referrer-Policy no-referrer` pasa; `npm test`, `npm run typecheck` y `npm run lint` pasan.

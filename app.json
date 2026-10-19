@@ -9,6 +9,18 @@
     "userInterfaceStyle": "automatic",
     "android": {
       "package": "org.sigecat.app",
+      "intentFilters": [
+        {
+          "autoVerify": true,
+          "action": "VIEW",
+          "data": {
+            "scheme": "https",
+            "host": "sigecat.app",
+            "pathPrefix": "/acceso"
+          },
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ],
       "adaptiveIcon": {
         "backgroundColor": "#1e3a8a",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
