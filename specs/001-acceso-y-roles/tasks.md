@@ -429,7 +429,7 @@
   - Depende de: T001-41, T001-74
   - Hecho cuando: `src/plataforma/api/cliente.ts` inyecta el JWT y la clave de suscripción, renueva una vez ante un 401 y reintenta, y lleva a `acceso/sin-acceso` ante `credencial_terminada`; con `fetch` falso pasan `RF-101: ante 401 el cliente renueva una vez y reintenta`, `RF-101: con credencial_terminada el cliente lleva a sin-acceso` y `RNF-103: el cliente rechaza una URL base sin HTTPS fuera de desarrollo`; `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T001-77** Implementar la activación y el PIN en la sesión del celular **[Primer corte]**
+- [x] **T001-77** Implementar la activación y el PIN en la sesión del celular **[Primer corte]**
   - RF: RF-111
   - Depende de: T001-37, T001-75, T001-76
   - Hecho cuando: `src/plataforma/seguridad/sesion.ts` activa el enlace, fija el PIN (sal de 16 bytes y SHA-256 con `expo-crypto`, D-103) y solo entonces guarda la credencial; pasan `RF-111: la credencial se guarda en SecureStore solo después de fijar el PIN` y `RF-111: el PIN nunca se envía al servidor`; `npm test`, `npm run typecheck` y `npm run lint` pasan.
