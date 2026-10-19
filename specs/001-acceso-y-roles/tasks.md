@@ -584,7 +584,7 @@
   - Depende de: T001-105
   - Hecho cuando: `aplicacion/revocar-delegacion.ts` fija `revocada_en` y `revocada_por`; el test `RF-104: una revocación surte efecto en la petición siguiente` pasa, junto con los cuatro casos HTTP; `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T001-107** Crear las pantallas de delegación
+- [x] **T001-107** Crear las pantallas de delegación
   - RF: RF-104, RNF-105
   - Depende de: T001-87, T001-106
   - Hecho cuando: `src/app/(equipo)/delegaciones/index.tsx` y `nueva.tsx` listan delegaciones vigentes y pasadas, crean una con `hasta` = fin del día en Lima y permiten revocarla; pasan `RNF-105: COORD delega desde la app` y `RF-104: la lista muestra delegante, delegado, periodo y revocación`; `npm test`, `npm run typecheck` y `npm run lint` pasan.
