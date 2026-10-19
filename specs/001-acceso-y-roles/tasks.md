@@ -444,7 +444,7 @@
   - Depende de: T001-77
   - Hecho cuando: `src/plataforma/seguridad/contexto-sesion.tsx` expone el tipo de sesión (`ninguna`, `equipo`, `familia`), su estado y el contexto; el test RNTL `RF-102: el proveedor de sesión expone los roles efectivos del contexto` pasa; `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T001-80** Proteger las rutas con `Stack.Protected` y moverlas a sus grupos **[Primer corte]**
+- [x] **T001-80** Proteger las rutas con `Stack.Protected` y moverlas a sus grupos **[Primer corte]**
   - RF: RF-102
   - Depende de: T001-79
   - Hecho cuando: `src/app/_layout.tsx` usa `Stack.Protected` con `guard` (sin `redirectTo`, que exige SDK 58), existen `src/app/(equipo)/_layout.tsx` y `src/app/(familia)/_layout.tsx`, y `asistencia.tsx`, `coordinacion.tsx` y `familia.tsx` están en su grupo sin cambiar la URL; pasan `RF-102: sin sesión no se muestran las rutas de (equipo) ni de (familia)` y `RF-102: una sesión de familia no muestra rutas de (equipo)`; `npm test`, `npm run typecheck` y `npm run lint` pasan.
