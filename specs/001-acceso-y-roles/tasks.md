@@ -419,7 +419,7 @@
   - Depende de: T001-01
   - Hecho cuando: ambos paquetes están instalados con `npx expo install`; `app.json` tiene `android.package` y el plugin de `expo-secure-store` con la copia de seguridad de Android excluida (verificado en la documentación v57); `npx expo config --type public` muestra el plugin; `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T001-75** Implementar el almacén seguro del celular **[Primer corte]**
+- [x] **T001-75** Implementar el almacén seguro del celular **[Primer corte]**
   - RF: RF-111, RF-112, RNF-102
   - Depende de: T001-74
   - Hecho cuando: `src/plataforma/seguridad/almacen-seguro.ts` gestiona `sigecat.dispositivo`, `sigecat.cuentas` y `sigecat.sesion.<cuentaId>`; con SecureStore simulado pasan `RF-111: dispositivoId se genera una sola vez y se reutiliza`, `RF-112: la sesión guardada no contiene nombres y pesa menos de 2 KB` y `RNF-102: sigecat.cuentas lista las cuentas registradas en el celular`; `npm test`, `npm run typecheck` y `npm run lint` pasan.
