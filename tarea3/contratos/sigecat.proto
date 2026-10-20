@@ -1,0 +1,78 @@
+// Contrato gRPC de actualización de SIGECAT (spec 009, RF-903). CONGELADO.
+// Metadata obligatoria: "authorization: Bearer <jwt demo>" (RF-906).
+syntax = "proto3";
+
+package sigecat.actualizacion.v1;
+
+enum EstadoAsistencia {
+  ESTADO_ASISTENCIA_NO_ESPECIFICADO = 0;
+  PRESENTE = 1;
+  AUSENTE = 2;
+  JUSTIFICADA = 3;
+  TARDANZA = 4;
+}
+
+enum NivelRiesgo {
+  NIVEL_RIESGO_NO_ESPECIFICADO = 0;
+  BAJO = 1;
+  MEDIO = 2;
+  ALTO = 3;
+}
+
+service Actualizacion {
+  // Idempotente por id (UUID del cliente).
+  rpc RegistrarAsistencia(RegistrarAsistenciaSolicitud) returns (ResultadoEscritura);
+  // Client streaming: toda la lista del domingo en una sola llamada (R6, R22).
+  rpc RegistrarAsistenciaLote(stream RegistrarAsistenciaSolicitud) returns (ResumenLote);
+  rpc RegistrarJustificacion(RegistrarJustificacionSolicitud) returns (ResultadoEscritura);
+  rpc RecalcularRiesgo(RecalcularRiesgoSolicitud) returns (Riesgo);
+  // Server streaming: eventos de asistencia de un grupo en vivo (coordinación).
+  rpc ObservarAsistencia(ObservarSolicitud) returns (stream EventoAsistencia);
+}
+
+message RegistrarAsistenciaSolicitud {
+  string id = 1;              // UUID generado por el cliente
+  string catequizando_id = 2;
+  string fecha = 3;           // AAAA-MM-DD
+  EstadoAsistencia estado = 4;
+}
+
+message RegistrarJustificacionSolicitud {
+  string id = 1;
+  string asistencia_id = 2;
+  string motivo = 3;
+}
+
+message RecalcularRiesgoSolicitud {
+  string catequizando_id = 1;
+}
+
+message ObservarSolicitud {
+  string grupo_id = 1;
+}
+
+message ResultadoEscritura {
+  string id = 1;
+  bool repetido = 2;
+}
+
+message ResumenLote {
+  int32 registrados = 1;
+  int32 repetidos = 2;
+  int32 rechazados = 3;
+}
+
+message Riesgo {
+  string catequizando_id = 1;
+  NivelRiesgo nivel = 2;
+  string motivo = 3;
+  string calculado_en = 4;    // ISO 8601
+}
+
+message EventoAsistencia {
+  string asistencia_id = 1;
+  string catequizando_id = 2;
+  string identidad_operativa = 3;
+  EstadoAsistencia estado = 4;
+  string fecha = 5;
+}

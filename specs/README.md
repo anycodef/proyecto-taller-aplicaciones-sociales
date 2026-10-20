@@ -12,6 +12,7 @@ Cada carpeta describe una funcionalidad: el QUÉ y el POR QUÉ en `spec.md`, el 
 | [006](006-aptitud-sacramental/spec.md) | Aptitud sacramental | [plan](006-aptitud-sacramental/plan.md) | [tareas](006-aptitud-sacramental/tasks.md) | R13 |
 | [007](007-riesgo-desercion/spec.md) | Riesgo de deserción | [plan](007-riesgo-desercion/plan.md) | [tareas](007-riesgo-desercion/tasks.md) | R14 |
 | [008](008-historial-ciclos/spec.md) | Historial de ciclos | [plan](008-historial-ciclos/plan.md) | [tareas](008-historial-ciclos/tasks.md) | R17 |
+| [009](009-graphql-grpc-mcp/spec.md) | GraphQL, gRPC y MCP (Tarea 3 del taller) | [plan](009-graphql-grpc-mcp/plan.md) | [tareas](009-graphql-grpc-mcp/tasks.md) | Tarea 3 del taller |
 
 Los requerimientos transversales (R18 a R24 y R27) no tienen spec propia: aparecen como requisitos no funcionales en cada spec que los necesita.
 
