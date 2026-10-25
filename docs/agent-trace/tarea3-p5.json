@@ -1,0 +1,22 @@
+{
+  "version": "1.0",
+  "fecha": "2026-10-25",
+  "agente": "OpenCode",
+  "modelo": "nemotron-3.5-super-vl-free",
+  "rama": "tarea3/p5-integracion",
+  "tareas": ["T009-51"],
+  "alcance": ["tarea3/package.json", "tarea3/tsconfig.json", "docs/agent-trace/tarea3-p5.json"],
+  "fuentes": ["AGENTS.md", "docs/constitution.md", "specs/009-graphql-grpc-mcp/spec.md", "specs/009-graphql-grpc-mcp/plan.md", "specs/009-graphql-grpc-mcp/tasks.md", "tarea3/contratos/"],
+  "tareasCatalogo": ["T009-51"],
+  "cambios": [
+    "tarea3/package.json con scripts demo/test/token/bd:subir/bd:sembrar/typecheck y dependencias exactas del plan §3 (graphql, graphql-http, @grpc/grpc-js, @grpc/proto-loader, @modelcontextprotocol/sdk, zod, pg, jose, tsx, typescript)",
+    "tarea3/tsconfig.json estricto para Node16/ESM",
+    "Verificado: npm --prefix tarea3 install funciona y package.json raíz no cambió"
+  ],
+  "verificacion": {
+    "npmTest": "PENDIENTE: sin tests de tarea3 aún (se añaden con T009-52 en adelante)",
+    "typecheck": "VACÍO: tsconfig sin archivos TS de entrada aún (se añaden con T009-54/55/56)",
+    "lint": "PENDIENTE: sin archivos de tarea3 aún",
+    "tarea3Test": "PENDIENTE: sin tests aún"
+  }
+}
