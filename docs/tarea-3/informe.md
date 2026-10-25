@@ -177,7 +177,7 @@ MCP real y P5 la respuesta GraphQL/gRPC real. Los pedidos están en
 
 | Persona | Rol | Evidencia visible al 2026-10-25 |
 | --- | --- | --- |
-| P1 | Análisis, ADR, decisión MCP, informe | `8f8e625`, `c04171e`, `4ebab0d`, `20ef723`, `7c04411`, `e7d55ee` y el commit de este informe; T009-18 se añade al cierre |
+| P1 | Análisis, ADR, decisión MCP, informe | `8f8e625`, `c04171e`, `4ebab0d`, `20ef723`, `7c04411`, `e7d55ee` y los commits del informe, el guion y la verificación final (T009-17, T009-18 y cierre) |
 | P2 | Servicio de consulta GraphQL | Sin rama/PR visible en este repositorio; no se puede afirmar avance |
 | P3 | Servicio de actualización gRPC | Sin rama/PR visible; no se puede afirmar avance |
 | P4 | Servidor MCP y agente | Sin rama/PR visible; no se puede afirmar avance |
@@ -201,10 +201,11 @@ informe debe actualizarse antes de la entrega final.
 
 | Comprobación | Estado |
 | --- | --- |
-| `npm run typecheck` | PASÓ en el commit de T009-11 |
-| `npm run lint` | PASÓ después de corregir `Buffer` y una función no usada en el script de medición |
+| `npm run typecheck` | PASÓ en la verificación final (raíz y API) |
+| `npm run lint` | PASÓ en la verificación final |
 | `node docs/tarea-3/medicion/medir-respuestas.mjs` | PASÓ; salida reproducible en `medicion/salida-medicion.md` |
-| `npm test` | **PENDIENTE** de la ejecución final |
+| `node --test docs/tarea-3/pruebas/documentacion.test.mjs` | PASÓ: 4/4 (RF-901, RF-911, RF-912, RF-913) |
+| `npm test` | **PARCIAL**: cliente 55/55 y API unit 99/99; la integración de API no se ejecutó porque falta `BD_PRUEBAS_URL` y Docker no está instalado en este equipo |
 | `npm --prefix tarea3 test` | **BLOQUEADO**: la base de P5 aún no está en `main`/rama P1 |
 | Cobertura RF de la demo | **PENDIENTE**: `scripts/verificar-cobertura-rf.mjs` solo escanea `src/` y `api/`; P5 debe extenderlo a `tarea3/` |
 
@@ -225,6 +226,9 @@ funcional no se considera verificada por este informe.
 6. **Privacidad**: ninguna herramienta MCP debe devolver salud,
    neurodivergencia o documentos; los autores se muestran con
    `identidadOperativa`.
+7. **Integración de API**: `npm test` no completó la suite `integracion` por
+   falta de `BD_PRUEBAS_URL`; hace falta Docker o PostgreSQL con credenciales
+   locales para cerrar esa verificación.
 
 ## 9. Referencias
 

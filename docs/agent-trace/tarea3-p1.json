@@ -66,17 +66,18 @@
     "Diagrama Structurizr de la demo con orquestador, servidor MCP, servicio GraphQL, servicio gRPC, PostgreSQL, cliente de prueba y agente; dos vistas dinámicas de consulta y escritura/streaming",
     "El diagrama declara que es arquitectura supuesta y no evidencia de implementación; las respuestas se muestran en el Mermaid del informe para no duplicar relaciones",
     "Informe final con resumen ejecutivo, método, dónde sí/no, arquitectura supuesta (Mermaid), decisión MCP con medición, reparto real de commits, verificación y riesgos",
-    "El informe distingue lo verificado de lo pendiente: npm test sin ejecutar, tarea3 test bloqueado y cobertura RF de la demo pendiente; no se declaran aprobados",
+    "El informe distingue lo verificado de lo pendiente: npm test parcial, tarea3 test bloqueado y cobertura RF de la demo pendiente; no se declaran aprobados",
     "Guion de 10 minutos con reparto P1-P5, texto base por bloque, checklist de ensayo, preguntas probables y frases que no se deben decir",
-    "Test de documentación con cuatro casos que citan RF-901, RF-911, RF-912 y RF-913; comprueba inventario, matriz, decisión, medición, diagramas, informe y guion"
+    "Test de documentación con cuatro casos que citan RF-901, RF-911, RF-912 y RF-913; comprueba inventario, matriz, decisión, medición, diagramas, informe y guion",
+    "Verificación final registrada: cliente 55/55, API unit 99/99, typecheck y lint en verde; integración API bloqueada por falta de BD_PRUEBAS_URL y Docker no instalado"
   ],
   "verificacion": {
     "documentacion": "Informe y guion finales; guion con tiempos, responsables, plan B y checklist",
     "documentacionTest": "PASÓ: node --test docs/tarea-3/pruebas/documentacion.test.mjs (4/4)",
     "medicion": "PASÓ: node docs/tarea-3/medicion/medir-respuestas.mjs ejecutado; salida en docs/tarea-3/medicion/salida-medicion.md",
-    "lint": "PASÓ: npm run lint sin errores",
-    "typecheck": "PASÓ en el commit de T009-11: npm run typecheck sin errores",
-    "npmTest": "PENDIENTE DE EJECUCIÓN FINAL",
+    "typecheck": "PASÓ: npm run typecheck final (raíz y API)",
+    "lint": "PASÓ: npm run lint final",
+    "npmTest": "PARCIAL: cliente 55/55 y API unit 99/99; la integración API no se ejecutó porque falta BD_PRUEBAS_URL y Docker no está instalado en este equipo",
     "tarea3Test": "PENDIENTE: la base de P5 aún no está en main",
     "coberturaRf": "PENDIENTE: scripts/verificar-cobertura-rf.mjs solo escanea src/ y api/; P5 debe extenderlo a tarea3/"
   }
