@@ -4,9 +4,10 @@
   "agente": "OpenCode",
   "modelo": "opencode/big-pickle",
   "rama": "tarea3/p1-analisis",
-  "tareas": ["T009-11"],
+  "tareas": ["T009-11", "T009-12"],
   "alcance": [
     "docs/tarea-3/inventario-funcionalidades.md",
+    "docs/tarea-3/matriz-aplicabilidad.md",
     "docs/agent-trace/tarea3-p1.json"
   ],
   "fuentes": [
@@ -29,10 +30,11 @@
     "tarea3/contratos/herramientas-mcp.md",
     "docs/adr/20261011-transporte-nativo-watermelondb.md"
   ],
-  "tareasCatalogo": ["T009-11"],
+  "tareasCatalogo": ["T009-11", "T009-12"],
   "cambios": [
     "Inventario de 20 funcionalidades candidatas extraídas de las specs 001–008, con RF, requerimientos R1–R27, tipo, contexto y candidatura a GraphQL/gRPC",
-    "Separación explícita entre operaciones offline del celular, paneles con conexión y llamadas internas entre servicios"
+    "Separación explícita entre operaciones offline del celular, paneles con conexión y llamadas internas entre servicios",
+    "Matriz de aplicabilidad con 22 filas, protocolo recomendado, veredicto separado para GraphQL y gRPC, justificación por RF/R y cobertura completa de R1–R27"
   ],
   "verificacion": {
     "documentacion": "Inventario escrito; validación automática de la entrega se ejecuta al cerrar T009-17/T009-18",
