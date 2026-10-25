@@ -1,0 +1,44 @@
+{
+  "version": "1.0",
+  "fecha": "2026-10-25",
+  "agente": "OpenCode",
+  "modelo": "opencode/big-pickle",
+  "rama": "tarea3/p1-analisis",
+  "tareas": ["T009-11"],
+  "alcance": [
+    "docs/tarea-3/inventario-funcionalidades.md",
+    "docs/agent-trace/tarea3-p1.json"
+  ],
+  "fuentes": [
+    "AGENTS.md",
+    "docs/constitution.md",
+    "specs/README.md",
+    "specs/001-acceso-y-roles/spec.md",
+    "specs/002-perfil-catequizando/spec.md",
+    "specs/003-asistencia-dominical/spec.md",
+    "specs/004-justificaciones/spec.md",
+    "specs/005-avance-formativo/spec.md",
+    "specs/006-aptitud-sacramental/spec.md",
+    "specs/007-riesgo-desercion/spec.md",
+    "specs/008-historial-ciclos/spec.md",
+    "specs/009-graphql-grpc-mcp/spec.md",
+    "specs/009-graphql-grpc-mcp/plan.md",
+    "specs/009-graphql-grpc-mcp/tasks.md",
+    "tarea3/contratos/schema.graphql",
+    "tarea3/contratos/sigecat.proto",
+    "tarea3/contratos/herramientas-mcp.md",
+    "docs/adr/20261011-transporte-nativo-watermelondb.md"
+  ],
+  "tareasCatalogo": ["T009-11"],
+  "cambios": [
+    "Inventario de 20 funcionalidades candidatas extraídas de las specs 001–008, con RF, requerimientos R1–R27, tipo, contexto y candidatura a GraphQL/gRPC",
+    "Separación explícita entre operaciones offline del celular, paneles con conexión y llamadas internas entre servicios"
+  ],
+  "verificacion": {
+    "documentacion": "Inventario escrito; validación automática de la entrega se ejecuta al cerrar T009-17/T009-18",
+    "npmTest": "PENDIENTE DE EJECUCIÓN FINAL",
+    "typecheck": "PENDIENTE DE EJECUCIÓN FINAL",
+    "lint": "PENDIENTE DE EJECUCIÓN FINAL",
+    "tarea3Test": "PENDIENTE: la base de P5 aún no está en main"
+  }
+}
