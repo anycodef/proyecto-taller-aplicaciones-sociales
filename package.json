@@ -22,6 +22,7 @@
     "adr:build": "npx --yes log4brains@1.1.0 build"
   },
   "dependencies": {
+    "@react-native-community/netinfo": "12.0.1",
     "expo": "~57.0.23",
     "expo-clipboard": "~57.0.2",
     "expo-constants": "~57.0.18",
