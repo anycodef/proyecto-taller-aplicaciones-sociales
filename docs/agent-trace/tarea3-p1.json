@@ -4,12 +4,20 @@
   "agente": "OpenCode",
   "modelo": "opencode/big-pickle",
   "rama": "tarea3/p1-analisis",
-  "tareas": ["T009-11", "T009-12", "T009-13", "T009-14"],
+  "tareas": ["T009-11", "T009-12", "T009-13", "T009-14", "T009-15"],
+  "tareasPendientes": [
+    "T009-15: falta la medición e2e real de P4/P5; la tabla actual es una medición reproducible de contratos"
+  ],
   "alcance": [
     "docs/tarea-3/inventario-funcionalidades.md",
     "docs/tarea-3/matriz-aplicabilidad.md",
     "docs/adr/20261019-graphql-grpc-mcp.md",
     "docs/adr/index.md",
+    "docs/tarea-3/decision-agente-mcp.md",
+    "docs/tarea-3/medicion/medir-respuestas.mjs",
+    "docs/tarea-3/medicion/salida-medicion.md",
+    "docs/tarea-3/pedidos/p1-para-p4.md",
+    "docs/tarea-3/pedidos/p1-para-p5.md",
     "specs/009-graphql-grpc-mcp/tasks.md",
     "docs/agent-trace/tarea3-p1.json"
   ],
@@ -37,21 +45,24 @@
     "docs/adr/20261011-excepcion-administrativa-online-y-retencion.md",
     "docs/adr/20260914-zero-trust-para-proteccion-de-datos-de-menores.md"
   ],
-  "tareasCatalogo": ["T009-11", "T009-12", "T009-13", "T009-14"],
+  "tareasCatalogo": ["T009-11", "T009-12", "T009-13", "T009-14", "T009-15"],
   "cambios": [
     "Inventario de 20 funcionalidades candidatas extraídas de las specs 001–008, con RF, requerimientos R1–R27, tipo, contexto y candidatura a GraphQL/gRPC",
     "Separación explícita entre operaciones offline del celular, paneles con conexión y llamadas internas entre servicios",
     "Matriz de aplicabilidad con 22 filas, protocolo recomendado, veredicto separado para GraphQL y gRPC, justificación por RF/R y cobertura completa de R1–R27",
     "Sección Dónde sí y dónde no para consultas y actualizaciones, con los límites de gRPC en Expo y Azure Functions",
     "ADR 016 con la decisión híbrida: REST/WatermelonDB en la app, GraphQL en el borde de consulta, gRPC interno para escritura/lotes/streaming y MCP como fachada de agentes; incluye alternativas y consecuencias negativas",
-    "El ADR explicita que la aceptación es para la demo y que gRPC no es viable en la infraestructura aprobada; no autoriza migrar producción"
+    "El ADR explicita que la aceptación es para la demo y que gRPC no es viable en la infraestructura aprobada; no autoriza migrar producción",
+    "Decisión para agentes con tabla GraphQL/gRPC/MCP, medición reproducible de la pregunta de riesgo por los tres caminos y conclusión: MCP como fachada, GraphQL para leer y gRPC para escribir",
+    "Medición de contratos: MCP 568 bytes de respuesta (142 tokens aprox.) frente a 717 bytes del mejor GraphQL y 1.336 bytes de 12 llamadas gRPC; script reproducible con Node, sin dependencias",
+    "Pedidos formales a P4 y P5 para sustituir la medición de contratos por la medición e2e y entregar evidencia"
   ],
   "verificacion": {
-    "documentacion": "Inventario, matriz, síntesis y ADR escritos; índice actualizado",
-    "adr": "Estructura revisada contra docs/adr/template.md y enlaces relativos comprobados",
-    "npmTest": "PENDIENTE DE EJECUCIÓN FINAL",
+    "documentacion": "Decisión, medición y pedidos escritos; T009-15 queda pendiente de la medición e2e de P4/P5",
+    "medicion": "PASÓ: node docs/tarea-3/medicion/medir-respuestas.mjs ejecutado; salida en docs/tarea-3/medicion/salida-medicion.md",
+    "lint": "PASÓ: npm run lint sin errores",
     "typecheck": "PASÓ en el commit de T009-11: npm run typecheck sin errores",
-    "lint": "PASÓ en el commit de T009-11: npm run lint sin errores",
+    "npmTest": "PENDIENTE DE EJECUCIÓN FINAL",
     "tarea3Test": "PENDIENTE: la base de P5 aún no está en main"
   }
 }
