@@ -4,7 +4,7 @@
   "agente": "OpenCode",
   "modelo": "opencode/big-pickle",
   "rama": "tarea3/p1-analisis",
-  "tareas": ["T009-11", "T009-12"],
+  "tareas": ["T009-11", "T009-12", "T009-13"],
   "alcance": [
     "docs/tarea-3/inventario-funcionalidades.md",
     "docs/tarea-3/matriz-aplicabilidad.md",
@@ -30,17 +30,18 @@
     "tarea3/contratos/herramientas-mcp.md",
     "docs/adr/20261011-transporte-nativo-watermelondb.md"
   ],
-  "tareasCatalogo": ["T009-11", "T009-12"],
+  "tareasCatalogo": ["T009-11", "T009-12", "T009-13"],
   "cambios": [
     "Inventario de 20 funcionalidades candidatas extraídas de las specs 001–008, con RF, requerimientos R1–R27, tipo, contexto y candidatura a GraphQL/gRPC",
     "Separación explícita entre operaciones offline del celular, paneles con conexión y llamadas internas entre servicios",
-    "Matriz de aplicabilidad con 22 filas, protocolo recomendado, veredicto separado para GraphQL y gRPC, justificación por RF/R y cobertura completa de R1–R27"
+    "Matriz de aplicabilidad con 22 filas, protocolo recomendado, veredicto separado para GraphQL y gRPC, justificación por RF/R y cobertura completa de R1–R27",
+    "Sección Dónde sí y dónde no para consultas y actualizaciones, con los límites de gRPC en Expo y Azure Functions"
   ],
   "verificacion": {
-    "documentacion": "Inventario escrito; validación automática de la entrega se ejecuta al cerrar T009-17/T009-18",
+    "documentacion": "Inventario, matriz y síntesis escritos; validación automática de la entrega se ejecuta al cerrar T009-17/T009-18",
     "npmTest": "PENDIENTE DE EJECUCIÓN FINAL",
-    "typecheck": "PENDIENTE DE EJECUCIÓN FINAL",
-    "lint": "PENDIENTE DE EJECUCIÓN FINAL",
+    "typecheck": "PASÓ en el commit de T009-11: npm run typecheck sin errores",
+    "lint": "PASÓ en el commit de T009-11: npm run lint sin errores",
     "tarea3Test": "PENDIENTE: la base de P5 aún no está en main"
   }
 }

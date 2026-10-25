@@ -43,6 +43,42 @@ congelados en `tarea3/contratos/`.
 | F-21 | Retención y anonimización al cerrar ciclo | Proceso por lote | ninguno | No | No | Lo ejecuta un temporizador del backend, sin interfaz ni cliente (R17, R23, R26). Exponerlo como API sería un riesgo innecesario. |
 | F-22 | Reporte de misa para supervisión | Consulta | GraphQL | Sí | No | La supervisión necesita presentes, hora, registrador y tipo de registro, con solo lectura (R5, R15, R20, R27; Const. 7). GraphQL permite pedir exactamente esas columnas. |
 
+## Dónde sí y dónde no
+
+### Consultas
+
+- **GraphQL sí** en paneles con conexión y campos variables: ficha (F-01),
+  bandeja de justificaciones (F-07), avance (F-10), riesgo (F-12), aptitud
+  (F-14), historial (F-16) y reporte de misa (F-22). El motivo es R20 y R27:
+  pedir solo lo necesario y no obligar al cliente a descargar el expediente
+  completo. Se acompaña de límite de profundidad 6 y páginas de 50 (RNF-903).
+- **GraphQL no** para el almacén local ni para archivos. La app lee su copia
+  operativa de WatermelonDB (R19) y la evidencia se mueve por Blob con URL
+  firmada (R8, R26; Const. 7).
+- **gRPC no** para consultas del celular ni del navegador familiar. No corre
+  directo en React Native/Expo y añade un cliente binario donde hoy hay un
+  enlace web sin instalación (R9, R18).
+- **gRPC sí** para streaming de asistencia en vivo (F-05), con el límite de que
+  Azure Functions no lo soporta nativamente; es una solución de la demo o de un
+  contenedor interno, no del Functions actual (R22).
+
+### Actualizaciones
+
+- **REST actual sí** para todo lo que nace offline (F-03, F-04, F-09, F-11,
+  F-20): la escritura local y el pull/push son la garantía de R19 y Const. 5.
+- **REST actual sí** para lo administrativo online y sensible: inscripción
+  (F-02), decisión de justificación (F-08), decisión de aptitud (F-15), enlaces
+  y delegaciones (F-18), constancia (F-17) y auditoría (F-19). Son transacciones
+  con reglas de servidor, consentimiento y traza (R21, R26; Const. 5 y 7).
+- **gRPC sí** para escrituras internas, lotes y streaming: recalcular riesgo
+  (F-13) y los lotes de la demo que representan F-03, F-04 y F-09. Aporta
+  contrato tipado, idempotencia por UUID del cliente y una sola transacción
+  (RF-903, RF-905, R22).
+- **gRPC no** como reemplazo del sync móvil ni como API pública. No es viable
+  en Expo/React Native sin un módulo nativo y Azure Functions no expone gRPC
+  nativo; usarlo en el borde sería una decisión de infraestructura que la
+  constitución 1 no justifica.
+
 ## Cobertura de R1–R27
 
 | Requerimiento | Filas que lo cubren |
