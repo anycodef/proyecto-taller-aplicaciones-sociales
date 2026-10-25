@@ -12,6 +12,10 @@
 
 Decisiones aceptadas no equivalen a implementación verificada. [Seguimiento](../backend-implementacion.md) · [Contratos frontend](../backend-contratos.md).
 
+## Tarea 3 — GraphQL, gRPC y MCP (2026-10-19)
+
+- [016 — GraphQL en el borde de consulta, gRPC interno y MCP para agentes](20261019-graphql-grpc-mcp.md)
+
 Welcome 👋 to the architecture knowledge base of proyecto-taller-aplicaciones-sociales.
 You will find here all the Architecture Decision Records (ADR) of the project.
 

@@ -4,10 +4,13 @@
   "agente": "OpenCode",
   "modelo": "opencode/big-pickle",
   "rama": "tarea3/p1-analisis",
-  "tareas": ["T009-11", "T009-12", "T009-13"],
+  "tareas": ["T009-11", "T009-12", "T009-13", "T009-14"],
   "alcance": [
     "docs/tarea-3/inventario-funcionalidades.md",
     "docs/tarea-3/matriz-aplicabilidad.md",
+    "docs/adr/20261019-graphql-grpc-mcp.md",
+    "docs/adr/index.md",
+    "specs/009-graphql-grpc-mcp/tasks.md",
     "docs/agent-trace/tarea3-p1.json"
   ],
   "fuentes": [
@@ -28,17 +31,24 @@
     "tarea3/contratos/schema.graphql",
     "tarea3/contratos/sigecat.proto",
     "tarea3/contratos/herramientas-mcp.md",
-    "docs/adr/20261011-transporte-nativo-watermelondb.md"
+    "docs/adr/template.md",
+    "docs/adr/20261011-transporte-nativo-watermelondb.md",
+    "docs/adr/20261011-configuracion-servidores-azure-flex.md",
+    "docs/adr/20261011-excepcion-administrativa-online-y-retencion.md",
+    "docs/adr/20260914-zero-trust-para-proteccion-de-datos-de-menores.md"
   ],
-  "tareasCatalogo": ["T009-11", "T009-12", "T009-13"],
+  "tareasCatalogo": ["T009-11", "T009-12", "T009-13", "T009-14"],
   "cambios": [
     "Inventario de 20 funcionalidades candidatas extraídas de las specs 001–008, con RF, requerimientos R1–R27, tipo, contexto y candidatura a GraphQL/gRPC",
     "Separación explícita entre operaciones offline del celular, paneles con conexión y llamadas internas entre servicios",
     "Matriz de aplicabilidad con 22 filas, protocolo recomendado, veredicto separado para GraphQL y gRPC, justificación por RF/R y cobertura completa de R1–R27",
-    "Sección Dónde sí y dónde no para consultas y actualizaciones, con los límites de gRPC en Expo y Azure Functions"
+    "Sección Dónde sí y dónde no para consultas y actualizaciones, con los límites de gRPC en Expo y Azure Functions",
+    "ADR 016 con la decisión híbrida: REST/WatermelonDB en la app, GraphQL en el borde de consulta, gRPC interno para escritura/lotes/streaming y MCP como fachada de agentes; incluye alternativas y consecuencias negativas",
+    "El ADR explicita que la aceptación es para la demo y que gRPC no es viable en la infraestructura aprobada; no autoriza migrar producción"
   ],
   "verificacion": {
-    "documentacion": "Inventario, matriz y síntesis escritos; validación automática de la entrega se ejecuta al cerrar T009-17/T009-18",
+    "documentacion": "Inventario, matriz, síntesis y ADR escritos; índice actualizado",
+    "adr": "Estructura revisada contra docs/adr/template.md y enlaces relativos comprobados",
     "npmTest": "PENDIENTE DE EJECUCIÓN FINAL",
     "typecheck": "PASÓ en el commit de T009-11: npm run typecheck sin errores",
     "lint": "PASÓ en el commit de T009-11: npm run lint sin errores",
