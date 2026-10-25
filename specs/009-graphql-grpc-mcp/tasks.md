@@ -58,7 +58,7 @@ Dependencias nuevas: solo las de plan §3, en `tarea3/package.json`.
   - P1 listo: decisión, medición reproducible de contratos y pedidos en `docs/tarea-3/`. Falta reemplazar la medición por la e2e de P4/P5.
 - [x] **T009-16** Diagrama C4/secuencia de la demo en `docs/diagrams/` (DSL existente) y en el informe. RF: RF-912.
 - [x] **T009-17** `docs/tarea-3/informe.md` (documento final de entrega: análisis, arquitectura, demo, decisión MCP, reparto del equipo con commits). RF: RF-913.
-- [ ] **T009-18** Guion de exposición (10 min, quién dice qué) y checklist de ensayo. RF: RF-913.
+- [x] **T009-18** Guion de exposición (10 min, quién dice qué) y checklist de ensayo. RF: RF-913.
 
 ## Hito final (todas/os)
 

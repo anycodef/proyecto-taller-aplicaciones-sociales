@@ -4,10 +4,9 @@
   "agente": "OpenCode",
   "modelo": "opencode/big-pickle",
   "rama": "tarea3/p1-analisis",
-  "tareas": ["T009-11", "T009-12", "T009-13", "T009-14", "T009-15", "T009-16", "T009-17"],
+  "tareas": ["T009-11", "T009-12", "T009-13", "T009-14", "T009-15", "T009-16", "T009-17", "T009-18"],
   "tareasPendientes": [
     "T009-15: falta la medición e2e real de P4/P5; la tabla actual es una medición reproducible de contratos",
-    "T009-18: guion de exposición y checklist de ensayo",
     "T009-16: el DSL no se validó con el CLI de Structurizr porque no está instalado"
   ],
   "alcance": [
@@ -21,6 +20,8 @@
     "docs/tarea-3/pedidos/p1-para-p4.md",
     "docs/tarea-3/pedidos/p1-para-p5.md",
     "docs/tarea-3/informe.md",
+    "docs/tarea-3/guion-exposicion.md",
+    "docs/tarea-3/pruebas/documentacion.test.mjs",
     "docs/diagrams/tarea3-demo-c4.dsl",
     "specs/009-graphql-grpc-mcp/tasks.md",
     "docs/agent-trace/tarea3-p1.json"
@@ -51,7 +52,7 @@
     "docs/diagrams/arquitectura-c4.dsl",
     "scripts/verificar-cobertura-rf.mjs"
   ],
-  "tareasCatalogo": ["T009-11", "T009-12", "T009-13", "T009-14", "T009-15", "T009-16", "T009-17"],
+  "tareasCatalogo": ["T009-11", "T009-12", "T009-13", "T009-14", "T009-15", "T009-16", "T009-17", "T009-18"],
   "cambios": [
     "Inventario de 20 funcionalidades candidatas extraídas de las specs 001–008, con RF, requerimientos R1–R27, tipo, contexto y candidatura a GraphQL/gRPC",
     "Separación explícita entre operaciones offline del celular, paneles con conexión y llamadas internas entre servicios",
@@ -65,10 +66,13 @@
     "Diagrama Structurizr de la demo con orquestador, servidor MCP, servicio GraphQL, servicio gRPC, PostgreSQL, cliente de prueba y agente; dos vistas dinámicas de consulta y escritura/streaming",
     "El diagrama declara que es arquitectura supuesta y no evidencia de implementación; las respuestas se muestran en el Mermaid del informe para no duplicar relaciones",
     "Informe final con resumen ejecutivo, método, dónde sí/no, arquitectura supuesta (Mermaid), decisión MCP con medición, reparto real de commits, verificación y riesgos",
-    "El informe distingue lo verificado de lo pendiente: npm test sin ejecutar, tarea3 test bloqueado y cobertura RF de la demo pendiente; no se declaran aprobados"
+    "El informe distingue lo verificado de lo pendiente: npm test sin ejecutar, tarea3 test bloqueado y cobertura RF de la demo pendiente; no se declaran aprobados",
+    "Guion de 10 minutos con reparto P1-P5, texto base por bloque, checklist de ensayo, preguntas probables y frases que no se deben decir",
+    "Test de documentación con cuatro casos que citan RF-901, RF-911, RF-912 y RF-913; comprueba inventario, matriz, decisión, medición, diagramas, informe y guion"
   ],
   "verificacion": {
-    "documentacion": "Informe final escrito; incluye C4 en Mermaid, dos secuencias y tabla de commits",
+    "documentacion": "Informe y guion finales; guion con tiempos, responsables, plan B y checklist",
+    "documentacionTest": "PASÓ: node --test docs/tarea-3/pruebas/documentacion.test.mjs (4/4)",
     "medicion": "PASÓ: node docs/tarea-3/medicion/medir-respuestas.mjs ejecutado; salida en docs/tarea-3/medicion/salida-medicion.md",
     "lint": "PASÓ: npm run lint sin errores",
     "typecheck": "PASÓ en el commit de T009-11: npm run typecheck sin errores",
