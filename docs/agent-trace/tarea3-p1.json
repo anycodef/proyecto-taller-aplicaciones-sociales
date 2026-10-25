@@ -4,10 +4,11 @@
   "agente": "OpenCode",
   "modelo": "opencode/big-pickle",
   "rama": "tarea3/p1-analisis",
-  "tareas": ["T009-11", "T009-12", "T009-13", "T009-14", "T009-15", "T009-16"],
+  "tareas": ["T009-11", "T009-12", "T009-13", "T009-14", "T009-15", "T009-16", "T009-17"],
   "tareasPendientes": [
     "T009-15: falta la medición e2e real de P4/P5; la tabla actual es una medición reproducible de contratos",
-    "T009-16: el diagrama Mermaid se inserta en el informe (T009-17) y falta validar el DSL con el CLI de Structurizr"
+    "T009-18: guion de exposición y checklist de ensayo",
+    "T009-16: el DSL no se validó con el CLI de Structurizr porque no está instalado"
   ],
   "alcance": [
     "docs/tarea-3/inventario-funcionalidades.md",
@@ -19,6 +20,7 @@
     "docs/tarea-3/medicion/salida-medicion.md",
     "docs/tarea-3/pedidos/p1-para-p4.md",
     "docs/tarea-3/pedidos/p1-para-p5.md",
+    "docs/tarea-3/informe.md",
     "docs/diagrams/tarea3-demo-c4.dsl",
     "specs/009-graphql-grpc-mcp/tasks.md",
     "docs/agent-trace/tarea3-p1.json"
@@ -46,9 +48,10 @@
     "docs/adr/20261011-configuracion-servidores-azure-flex.md",
     "docs/adr/20261011-excepcion-administrativa-online-y-retencion.md",
     "docs/adr/20260914-zero-trust-para-proteccion-de-datos-de-menores.md",
-    "docs/diagrams/arquitectura-c4.dsl"
+    "docs/diagrams/arquitectura-c4.dsl",
+    "scripts/verificar-cobertura-rf.mjs"
   ],
-  "tareasCatalogo": ["T009-11", "T009-12", "T009-13", "T009-14", "T009-15", "T009-16"],
+  "tareasCatalogo": ["T009-11", "T009-12", "T009-13", "T009-14", "T009-15", "T009-16", "T009-17"],
   "cambios": [
     "Inventario de 20 funcionalidades candidatas extraídas de las specs 001–008, con RF, requerimientos R1–R27, tipo, contexto y candidatura a GraphQL/gRPC",
     "Separación explícita entre operaciones offline del celular, paneles con conexión y llamadas internas entre servicios",
@@ -60,14 +63,17 @@
     "Medición de contratos: MCP 568 bytes de respuesta (142 tokens aprox.) frente a 717 bytes del mejor GraphQL y 1.336 bytes de 12 llamadas gRPC; script reproducible con Node, sin dependencias",
     "Pedidos formales a P4 y P5 para sustituir la medición de contratos por la medición e2e y entregar evidencia",
     "Diagrama Structurizr de la demo con orquestador, servidor MCP, servicio GraphQL, servicio gRPC, PostgreSQL, cliente de prueba y agente; dos vistas dinámicas de consulta y escritura/streaming",
-    "El diagrama declara que es arquitectura supuesta y no evidencia de implementación; las respuestas se muestran en el Mermaid del informe para no duplicar relaciones"
+    "El diagrama declara que es arquitectura supuesta y no evidencia de implementación; las respuestas se muestran en el Mermaid del informe para no duplicar relaciones",
+    "Informe final con resumen ejecutivo, método, dónde sí/no, arquitectura supuesta (Mermaid), decisión MCP con medición, reparto real de commits, verificación y riesgos",
+    "El informe distingue lo verificado de lo pendiente: npm test sin ejecutar, tarea3 test bloqueado y cobertura RF de la demo pendiente; no se declaran aprobados"
   ],
   "verificacion": {
-    "documentacion": "Diagrama DSL escrito y revisado contra el estilo de docs/diagrams/arquitectura-c4.dsl",
+    "documentacion": "Informe final escrito; incluye C4 en Mermaid, dos secuencias y tabla de commits",
     "medicion": "PASÓ: node docs/tarea-3/medicion/medir-respuestas.mjs ejecutado; salida en docs/tarea-3/medicion/salida-medicion.md",
     "lint": "PASÓ: npm run lint sin errores",
     "typecheck": "PASÓ en el commit de T009-11: npm run typecheck sin errores",
     "npmTest": "PENDIENTE DE EJECUCIÓN FINAL",
-    "tarea3Test": "PENDIENTE: la base de P5 aún no está en main"
+    "tarea3Test": "PENDIENTE: la base de P5 aún no está en main",
+    "coberturaRf": "PENDIENTE: scripts/verificar-cobertura-rf.mjs solo escanea src/ y api/; P5 debe extenderlo a tarea3/"
   }
 }

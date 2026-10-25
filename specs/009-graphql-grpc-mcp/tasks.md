@@ -56,8 +56,8 @@ Dependencias nuevas: solo las de plan §3, en `tarea3/package.json`.
 - [x] **T009-14** ADR `20261019-graphql-grpc-mcp.md` (Log4brains, plantilla `docs/adr/template.md`); regenerar el índice si aplica. RF: RF-901, RF-911.
 - [ ] **T009-15** `decision-agente-mcp.md`: tabla comparativa GraphQL/gRPC/MCP para agentes y conclusión; respaldarla con medición real de tokens/bytes tomada de P4 y P5 (misma pregunta por los tres caminos). RF: RF-911.
   - P1 listo: decisión, medición reproducible de contratos y pedidos en `docs/tarea-3/`. Falta reemplazar la medición por la e2e de P4/P5.
-- [ ] **T009-16** Diagrama C4/secuencia de la demo en `docs/diagrams/` (DSL existente) y en el informe. RF: RF-912.
-- [ ] **T009-17** `docs/tarea-3/informe.md` (documento final de entrega: análisis, arquitectura, demo, decisión MCP, reparto del equipo con commits). RF: RF-913.
+- [x] **T009-16** Diagrama C4/secuencia de la demo en `docs/diagrams/` (DSL existente) y en el informe. RF: RF-912.
+- [x] **T009-17** `docs/tarea-3/informe.md` (documento final de entrega: análisis, arquitectura, demo, decisión MCP, reparto del equipo con commits). RF: RF-913.
 - [ ] **T009-18** Guion de exposición (10 min, quién dice qué) y checklist de ensayo. RF: RF-913.
 
 ## Hito final (todas/os)
