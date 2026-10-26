@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { verificarToken, puedeEscribir, type TokenPayload } from '../compartido/auth.ts';
 import { pool, transaccionar } from '../compartido/bd.ts';
+import { calcularRiesgo } from '../compartido/riesgo.ts';
 
 if (!process.env.PGPASSWORD) {
   process.env.PGPASSWORD = 'postgres';
@@ -140,6 +141,15 @@ export function estadoAProto(estado: string): number {
     case 'AUSENTE': return 2;
     case 'JUSTIFICADA': return 3;
     case 'TARDANZA': return 4;
+    default: return 0;
+  }
+}
+
+export function nivelRiesgoAProto(nivel: string): number {
+  switch (nivel) {
+    case 'BAJO': return 1;
+    case 'MEDIO': return 2;
+    case 'ALTO': return 3;
     default: return 0;
   }
 }
@@ -362,8 +372,50 @@ const manejadoresActualizacion = {
   },
   RecalcularRiesgo: async (call: any, callback: any) => {
     try {
-      await validarAutenticacion(call.metadata, true);
-      callback({ code: grpc.status.UNIMPLEMENTED, message: 'RecalcularRiesgo se implementa en T009-35' });
+      const { autor } = await validarAutenticacion(call.metadata, true);
+      const req = call.request;
+      if (!req.catequizando_id) {
+        callback({ code: grpc.status.INVALID_ARGUMENT, message: 'Falta campo obligatorio catequizando_id' });
+        return;
+      }
+
+      await validarAlcanceCatequizando(autor, req.catequizando_id);
+
+      // Leer historial de asistencias
+      const asisRes = await pool.query(
+        `SELECT to_char(fecha, 'YYYY-MM-DD') AS fecha, estado
+         FROM demo_tarea3.asistencia
+         WHERE catequizando_id = $1
+         ORDER BY fecha ASC`,
+        [req.catequizando_id]
+      );
+
+      const asistencias = asisRes.rows.map((f) => ({
+        fecha: f.fecha,
+        estado: f.estado,
+      }));
+
+      const { nivel, motivo } = calcularRiesgo(asistencias);
+
+      // Persistir en demo_tarea3.riesgo
+      const upsertRes = await pool.query(
+        `INSERT INTO demo_tarea3.riesgo (catequizando_id, nivel, motivo, calculado_en)
+         VALUES ($1, $2, $3, NOW())
+         ON CONFLICT (catequizando_id) DO UPDATE
+           SET nivel = EXCLUDED.nivel,
+               motivo = EXCLUDED.motivo,
+               calculado_en = NOW()
+         RETURNING catequizando_id, nivel, motivo, to_char(calculado_en, 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS calculado_en`,
+        [req.catequizando_id, nivel, motivo]
+      );
+
+      const fila = upsertRes.rows[0];
+      callback(null, {
+        catequizando_id: fila.catequizando_id,
+        nivel: nivelRiesgoAProto(fila.nivel),
+        motivo: fila.motivo,
+        calculado_en: fila.calculado_en,
+      });
     } catch (error: any) {
       callback({ code: error.code ?? grpc.status.INTERNAL, message: error.message });
     }
