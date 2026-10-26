@@ -285,8 +285,77 @@ const manejadoresActualizacion = {
   },
   RegistrarJustificacion: async (call: any, callback: any) => {
     try {
-      await validarAutenticacion(call.metadata, true);
-      callback({ code: grpc.status.UNIMPLEMENTED, message: 'RegistrarJustificacion se implementa en T009-34' });
+      const { autor } = await validarAutenticacion(call.metadata, true);
+      const req = call.request;
+      if (!req.id || !req.asistencia_id || !req.motivo) {
+        callback({ code: grpc.status.INVALID_ARGUMENT, message: 'Faltan campos obligatorios (id, asistencia_id, motivo)' });
+        return;
+      }
+
+      // Validar existencia de asistencia y alcance por grupo
+      const asisRes = await pool.query(
+        `SELECT a.id, a.catequizando_id, a.fecha, c.grupo_id, c.identidad_operativa
+         FROM demo_tarea3.asistencia a
+         JOIN demo_tarea3.catequizando c ON c.id = a.catequizando_id
+         WHERE a.id = $1`,
+        [req.asistencia_id]
+      );
+
+      if (asisRes.rowCount === 0) {
+        callback({ code: grpc.status.NOT_FOUND, message: 'no_encontrado: la asistencia no existe' });
+        return;
+      }
+
+      const asisFila = asisRes.rows[0];
+      if (autor.rol === 'CAT') {
+        if (!autor.grupoId || autor.grupoId !== asisFila.grupo_id) {
+          callback({ code: grpc.status.PERMISSION_DENIED, message: 'fuera_de_alcance: la asistencia pertenece a otro grupo' });
+          return;
+        }
+      } else if (autor.rol === 'FAM') {
+        callback({ code: grpc.status.PERMISSION_DENIED, message: 'fuera_de_alcance: el rol FAM no puede justificar directamente' });
+        return;
+      }
+
+      const resultado = await transaccionar(async (cliente) => {
+        // Verificar idempotencia por id de la justificación
+        const existe = await cliente.query('SELECT id FROM demo_tarea3.justificacion WHERE id = $1', [req.id]);
+        if ((existe.rowCount ?? 0) > 0) {
+          return { id: req.id, repetido: true };
+        }
+
+        const justRes = await cliente.query(
+          `INSERT INTO demo_tarea3.justificacion (id, asistencia_id, motivo, estado)
+           VALUES ($1, $2, $3, 'APROBADA')
+           ON CONFLICT (id) DO NOTHING
+           RETURNING id`,
+          [req.id, req.asistencia_id, req.motivo]
+        );
+
+        const inserto = (justRes.rowCount ?? 0) > 0;
+        if (inserto) {
+          // Cambiar estado de la asistencia a JUSTIFICADA
+          await cliente.query(
+            `UPDATE demo_tarea3.asistencia SET estado = 'JUSTIFICADA' WHERE id = $1`,
+            [req.asistencia_id]
+          );
+
+          // Notificar cambio
+          const evento = JSON.stringify({
+            asistencia_id: req.asistencia_id,
+            catequizando_id: asisFila.catequizando_id,
+            grupo_id: asisFila.grupo_id,
+            identidad_operativa: asisFila.identidad_operativa,
+            estado: 'JUSTIFICADA',
+            fecha: asisFila.fecha,
+          });
+          await cliente.query('SELECT pg_notify($1, $2)', ['asistencia_evento', evento]).catch(() => {});
+        }
+
+        return { id: req.id, repetido: !inserto };
+      });
+
+      callback(null, resultado);
     } catch (error: any) {
       callback({ code: error.code ?? grpc.status.INTERNAL, message: error.message });
     }

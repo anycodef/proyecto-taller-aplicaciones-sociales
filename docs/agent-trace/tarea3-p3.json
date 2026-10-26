@@ -4,7 +4,7 @@
   "agente": "Antigravity",
   "modelo": "gemini-3.8-flash",
   "rama": "tarea3/p3-actualizacion",
-  "tareas": ["T009-31", "T009-32", "T009-33"],
+  "tareas": ["T009-31", "T009-32", "T009-33", "T009-34"],
   "alcance": [
     "tarea3/servicio-actualizacion/salud.proto",
     "tarea3/servicio-actualizacion/servidor.ts",
@@ -15,6 +15,7 @@
     "tarea3/servicio-actualizacion/pruebas/t009-31-salud-y-auth.test.ts",
     "tarea3/servicio-actualizacion/pruebas/t009-32-registrar-asistencia.test.ts",
     "tarea3/servicio-actualizacion/pruebas/t009-33-asistencia-lote.test.ts",
+    "tarea3/servicio-actualizacion/pruebas/t009-34-registrar-justificacion.test.ts",
     "docs/agent-trace/tarea3-p3.json",
     "specs/009-graphql-grpc-mcp/tasks.md"
   ],
@@ -27,16 +28,16 @@
     "tarea3/contratos/sigecat.proto",
     "docs/tarea-3/REPARTO.md"
   ],
-  "tareasCatalogo": ["T009-31", "T009-32", "T009-33"],
+  "tareasCatalogo": ["T009-31", "T009-32", "T009-33", "T009-34"],
   "cambios": [
     "T009-31: Carga de sigecat.proto y salud.proto en servicio gRPC con protoLoader, salud y auth",
     "T009-32: RegistrarAsistencia idempotente por id con ON CONFLICT DO NOTHING y permisos por grupo",
     "T009-33: RegistrarAsistenciaLote con client streaming procesado en una sola transacción transaccionar()",
-    "Conteo atómico de registrados, repetidos y rechazados (fuera de grupo o malformados)",
-    "Pruebas automatizadas en t009-33-asistencia-lote.test.ts verificando conteos exactos"
+    "T009-34: RegistrarJustificacion transaccional e idempotente por UUID cliente, actualiza asistencia a JUSTIFICADA y valida alcance de grupo",
+    "Pruebas automatizadas en t009-34-registrar-justificacion.test.ts (cambio a JUSTIFICADA, idempotencia y denegación fuera de grupo)"
   ],
   "verificacion": {
-    "unitarios": "PASS: t009-31 (3/3), t009-32 (3/3), t009-33 (1/1)",
+    "unitarios": "PASS: t009-31 (3/3), t009-32 (3/3), t009-33 (1/1), t009-34 (2/2)",
     "typecheck": "PASS: tsc local y global sin errores",
     "testRaiz": "PASS: npm test (233 pasados)",
     "testTarea3": "PASS: npm --prefix tarea3 test (16 pasados, 1 skip)"
