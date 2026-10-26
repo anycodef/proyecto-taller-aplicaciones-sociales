@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "demo": "tsx scripts/demo.mjs",
-    "test": "tsx --test 'pruebas-e2e/**/*.test.ts'",
+    "test": "tsx --test --test-concurrency=1 pruebas-e2e/*.test.ts",
     "token": "tsx scripts/token.mjs",
     "bd:subir": "tsx scripts/bd-subir.mjs",
     "bd:sembrar": "tsx scripts/bd-sembrar.mjs",
