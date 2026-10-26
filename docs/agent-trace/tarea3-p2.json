@@ -11,7 +11,8 @@
     "T009-24",
     "T009-25",
     "T009-26",
-    "T009-27"
+    "T009-27",
+    "T009-28"
   ],
   "alcance": [
     "tarea3/servicio-consulta/esquema.ts",
@@ -38,6 +39,7 @@
     "tarea3/servicio-consulta/pruebas/t009-26-mutaciones-por-grpc.test.ts",
     "tarea3/servicio-consulta/errores.ts",
     "tarea3/servicio-consulta/pruebas/t009-27-errores-y-datos-protegidos.test.ts",
+    "tarea3/servicio-consulta/pruebas/t009-28-integracion.test.ts",
     "docs/agent-trace/tarea3-p2.json",
     "specs/009-graphql-grpc-mcp/tasks.md"
   ],
@@ -61,7 +63,8 @@
     "T009-24",
     "T009-25",
     "T009-26",
-    "T009-27"
+    "T009-27",
+    "T009-28"
   ],
   "base": "Rama creada desde origin/tarea3/p3-actualizacion para disponer de compartido/ (P5) y del servidor gRPC real (P3), segun el orden de merge de plan §7.",
   "cambios": [
@@ -80,7 +83,9 @@
     "T009-26: las tres mutaciones delegan en P3 sin tocar PostgreSQL; traducen camelCase a snake_case campo a campo y validan el UUID antes de gastar una llamada gRPC",
     "T009-26: index.ts fija PGPASSWORD=postgres si no viene del entorno, igual que hizo P3, porque compartido/bd.ts no pasa contrasena y el contenedor local la exige",
     "T009-27: errores.ts traduce el estado de gRPC a extensions.codigo (PERMISSION_DENIED y UNAUTHENTICATED a fuera_de_alcance, NOT_FOUND a no_encontrado, INVALID_ARGUMENT y FAILED_PRECONDITION a entrada_invalida, UNAVAILABLE y DEADLINE_EXCEEDED a servicio_no_disponible, el resto a error_interno) con mensaje fijo por codigo",
-    "T009-27: test que recorre el esquema y la introspeccion completa comprobando que ningun nombre de tipo, campo, argumento ni valor de enum alude a salud, neurodivergencia o documentos, y que registradoPor devuelve identidadOperativa"
+    "T009-27: test que recorre el esquema y la introspeccion completa comprobando que ningun nombre de tipo, campo, argumento ni valor de enum alude a salud, neurodivergencia o documentos, y que registradoPor devuelve identidadOperativa",
+    "T009-28: suite de integracion que habla por HTTP con el servicio real leyendo PostgreSQL real y escribiendo contra el doble gRPC; aplica bd/migracion.sql y siembra ella misma, sin pasos manuales (RNF-904)",
+    "T009-28: incluye la consulta de servidor-mcp/cliente-graphql.ts campo por campo, para que lo que P4 pide quede probado antes de integrar"
   ],
   "decisiones": [
     "Resolvers y escalar se asignan sobre el esquema construido del SDL en vez de anadir @graphql-tools, que no esta autorizado por plan §3; el contrato sigue siendo la unica fuente del esquema",
@@ -98,14 +103,17 @@
     "Las pruebas de consulta reciben un cliente gRPC que lanza si se le llama, para que quede probado que leer nunca escribe",
     "El mensaje de error nunca se reenvia desde gRPC, solo el codigo traducido: un fallo inesperado de P3 puede traer texto de PostgreSQL con nombres de columna o valores de la fila, y el contrato MCP exige no dar «el detalle interno». Hay un test que lo comprueba con un error de pg simulado",
     "Un estado de gRPC no previsto cae en error_interno y nunca en fuera_de_alcance: equivocarse hacia fuera_de_alcance le diria al agente que es un problema de permisos cuando no lo es",
-    "La comprobacion de datos protegidos mira los nombres de la introspeccion y no las descripciones, porque el propio contrato lleva escrito «Nunca incluye salud, neurodivergencia ni documentos», que es lo contrario de una fuga"
+    "La comprobacion de datos protegidos mira los nombres de la introspeccion y no las descripciones, porque el propio contrato lleva escrito «Nunca incluye salud, neurodivergencia ni documentos», que es lo contrario de una fuga",
+    "Si PostgreSQL no responde, la suite falla con el comando para levantarlo en vez de saltarse los tests: un skip silencioso es como la evidencia de P5 acabo sin recorrido",
+    "El N+1 se vuelve a medir contra PostgreSQL real envolviendo el pool en un contador: el espia en memoria prueba el cargador, pero no que el SQL real no multiplique idas"
   ],
   "verificacion": {
-    "pruebasP2": "PASO: npx tsx --test 'servicio-consulta/pruebas/*.test.ts' con 50 tests en verde",
+    "pruebasP2": "PASO: npx tsx --test --test-concurrency=1 'servicio-consulta/pruebas/*.test.ts' con 61 tests en verde (8 archivos)",
     "typecheck": "PASO: npx tsc --noEmit -p tarea3/servicio-consulta/tsconfig.json sin salida",
     "lint": "PASO: npx eslint tarea3/servicio-consulta sin avisos ni errores",
     "humo": "PASO: npx tsx servicio-consulta/index.mjs responde /salud {estado:ok} e introspeccion de Mutation con las tres mutaciones del contrato",
     "nMas1": "PASO: la lista del grupo con grupo, riesgo y asistencias cuesta 5 consultas (sin lotes serian 20) y pedir 12 nodos cuesta lo mismo que pedir 2",
-    "profundidad": "PASO: comprobado con sonda que la consulta de 7 niveles devuelve codigo profundidad_excedida con accept ausente, application/json (200, como la especificacion GraphQL-over-HTTP exige) y application/graphql-response+json (400)"
+    "profundidad": "PASO: comprobado con sonda que la consulta de 7 niveles devuelve codigo profundidad_excedida con accept ausente, application/json (200, como la especificacion GraphQL-over-HTTP exige) y application/graphql-response+json (400)",
+    "integracion": "PASO: 11 tests contra PostgreSQL 16.15 real en 127.0.0.1:55432 (api/docker-compose.yml) con el doble gRPC; el lote real gasta 5 consultas"
   }
 }

@@ -8,6 +8,9 @@
 //
 // No contiene salud, neurodivergencia ni documentos (RF-907).
 
+import { randomUUID } from 'node:crypto';
+import type { EjecutorSql } from '../datos.ts';
+
 export const GRUPOS = [
   { id: '11111111-1111-1111-1111-111111111101', nombre: 'Primera Comunión A' },
   { id: '11111111-1111-1111-1111-111111111102', nombre: 'Confirmación B' },
@@ -63,3 +66,49 @@ export const RIESGOS = [
   { catequizandoId: CATEQUIZANDOS[2].id, nivel: 'ALTO', motivo: '3 faltas consecutivas sin justificar' },
   { catequizandoId: CATEQUIZANDOS[3].id, nivel: 'BAJO', motivo: '1 falta sin justificar' },
 ] as const;
+
+export async function sembrarParaPruebas(ejecutor: EjecutorSql): Promise<void> {
+  await ejecutor.query('DELETE FROM demo_tarea3.riesgo');
+  await ejecutor.query('DELETE FROM demo_tarea3.justificacion');
+  await ejecutor.query('DELETE FROM demo_tarea3.asistencia');
+  await ejecutor.query('DELETE FROM demo_tarea3.catequizando');
+  await ejecutor.query('DELETE FROM demo_tarea3.grupo');
+
+  for (const grupo of GRUPOS) {
+    await ejecutor.query('INSERT INTO demo_tarea3.grupo (id, nombre) VALUES ($1, $2)', [
+      grupo.id,
+      grupo.nombre,
+    ]);
+  }
+
+  for (const catequizando of CATEQUIZANDOS) {
+    await ejecutor.query(
+      `INSERT INTO demo_tarea3.catequizando (id, grupo_id, identidad_operativa, edad)
+       VALUES ($1, $2, $3, $4)`,
+      [
+        catequizando.id,
+        catequizando.grupoId,
+        catequizando.identidadOperativa,
+        catequizando.edad,
+      ]
+    );
+  }
+
+  for (const catequizando of CATEQUIZANDOS) {
+    const estados = PLAN_ASISTENCIAS[catequizando.id];
+    for (let i = 0; i < DOMINGOS.length; i++) {
+      await ejecutor.query(
+        `INSERT INTO demo_tarea3.asistencia (id, catequizando_id, fecha, estado, registrado_por)
+         VALUES ($1, $2, $3, $4, $5)`,
+        [randomUUID(), catequizando.id, DOMINGOS[i], estados[i], REGISTRADO_POR]
+      );
+    }
+  }
+
+  for (const riesgo of RIESGOS) {
+    await ejecutor.query(
+      `INSERT INTO demo_tarea3.riesgo (catequizando_id, nivel, motivo) VALUES ($1, $2, $3)`,
+      [riesgo.catequizandoId, riesgo.nivel, riesgo.motivo]
+    );
+  }
+}
