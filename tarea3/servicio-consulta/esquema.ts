@@ -15,6 +15,7 @@ import {
   isObjectType,
   Kind,
   type GraphQLFieldResolver,
+  type GraphQLResolveInfo,
   type GraphQLSchema,
   type ValueNode,
 } from 'graphql';
@@ -23,10 +24,20 @@ export const RUTA_CONTRATO = join(import.meta.dirname, '..', 'contratos', 'schem
 
 const PATRON_FECHA_CIVIL = /^\d{4}-\d{2}-\d{2}$/;
 
+// El origen va como `any` a proposito: cada campo del contrato recibe un origen
+// distinto (Catequizando, Grupo, ...) y asi cada resolver declara el suyo sin
+// castear en el punto de registro.
+export type ResolverCampo<TContexto> = (
+  origen: any,
+  argumentos: any,
+  contexto: TContexto,
+  info: GraphQLResolveInfo
+) => unknown;
+
 // Mapa de resolvers por tipo y campo del contrato.
-export type MapaResolvers = Record<
+export type MapaResolvers<TContexto = unknown> = Record<
   string,
-  Record<string, GraphQLFieldResolver<never, never>>
+  Record<string, ResolverCampo<TContexto>>
 >;
 
 function errorEntrada(mensaje: string): GraphQLError {
@@ -73,7 +84,10 @@ function completarEscalarFechaCivil(esquema: GraphQLSchema): void {
 // Asigna los resolvers sobre los campos del contrato. Si el contrato congelado
 // dejara de declarar un tipo o un campo, falla al arrancar en vez de responder
 // null en silencio.
-export function aplicarResolvers(esquema: GraphQLSchema, mapa: MapaResolvers): void {
+export function aplicarResolvers<TContexto>(
+  esquema: GraphQLSchema,
+  mapa: MapaResolvers<TContexto>
+): void {
   for (const [nombreTipo, campos] of Object.entries(mapa)) {
     const tipo = esquema.getType(nombreTipo);
     if (!isObjectType(tipo)) {

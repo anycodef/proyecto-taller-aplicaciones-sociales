@@ -4,15 +4,19 @@
   "agente": "Claude Code",
   "modelo": "claude-opus-5",
   "rama": "tarea3/p2-consulta",
-  "tareas": ["T009-21"],
+  "tareas": ["T009-21", "T009-22"],
   "alcance": [
     "tarea3/servicio-consulta/esquema.ts",
     "tarea3/servicio-consulta/servidor.ts",
+    "tarea3/servicio-consulta/contexto.ts",
+    "tarea3/servicio-consulta/resolvers.ts",
+    "tarea3/servicio-consulta/aplicacion.ts",
     "tarea3/servicio-consulta/index.ts",
     "tarea3/servicio-consulta/index.mjs",
     "tarea3/servicio-consulta/tsconfig.json",
     "tarea3/servicio-consulta/pruebas/ayuda.ts",
     "tarea3/servicio-consulta/pruebas/t009-21-esquema-y-salud.test.ts",
+    "tarea3/servicio-consulta/pruebas/t009-22-contexto-y-yo.test.ts",
     "docs/agent-trace/tarea3-p2.json",
     "specs/009-graphql-grpc-mcp/tasks.md"
   ],
@@ -24,23 +28,28 @@
     "specs/009-graphql-grpc-mcp/tasks.md",
     "tarea3/contratos/schema.graphql",
     "tarea3/contratos/sigecat.proto",
+    "tarea3/contratos/herramientas-mcp.md",
     "docs/tarea-3/REPARTO.md",
     "docs/tarea-3/prompts/_comun.md",
     "docs/tarea-3/prompts/persona-2.md"
   ],
-  "tareasCatalogo": ["T009-21"],
+  "tareasCatalogo": ["T009-21", "T009-22"],
   "base": "Rama creada desde origin/tarea3/p3-actualizacion para disponer de compartido/ (P5) y del servidor gRPC real (P3), segun el orden de merge de plan §7.",
   "cambios": [
     "T009-21: esquema.ts construye el esquema desde el contrato congelado schema.graphql con buildSchema, completa el escalar FechaCivil y expone aplicarResolvers, que falla al arrancar si el contrato no declara un tipo o campo esperado",
     "T009-21: servidor.ts sirve /graphql con graphql-http sobre node:http y /salud para la sonda de scripts/demo.mjs; index.mjs replica el patron de P3 porque demo.mjs busca servicio-consulta/index.mjs",
-    "T009-21: la autenticacion no se rechaza en el transporte; el contexto se construye siempre para que los resolvers respondan con extensions.codigo (RF-906)"
+    "T009-22: contexto.ts verifica el Bearer con compartido/auth.ts de P5 y deja el contexto sin token cuando falta, no es Bearer, no verifica o no trae rol del contrato",
+    "T009-22: resolvers.ts resuelve Query.yo desde el token; exigirToken es la puerta unica de todos los resolvers",
+    "T009-22: aplicacion.ts ensambla contrato, resolvers y contexto una sola vez para que las pruebas y la demo usen el mismo cableado"
   ],
   "decisiones": [
-    "Resolvers y escalar se asignan sobre el esquema construido del SDL en vez de anadir @graphql-tools, que no esta autorizado por plan §3; el contrato sigue siendo la unica fuente del esquema"
+    "Resolvers y escalar se asignan sobre el esquema construido del SDL en vez de anadir @graphql-tools, que no esta autorizado por plan §3; el contrato sigue siendo la unica fuente del esquema",
+    "El token ausente o invalido no se rechaza con 401 en el transporte: devuelve 200 con extensions.codigo fuera_de_alcance, el unico codigo que el contrato MCP define y que el cliente de P4 distingue. Un 401 opaco se traduciria a error_interno y ocultaria la causa al agente",
+    "El motivo interno del rechazo (sin cabecera, no verifica, rol invalido) queda solo en el contexto y nunca viaja en la respuesta (RF-907)"
   ],
   "verificacion": {
-    "pruebasP2": "PASO: npx tsx --test 'servicio-consulta/pruebas/*.test.ts' con 5 tests en verde",
-    "typecheck": "PASO: npx tsc --noEmit -p servicio-consulta/tsconfig.json sin salida",
+    "pruebasP2": "PASO: npx tsx --test 'servicio-consulta/pruebas/*.test.ts' con 9 tests en verde",
+    "typecheck": "PASO: npx tsc --noEmit -p tarea3/servicio-consulta/tsconfig.json sin salida",
     "lint": "PASO: npx eslint tarea3/servicio-consulta sin avisos ni errores",
     "humo": "PASO: npx tsx servicio-consulta/index.mjs responde /salud {estado:ok} e introspeccion de Mutation con las tres mutaciones del contrato"
   }
