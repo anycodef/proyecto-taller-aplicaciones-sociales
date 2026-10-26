@@ -524,18 +524,32 @@ export class ServidorActualizacion {
     });
   }
 
-  public detener(): Promise<void> {
+  public detener(timeoutMs = 2000): Promise<void> {
     return new Promise((resolve) => {
       if (!this.iniciado) {
         resolve();
         return;
       }
-      this.servidor.tryShutdown((err) => {
-        if (err) {
+      let terminado = false;
+      const temporizador = setTimeout(() => {
+        if (!terminado) {
+          terminado = true;
           this.servidor.forceShutdown();
+          this.iniciado = false;
+          resolve();
         }
-        this.iniciado = false;
-        resolve();
+      }, timeoutMs);
+
+      this.servidor.tryShutdown((err) => {
+        if (!terminado) {
+          terminado = true;
+          clearTimeout(temporizador);
+          if (err) {
+            this.servidor.forceShutdown();
+          }
+          this.iniciado = false;
+          resolve();
+        }
       });
     });
   }

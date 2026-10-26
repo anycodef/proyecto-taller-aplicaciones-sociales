@@ -31,3 +31,14 @@ export function crearMetadata(token?: string): grpc.Metadata {
   }
   return metadata;
 }
+
+// Espera a que el cliente gRPC esté listo para recibir llamadas con reintentos
+export function esperarConexion(cliente: any, timeoutMs = 5000): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const deadline = Date.now() + timeoutMs;
+    cliente.waitForReady(deadline, (error: any) => {
+      if (error) reject(error);
+      else resolve();
+    });
+  });
+}

@@ -8,7 +8,6 @@ import { pool } from '../../compartido/bd.ts';
 import { sembrar } from '../../scripts/bd-sembrar.mjs';
 
 const GRUPO_1_ID = '11111111-1111-1111-1111-111111111101';
-const GRUPO_2_ID = '11111111-1111-1111-1111-111111111102';
 const CATEQUIZANDO_G1 = '22222222-2222-2222-2222-222222222101';
 const CATEQUIZANDO_G2 = '22222222-2222-2222-2222-222222222201';
 
