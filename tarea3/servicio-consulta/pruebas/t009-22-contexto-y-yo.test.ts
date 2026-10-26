@@ -3,13 +3,13 @@ import assert from 'node:assert/strict';
 import { SignJWT } from 'jose';
 import { emitirToken } from '../../compartido/auth.ts';
 import { crearAplicacion } from '../aplicacion.ts';
-import { levantarServidor } from './ayuda.ts';
+import { datosSinBase, levantarServidor } from './ayuda.ts';
 
 const GRUPO = '11111111-1111-1111-1111-111111111101';
 const CONSULTA_YO = '{ yo { identidadOperativa rol grupoId } }';
 
 test('RF-906: yo devuelve rol, identidadOperativa y grupo del token de cada rol', async (t) => {
-  const servidor = await levantarServidor(crearAplicacion());
+  const servidor = await levantarServidor(crearAplicacion({ datos: datosSinBase() }));
   t.after(() => servidor.cerrar());
 
   const tokenCat = await emitirToken({
@@ -37,7 +37,7 @@ test('RF-906: yo devuelve rol, identidadOperativa y grupo del token de cada rol'
 });
 
 test('RF-906: sin token, con esquema distinto de Bearer o con firma ajena responde fuera_de_alcance', async (t) => {
-  const servidor = await levantarServidor(crearAplicacion());
+  const servidor = await levantarServidor(crearAplicacion({ datos: datosSinBase() }));
   t.after(() => servidor.cerrar());
 
   const sinToken = await servidor.consultar(CONSULTA_YO);
@@ -75,7 +75,7 @@ test('RF-906: sin token, con esquema distinto de Bearer o con firma ajena respon
 });
 
 test('RF-906: un token sin rol valido no autentica', async (t) => {
-  const servidor = await levantarServidor(crearAplicacion());
+  const servidor = await levantarServidor(crearAplicacion({ datos: datosSinBase() }));
   t.after(() => servidor.cerrar());
 
   // Firmado con la clave de la demo, pero con un rol que el contrato no declara.
@@ -89,7 +89,7 @@ test('RF-906: un token sin rol valido no autentica', async (t) => {
 });
 
 test('RF-907: el motivo interno del rechazo no viaja al cliente', async (t) => {
-  const servidor = await levantarServidor(crearAplicacion());
+  const servidor = await levantarServidor(crearAplicacion({ datos: datosSinBase() }));
   t.after(() => servidor.cerrar());
 
   const { cuerpo } = await servidor.consultar(CONSULTA_YO);

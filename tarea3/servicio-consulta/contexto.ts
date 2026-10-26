@@ -8,11 +8,17 @@
 import { GraphQLError } from 'graphql';
 import { verificarToken, type TokenPayload } from '../compartido/auth.ts';
 import { leerCabecera, type Cabeceras } from './servidor.ts';
+import { crearCargadores, type Cargadores } from './cargadores.ts';
+import type { Datos } from './datos.ts';
 
 export interface ContextoPeticion {
   token: TokenPayload | null;
   // Para la traza local; nunca se devuelve al cliente (RF-907).
   motivoSinToken: string | null;
+  datos: Datos;
+  cargadores: Cargadores;
+  // El Bearer original, para reenviarlo tal cual por gRPC (RF-904).
+  autorizacion: string | null;
 }
 
 const ROLES_VALIDOS = new Set(['COORD', 'CAT', 'FAM', 'SUP']);
@@ -37,26 +43,41 @@ function esTokenUtilizable(payload: TokenPayload): boolean {
   );
 }
 
-export async function crearContexto(cabeceras: Cabeceras): Promise<ContextoPeticion> {
-  const autorizacion = leerCabecera(cabeceras, 'authorization');
-  if (!autorizacion) {
-    return { token: null, motivoSinToken: 'sin cabecera authorization' };
-  }
+// Devuelve la fabrica de contextos: los cargadores se crean por peticion para
+// que su cache no se comparta entre usuarios.
+export function crearFabricaDeContexto(
+  datos: Datos
+): (cabeceras: Cabeceras) => Promise<ContextoPeticion> {
+  return async function crearContexto(cabeceras) {
+    const base = {
+      datos,
+      cargadores: crearCargadores(datos),
+      autorizacion: leerCabecera(cabeceras, 'authorization') ?? null,
+    };
 
-  const [esquema, valor] = autorizacion.split(' ');
-  if (esquema?.toLowerCase() !== 'bearer' || !valor) {
-    return { token: null, motivoSinToken: 'authorization no es Bearer' };
-  }
-
-  try {
-    const payload = await verificarToken(valor);
-    if (!esTokenUtilizable(payload)) {
-      return { token: null, motivoSinToken: 'el token no trae rol ni identidadOperativa validos' };
+    if (!base.autorizacion) {
+      return { ...base, token: null, motivoSinToken: 'sin cabecera authorization' };
     }
-    return { token: payload, motivoSinToken: null };
-  } catch {
-    return { token: null, motivoSinToken: 'el token no verifica' };
-  }
+
+    const [esquema, valor] = base.autorizacion.split(' ');
+    if (esquema?.toLowerCase() !== 'bearer' || !valor) {
+      return { ...base, token: null, motivoSinToken: 'authorization no es Bearer' };
+    }
+
+    try {
+      const payload = await verificarToken(valor);
+      if (!esTokenUtilizable(payload)) {
+        return {
+          ...base,
+          token: null,
+          motivoSinToken: 'el token no trae rol ni identidadOperativa validos',
+        };
+      }
+      return { ...base, token: payload, motivoSinToken: null };
+    } catch {
+      return { ...base, token: null, motivoSinToken: 'el token no verifica' };
+    }
+  };
 }
 
 // Todo resolver empieza por aqui: sin token no se resuelve nada.

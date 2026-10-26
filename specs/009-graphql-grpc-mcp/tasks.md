@@ -21,7 +21,7 @@ Dependencias nuevas: solo las de plan §3, en `tarea3/package.json`.
 
 - [x] **T009-21** Cargar `schema.graphql`, servidor HTTP con `graphql-http` en el puerto 4000 y `/salud`. RF: RF-902.
 - [x] **T009-22** Contexto de petición: verificar JWT con `compartido/auth.ts`; `Query.yo`. RF: RF-906.
-- [ ] **T009-23** Resolvers `catequizando` y `catequizandos` con paginación (máx. 50) y DataLoader casero para evitar N+1. RF: RF-902, RNF-903. Hecho cuando: un test cuenta consultas SQL de una lista de 12 con asistencias (debe ser constante).
+- [x] **T009-23** Resolvers `catequizando` y `catequizandos` con paginación (máx. 50) y DataLoader casero para evitar N+1. RF: RF-902, RNF-903. Hecho cuando: un test cuenta consultas SQL de una lista de 12 con asistencias (debe ser constante).
 - [ ] **T009-24** Resolvers `asistenciaDelDomingo` y `riesgoDelGrupo`. RF: RF-902.
 - [ ] **T009-25** Límite de profundidad 6 y rechazo con mensaje claro. RF: RNF-903.
 - [ ] **T009-26** Cliente gRPC hacia actualización (`proto-loader`, metadata `authorization` reenviada) y las tres mutaciones. RF: RF-904.

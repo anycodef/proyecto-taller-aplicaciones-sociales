@@ -3,6 +3,35 @@
 
 import type { AddressInfo } from 'node:net';
 import { crearServidor, type OpcionesServidor } from '../servidor.ts';
+import { crearDatos, type Datos, type EjecutorSql } from '../datos.ts';
+
+// Ejecutor SQL de mentira que apunta cada consulta recibida: con el se cuenta
+// el numero de idas a la base y se demuestra que el cargador evita el N+1.
+export interface EjecutorEspia extends EjecutorSql {
+  consultas: { texto: string; valores: unknown[] }[];
+}
+
+export function crearEjecutorEspia(
+  responder: (texto: string, valores: unknown[]) => Record<string, unknown>[]
+): EjecutorEspia {
+  const consultas: { texto: string; valores: unknown[] }[] = [];
+  return {
+    consultas,
+    async query(texto, valores = []) {
+      consultas.push({ texto, valores });
+      return { rows: responder(texto, valores) };
+    },
+  };
+}
+
+// Para las pruebas que no tocan datos: cualquier consulta es un error de prueba.
+export function datosSinBase(): Datos {
+  return crearDatos({
+    query: () => {
+      throw new Error('esta prueba no deberia consultar la base de datos');
+    },
+  });
+}
 
 export interface ServidorDePrueba {
   url: string;

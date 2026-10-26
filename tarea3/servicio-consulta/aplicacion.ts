@@ -3,14 +3,19 @@
 // distinto del que corre en la demo.
 
 import { aplicarResolvers, construirEsquema } from './esquema.ts';
-import { crearContexto, type ContextoPeticion } from './contexto.ts';
+import { crearFabricaDeContexto, type ContextoPeticion } from './contexto.ts';
 import { crearResolvers, type DependenciasResolvers } from './resolvers.ts';
+import type { Datos } from './datos.ts';
 import type { OpcionesServidor } from './servidor.ts';
 
 export type { ContextoPeticion };
 
-export function crearAplicacion(dependencias: DependenciasResolvers = {}): OpcionesServidor {
+export interface DependenciasServicio extends DependenciasResolvers {
+  datos: Datos;
+}
+
+export function crearAplicacion(dependencias: DependenciasServicio): OpcionesServidor {
   const esquema = construirEsquema();
   aplicarResolvers(esquema, crearResolvers(dependencias));
-  return { esquema, crearContexto };
+  return { esquema, crearContexto: crearFabricaDeContexto(dependencias.datos) };
 }
