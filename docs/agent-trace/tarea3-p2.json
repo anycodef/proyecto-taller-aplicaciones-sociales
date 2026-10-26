@@ -8,7 +8,8 @@
     "T009-21",
     "T009-22",
     "T009-23",
-    "T009-24"
+    "T009-24",
+    "T009-25"
   ],
   "alcance": [
     "tarea3/servicio-consulta/esquema.ts",
@@ -28,6 +29,8 @@
     "tarea3/servicio-consulta/pruebas/siembra-prueba.ts",
     "tarea3/servicio-consulta/pruebas/t009-23-catequizandos-y-n-mas-1.test.ts",
     "tarea3/servicio-consulta/pruebas/t009-24-domingo-y-riesgo.test.ts",
+    "tarea3/servicio-consulta/profundidad.ts",
+    "tarea3/servicio-consulta/pruebas/t009-25-profundidad.test.ts",
     "docs/agent-trace/tarea3-p2.json",
     "specs/009-graphql-grpc-mcp/tasks.md"
   ],
@@ -48,7 +51,8 @@
     "T009-21",
     "T009-22",
     "T009-23",
-    "T009-24"
+    "T009-24",
+    "T009-25"
   ],
   "base": "Rama creada desde origin/tarea3/p3-actualizacion para disponer de compartido/ (P5) y del servidor gRPC real (P3), segun el orden de merge de plan §7.",
   "cambios": [
@@ -61,7 +65,8 @@
     "T009-23: datos.ts lee demo_tarea3 siempre por lote (= ANY) con las columnas listadas una por una, nunca con *, y devuelve fecha::text para no desplazar el dia civil",
     "T009-23: cargadores.ts crea los cargadores por peticion, no por proceso, para que la cache no sirva datos de un grupo a quien no puede verlos",
     "T009-23: catequizando y catequizandos con paginacion keyset por id (cursor opaco base64url), recorte a 50 y autorizacion por rol; FAM se resuelve por catequizando segun delega compartido/auth.ts",
-    "T009-24: asistenciaDelDomingo agrupa por estado en PostgreSQL (una consulta, sin traer filas para contarlas) y riesgoDelGrupo filtra por nivelMinimo con nivelesDesde, ordenando de ALTO a BAJO con array_position"
+    "T009-24: asistenciaDelDomingo agrupa por estado en PostgreSQL (una consulta, sin traer filas para contarlas) y riesgoDelGrupo filtra por nivelMinimo con nivelesDesde, ordenando de ALTO a BAJO con array_position",
+    "T009-25: profundidad.ts corta en validacion las consultas de mas de 6 niveles con mensaje que dice la profundidad medida, el maximo y el nombre de la operacion; mide fragmentos y fragmentos en linea, y no gira en redondo con fragmentos ciclicos"
   ],
   "decisiones": [
     "Resolvers y escalar se asignan sobre el esquema construido del SDL en vez de anadir @graphql-tools, que no esta autorizado por plan §3; el contrato sigue siendo la unica fuente del esquema",
@@ -70,13 +75,17 @@
     "FAM lee solo al catequizando cuyo id coincide con el sub de su token. El contrato no enlaza familiar con hijo, pero el comentario de puedeLeerGrupo en compartido/auth.ts delega esa resolucion al servicio de consulta; queda anotado para P1",
     "`primero` mayor que 50 se recorta en silencio en vez de fallar, para que ningun cliente pueda forzar una pagina mayor (RNF-903); `primero` menor que 1 si es entrada_invalida",
     "Las pruebas de N+1 usan un ejecutor SQL espia en vez de PostgreSQL: el conteo de consultas queda determinista y no depende de infraestructura. El recorrido contra la base real va en T009-28",
-    "El orden de riesgoDelGrupo se calcula con array_position sobre los niveles pedidos y no con ORDER BY nivel DESC: el nivel es texto, y alfabeticamente ALTO iria antes que MEDIO y BAJO antes que MEDIO, que no es el orden del enum del contrato"
+    "El orden de riesgoDelGrupo se calcula con array_position sobre los niveles pedidos y no con ORDER BY nivel DESC: el nivel es texto, y alfabeticamente ALTO iria antes que MEDIO y BAJO antes que MEDIO, que no es el orden del enum del contrato",
+    "La introspeccion queda exenta del limite de profundidad: su forma la fija el esquema y no el cliente, asi que no es vector de abuso, y contarla romperia a GraphiQL, Postman y al propio descubrimiento del contrato",
+    "Solo los campos con hijos suman nivel; los fragmentos no suman por si mismos, para que la misma consulta escrita con o sin fragmentos mida igual y no se pueda esquivar el limite partiendola en fragmentos",
+    "Verificado en el codigo de graphql-http que validationRules se concatena a specifiedRules ([...specifiedRules, ...validationRules]) y no las reemplaza; hay un test que lo guarda por si cambia"
   ],
   "verificacion": {
-    "pruebasP2": "PASO: npx tsx --test 'servicio-consulta/pruebas/*.test.ts' con 26 tests en verde",
+    "pruebasP2": "PASO: npx tsx --test 'servicio-consulta/pruebas/*.test.ts' con 34 tests en verde",
     "typecheck": "PASO: npx tsc --noEmit -p tarea3/servicio-consulta/tsconfig.json sin salida",
     "lint": "PASO: npx eslint tarea3/servicio-consulta sin avisos ni errores",
     "humo": "PASO: npx tsx servicio-consulta/index.mjs responde /salud {estado:ok} e introspeccion de Mutation con las tres mutaciones del contrato",
-    "nMas1": "PASO: la lista del grupo con grupo, riesgo y asistencias cuesta 5 consultas (sin lotes serian 20) y pedir 12 nodos cuesta lo mismo que pedir 2"
+    "nMas1": "PASO: la lista del grupo con grupo, riesgo y asistencias cuesta 5 consultas (sin lotes serian 20) y pedir 12 nodos cuesta lo mismo que pedir 2",
+    "profundidad": "PASO: comprobado con sonda que la consulta de 7 niveles devuelve codigo profundidad_excedida con accept ausente, application/json (200, como la especificacion GraphQL-over-HTTP exige) y application/graphql-response+json (400)"
   }
 }

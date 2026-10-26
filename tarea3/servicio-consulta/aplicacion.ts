@@ -5,6 +5,7 @@
 import { aplicarResolvers, construirEsquema } from './esquema.ts';
 import { crearFabricaDeContexto, type ContextoPeticion } from './contexto.ts';
 import { crearResolvers, type DependenciasResolvers } from './resolvers.ts';
+import { reglaDeProfundidad } from './profundidad.ts';
 import type { Datos } from './datos.ts';
 import type { OpcionesServidor } from './servidor.ts';
 
@@ -17,5 +18,9 @@ export interface DependenciasServicio extends DependenciasResolvers {
 export function crearAplicacion(dependencias: DependenciasServicio): OpcionesServidor {
   const esquema = construirEsquema();
   aplicarResolvers(esquema, crearResolvers(dependencias));
-  return { esquema, crearContexto: crearFabricaDeContexto(dependencias.datos) };
+  return {
+    esquema,
+    crearContexto: crearFabricaDeContexto(dependencias.datos),
+    reglasValidacion: [reglaDeProfundidad()],
+  };
 }
