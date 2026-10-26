@@ -18,5 +18,5 @@
     ".expo/types/**/*.ts",
     "expo-env.d.ts"
   ],
-  "exclude": ["api", "node_modules"]
+  "exclude": ["api", "tarea3", "node_modules"]
 }
