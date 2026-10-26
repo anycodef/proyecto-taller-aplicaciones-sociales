@@ -6,7 +6,7 @@ import * as protoLoader from '@grpc/proto-loader';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { verificarToken, puedeEscribir, type TokenPayload } from '../compartido/auth.ts';
-import { pool } from '../compartido/bd.ts';
+import { pool, transaccionar } from '../compartido/bd.ts';
 
 if (!process.env.PGPASSWORD) {
   process.env.PGPASSWORD = 'postgres';
@@ -185,12 +185,103 @@ const manejadoresActualizacion = {
     }
   },
   RegistrarAsistenciaLote: async (call: any, callback: any) => {
+    let autor: TokenPayload;
     try {
-      await validarAutenticacion(call.metadata, true);
-      callback({ code: grpc.status.UNIMPLEMENTED, message: 'RegistrarAsistenciaLote se implementa en T009-33' });
+      const auth = await validarAutenticacion(call.metadata, true);
+      autor = auth.autor;
     } catch (error: any) {
       callback({ code: error.code ?? grpc.status.INTERNAL, message: error.message });
+      return;
     }
+
+    const solicitudes: any[] = [];
+    call.on('data', (req: any) => {
+      solicitudes.push(req);
+    });
+
+    call.on('error', (err: any) => {
+      callback({ code: grpc.status.CANCELLED, message: err.message });
+    });
+
+    call.on('end', async () => {
+      try {
+        const resumen = await transaccionar(async (cliente) => {
+          let registrados = 0;
+          let repetidos = 0;
+          let rechazados = 0;
+          const eventosNotificar: string[] = [];
+
+          for (const req of solicitudes) {
+            if (!req.id || !req.catequizando_id || !req.fecha) {
+              rechazados++;
+              continue;
+            }
+
+            // Validar existencia y alcance del catequizando
+            const catRes = await cliente.query(
+              'SELECT id, grupo_id, identidad_operativa FROM demo_tarea3.catequizando WHERE id = $1',
+              [req.catequizando_id]
+            );
+            if (catRes.rowCount === 0) {
+              rechazados++;
+              continue;
+            }
+
+            const catFila = catRes.rows[0];
+            if (autor.rol === 'CAT' && (!autor.grupoId || autor.grupoId !== catFila.grupo_id)) {
+              rechazados++;
+              continue;
+            }
+            if (autor.rol === 'FAM') {
+              rechazados++;
+              continue;
+            }
+
+            let estado: string;
+            try {
+              estado = normalizarEstado(req.estado);
+            } catch {
+              rechazados++;
+              continue;
+            }
+
+            const insertRes = await cliente.query(
+              `INSERT INTO demo_tarea3.asistencia (id, catequizando_id, fecha, estado, registrado_por)
+               VALUES ($1, $2, $3, $4, $5)
+               ON CONFLICT (id) DO NOTHING
+               RETURNING id`,
+              [req.id, req.catequizando_id, req.fecha, estado, autor.identidadOperativa]
+            );
+
+            if ((insertRes.rowCount ?? 0) > 0) {
+              registrados++;
+              eventosNotificar.push(
+                JSON.stringify({
+                  asistencia_id: req.id,
+                  catequizando_id: req.catequizando_id,
+                  grupo_id: catFila.grupo_id,
+                  identidad_operativa: catFila.identidad_operativa,
+                  estado,
+                  fecha: req.fecha,
+                })
+              );
+            } else {
+              repetidos++;
+            }
+          }
+
+          for (const evento of eventosNotificar) {
+            await cliente.query('SELECT pg_notify($1, $2)', ['asistencia_evento', evento]).catch(() => {});
+          }
+
+          return { registrados, repetidos, rechazados };
+        });
+
+        callback(null, resumen);
+      } catch (error: any) {
+        callback({ code: error.code ?? grpc.status.INTERNAL, message: error.message });
+      }
+    });
   },
   RegistrarJustificacion: async (call: any, callback: any) => {
     try {
