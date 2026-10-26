@@ -17,6 +17,7 @@ import type {
   Riesgo,
 } from '../compartido/tipos.ts';
 import type { ClienteActualizacion } from './cliente-grpc.ts';
+import { delegar } from './errores.ts';
 import type { MapaResolvers } from './esquema.ts';
 import {
   errorEntradaInvalida,
@@ -209,16 +210,14 @@ export function crearResolvers(
       ): Promise<ResultadoEscritura> => {
         exigirToken(contexto);
         const { entrada } = argumentos;
-        return cliente.registrarAsistencia(
-          {
-            // El UUID lo genera el cliente (RF-905); aqui no se inventa.
-            id: exigirUuid(entrada.id, 'entrada.id'),
-            catequizando_id: exigirUuid(entrada.catequizandoId, 'entrada.catequizandoId'),
-            fecha: entrada.fecha,
-            estado: entrada.estado,
-          },
-          contexto.autorizacion
-        );
+        // El UUID lo genera el cliente (RF-905); aqui no se inventa.
+        const solicitud = {
+          id: exigirUuid(entrada.id, 'entrada.id'),
+          catequizando_id: exigirUuid(entrada.catequizandoId, 'entrada.catequizandoId'),
+          fecha: entrada.fecha,
+          estado: entrada.estado,
+        };
+        return delegar(() => cliente.registrarAsistencia(solicitud, contexto.autorizacion));
       },
 
       registrarJustificacion: async (
@@ -228,14 +227,12 @@ export function crearResolvers(
       ): Promise<ResultadoEscritura> => {
         exigirToken(contexto);
         const { entrada } = argumentos;
-        return cliente.registrarJustificacion(
-          {
-            id: exigirUuid(entrada.id, 'entrada.id'),
-            asistencia_id: exigirUuid(entrada.asistenciaId, 'entrada.asistenciaId'),
-            motivo: entrada.motivo,
-          },
-          contexto.autorizacion
-        );
+        const solicitud = {
+          id: exigirUuid(entrada.id, 'entrada.id'),
+          asistencia_id: exigirUuid(entrada.asistenciaId, 'entrada.asistenciaId'),
+          motivo: entrada.motivo,
+        };
+        return delegar(() => cliente.registrarJustificacion(solicitud, contexto.autorizacion));
       },
 
       recalcularRiesgo: async (
@@ -244,11 +241,12 @@ export function crearResolvers(
         contexto
       ): Promise<Riesgo> => {
         exigirToken(contexto);
-        const respuesta = await cliente.recalcularRiesgo(
-          { catequizando_id: exigirUuid(argumentos.catequizandoId, 'catequizandoId') },
-          contexto.autorizacion
+        const solicitud = {
+          catequizando_id: exigirUuid(argumentos.catequizandoId, 'catequizandoId'),
+        };
+        return aRiesgo(
+          await delegar(() => cliente.recalcularRiesgo(solicitud, contexto.autorizacion))
         );
-        return aRiesgo(respuesta);
       },
     },
 

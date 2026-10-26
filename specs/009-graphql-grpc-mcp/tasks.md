@@ -25,7 +25,7 @@ Dependencias nuevas: solo las de plan §3, en `tarea3/package.json`.
 - [x] **T009-24** Resolvers `asistenciaDelDomingo` y `riesgoDelGrupo`. RF: RF-902.
 - [x] **T009-25** Límite de profundidad 6 y rechazo con mensaje claro. RF: RNF-903.
 - [x] **T009-26** Cliente gRPC hacia actualización (`proto-loader`, metadata `authorization` reenviada) y las tres mutaciones. RF: RF-904.
-- [ ] **T009-27** Mapeo de errores gRPC → `extensions.codigo`. RF: RF-906, RF-907. Hecho cuando: test confirma que no aparece ningún campo de salud o documento en el esquema introspectado.
+- [x] **T009-27** Mapeo de errores gRPC → `extensions.codigo`. RF: RF-906, RF-907. Hecho cuando: test confirma que no aparece ningún campo de salud o documento en el esquema introspectado.
 - [ ] **T009-28** Tests con cliente gRPC doble. RF: RF-902…RF-906.
 
 ## P3 — Servicio de actualización gRPC
