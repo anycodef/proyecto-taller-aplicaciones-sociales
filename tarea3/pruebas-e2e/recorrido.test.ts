@@ -72,7 +72,7 @@ test('RF-902/903/904/905/912: recorrido e2e GraphQL → gRPC → GraphQL → lot
   assert.strictEqual(cuerpoMut2.data.registrarAsistencia.repetido, true);
 
   // 4. Lote gRPC RegistrarAsistenciaLote (client streaming)
-  const definicion = protoLoader.loadSync(join(import.meta.dirname, '..', '..', 'contratos', 'sigecat.proto'), {
+  const definicion = protoLoader.loadSync(join(import.meta.dirname, '..', 'contratos', 'sigecat.proto'), {
     keepCase: true,
     longs: String,
     enums: String,
@@ -82,8 +82,10 @@ test('RF-902/903/904/905/912: recorrido e2e GraphQL → gRPC → GraphQL → lot
   const grpcObj = grpc.loadPackageDefinition(definicion) as any;
   const servicio = grpcObj.sigecat.actualizacion.v1.Actualizacion;
   const cliente = new servicio('127.0.0.1:50051', grpc.credentials.createInsecure());
+  const metadata = new grpc.Metadata();
+  metadata.set('authorization', `Bearer ${token}`);
   const lote = await new Promise<any>((resolver, rechazar) => {
-    const llamada = cliente.RegistrarAsistenciaLote((error: any, respuesta: any) => {
+    const llamada = cliente.RegistrarAsistenciaLote(metadata, (error: any, respuesta: any) => {
       error ? rechazar(error) : resolver(respuesta);
     });
     llamada.write({ id: '44444444-4444-4444-4444-444444444402', catequizando_id: CATEQUIZANDO_ID, fecha: '2026-11-15', estado: 1 });
@@ -95,11 +97,21 @@ test('RF-902/903/904/905/912: recorrido e2e GraphQL → gRPC → GraphQL → lot
   // 5. Streaming gRPC ObservarAsistencia (server streaming)
   const eventos = await new Promise((resolver, rechazar) => {
     const recibidos: any[] = [];
-    const llamada = cliente.ObservarAsistencia({ grupo_id: GRUPO_ID });
+    const llamada = cliente.ObservarAsistencia({ grupo_id: GRUPO_ID }, metadata);
     llamada.on('data', (evento: any) => recibidos.push(evento));
-    llamada.on('end', () => resolver(recibidos));
-    llamada.on('error', rechazar);
-    setTimeout(() => llamada.cancel(), 2000);
+    const temporizador = setTimeout(() => llamada.cancel(), 2000);
+    llamada.on('end', () => {
+      clearTimeout(temporizador);
+      resolver(recibidos);
+    });
+    llamada.on('error', (error: { code?: number }) => {
+      clearTimeout(temporizador);
+      if (error.code === grpc.status.CANCELLED) {
+        resolver(recibidos);
+        return;
+      }
+      rechazar(error);
+    });
   });
   assert.ok(Array.isArray(eventos));
 
