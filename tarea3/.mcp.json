@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "sigecat": {
+      "command": "node",
+      "args": ["--import", "tsx", "servidor-mcp/principal.ts"],
+      "env": {
+        "SIGECAT_TOKEN": "${SIGECAT_TOKEN}"
+      }
+    }
+  }
+}

@@ -29,14 +29,16 @@
     "Herramientas de escritura no destructivas e idempotentes con UUID generado en el servidor MCP",
     "Recurso parametrizado de riesgo y prompt revision-dominical con validación de grupo",
     "Errores MCP controlados sin filtración de mensajes internos",
-    "Prueba integrada con cliente MCP real sobre GraphQL doble y contrato exacto"
+    "Prueba integrada con cliente MCP real sobre GraphQL doble y contrato exacto",
+    "Configuración MCP y guion reproducible preparados; ejecución real bloqueada por ausencia de P2"
   ],
   "verificacion": {
     "npmTest": "PASÓ: cliente 29 suites/55 tests; API 26 suites/178 tests con PostgreSQL y Azurite locales",
     "typecheck": "PASÓ: npm run typecheck",
     "lint": "PASÓ: npm run lint",
     "tarea3Test": "PASÓ: 16 tests, 1 omitido por ausencia del servicio GraphQL de P2; el script de P5 aún no incluye servidor-mcp",
-    "mcpDirecto": "PASÓ: 11 tests RF-902/RF-905/RF-906/RF-907/RF-909, incluida integración MCP sobre GraphQL doble",
-    "typecheckP4": "PASÓ: tsc --noEmit -p tarea3/servidor-mcp/tsconfig.json"
+    "mcpDirecto": "PASÓ: 13 tests RF-902/RF-905/RF-906/RF-907/RF-909/RF-910, incluida integración MCP sobre GraphQL doble",
+    "typecheckP4": "PASÓ: tsc --noEmit para servidor-mcp y agente",
+    "t00947": "PARCIAL: configuración y guion listos; sin transcripción ni medición E2E porque P2 no publicó servicio-consulta"
   }
 }
