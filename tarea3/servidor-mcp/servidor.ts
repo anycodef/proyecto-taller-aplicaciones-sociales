@@ -26,6 +26,7 @@ import {
   herramientasEscritura,
   type NombreHerramientaEscritura,
 } from "./herramientas-escritura.js";
+import { ErrorHerramienta } from "./errores.js";
 
 export type NombreHerramienta = NombreHerramientaLectura | NombreHerramientaEscritura;
 
@@ -121,7 +122,11 @@ export function crearServidorMcp(ejecutar: EjecutorHerramienta): Server {
       if (error instanceof ZodError) {
         throw new McpError(ErrorCode.InvalidParams, "La entrada de la herramienta no es válida");
       }
-      throw error;
+      const codigo = error instanceof ErrorHerramienta ? error.codigo : "error_interno";
+      return {
+        content: [{ type: "text", text: JSON.stringify({ codigo }) }],
+        isError: true,
+      };
     }
   });
 

@@ -8,6 +8,7 @@ import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
 import { CallToolResultSchema } from "@modelcontextprotocol/sdk/types.js";
 
 import { crearServidorMcp } from "./servidor.js";
+import { ErrorHerramienta } from "./errores.js";
 
 test("RF-909: publica las herramientas MCP de lectura con sus anotaciones", async (t) => {
   const servidor = crearServidorMcp(async () => ({ ok: true }));
@@ -111,4 +112,29 @@ test("RF-909: valida con Zod la entrada antes de ejecutar una herramienta", asyn
     /entrada de la herramienta no es válida/,
   );
   assert.equal(cantidadEjecuciones, 0);
+});
+
+test("RF-906/RF-907: devuelve fuera_de_alcance como error controlado sin fugas", async (t) => {
+  const servidor = crearServidorMcp(async () => {
+    throw new ErrorHerramienta("fuera_de_alcance");
+  });
+  const cliente = new Client(
+    { name: "prueba-sigecat", version: "0.1.0" },
+    { capabilities: {} },
+  );
+  const [transporteCliente, transporteServidor] = InMemoryTransport.createLinkedPair();
+  await servidor.connect(transporteServidor);
+  await cliente.connect(transporteCliente);
+  t.after(async () => void await Promise.allSettled([cliente.close(), servidor.close()]));
+
+  const respuesta = await cliente.callTool(
+    {
+      name: "listar_riesgo_grupo",
+      arguments: { grupoId: "00000000-0000-4000-8000-000000000001" },
+    },
+    CallToolResultSchema,
+  );
+  const contenido = respuesta.content as { type: string; text?: string }[];
+  assert.equal(respuesta.isError, true);
+  assert.equal(contenido[0]?.text, '{"codigo":"fuera_de_alcance"}');
 });

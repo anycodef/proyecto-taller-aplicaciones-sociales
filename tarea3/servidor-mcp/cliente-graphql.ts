@@ -1,4 +1,5 @@
 import type { EjecutorHerramienta } from "./servidor.js";
+import { ErrorHerramienta } from "./errores.js";
 
 type ConfiguracionGraphql = {
   url?: string;
@@ -8,7 +9,7 @@ type ConfiguracionGraphql = {
 
 type RespuestaGraphql = {
   data?: Record<string, unknown>;
-  errors?: { message?: string }[];
+  errors?: { message?: string; extensions?: { codigo?: string } }[];
 };
 
 const consultas = {
@@ -81,8 +82,11 @@ export function crearEjecutorGraphql(configuracion: ConfiguracionGraphql = {}): 
       body: JSON.stringify({ query, variables }),
     });
     const cuerpo = await respuesta.json() as RespuestaGraphql;
+    if (cuerpo.errors?.some(({ extensions }) => extensions?.codigo === "fuera_de_alcance")) {
+      throw new ErrorHerramienta("fuera_de_alcance");
+    }
     if (!respuesta.ok || cuerpo.errors?.length) {
-      throw new Error("GraphQL no pudo completar la consulta");
+      throw new ErrorHerramienta("error_interno");
     }
 
     if (nombre === "listar_riesgo_grupo") return cuerpo.data?.riesgoDelGrupo;

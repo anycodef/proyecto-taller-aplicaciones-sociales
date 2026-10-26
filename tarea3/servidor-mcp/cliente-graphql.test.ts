@@ -72,3 +72,21 @@ test("RF-905/RF-909: registrar asistencia envía el UUID generado en la entrada 
     repetido: false,
   });
 });
+
+test("RF-906/RF-907: fuera_de_alcance se propaga sin revelar el mensaje interno", async () => {
+  const fetchDoble: typeof fetch = async () => new Response(JSON.stringify({
+    errors: [{
+      message: "detalle SQL que no debe salir",
+      extensions: { codigo: "fuera_de_alcance" },
+    }],
+  }), { status: 200, headers: { "content-type": "application/json" } });
+  const ejecutar = crearEjecutorGraphql({ token: "token-prueba", fetch: fetchDoble });
+
+  await assert.rejects(
+    ejecutar("listar_riesgo_grupo", {
+      grupoId: "00000000-0000-4000-8000-000000000001",
+      nivelMinimo: "MEDIO",
+    }),
+    (error: unknown) => error instanceof Error && error.message === "fuera_de_alcance",
+  );
+});
