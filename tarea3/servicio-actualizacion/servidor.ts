@@ -5,7 +5,7 @@ import * as grpc from '@grpc/grpc-js';
 import * as protoLoader from '@grpc/proto-loader';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { verificarToken, puedeEscribir, type TokenPayload } from '../compartido/auth.ts';
+import { verificarToken, puedeEscribir, puedeLeerGrupo, type TokenPayload } from '../compartido/auth.ts';
 import { pool, transaccionar } from '../compartido/bd.ts';
 import { calcularRiesgo } from '../compartido/riesgo.ts';
 
@@ -421,11 +421,75 @@ const manejadoresActualizacion = {
     }
   },
   ObservarAsistencia: async (call: any) => {
+    let autor: TokenPayload;
     try {
-      await validarAutenticacion(call.metadata, false);
-      call.emit('error', { code: grpc.status.UNIMPLEMENTED, message: 'ObservarAsistencia se implementa en T009-36' });
+      const auth = await validarAutenticacion(call.metadata, false);
+      autor = auth.autor;
     } catch (error: any) {
       call.emit('error', { code: error.code ?? grpc.status.INTERNAL, message: error.message });
+      return;
+    }
+
+    const req = call.request;
+    if (!req.grupo_id) {
+      call.emit('error', { code: grpc.status.INVALID_ARGUMENT, message: 'Falta campo obligatorio grupo_id' });
+      return;
+    }
+
+    if (!puedeLeerGrupo(autor.rol, autor.grupoId, req.grupo_id)) {
+      call.emit('error', {
+        code: grpc.status.PERMISSION_DENIED,
+        message: 'fuera_de_alcance: no tiene permisos para observar este grupo',
+      });
+      return;
+    }
+
+    let clientePg: any = null;
+    let limpiado = false;
+
+    const limpiar = async () => {
+      if (limpiado) return;
+      limpiado = true;
+      if (clientePg) {
+        try {
+          await clientePg.query('UNLISTEN asistencia_evento');
+        } catch {
+          // ignore unlisten error on teardown
+        } finally {
+          clientePg.release();
+        }
+      }
+    };
+
+    call.on('cancelled', limpiar);
+    call.on('close', limpiar);
+    call.on('finish', limpiar);
+    call.on('error', limpiar);
+
+    try {
+      clientePg = await pool.connect();
+      await clientePg.query('LISTEN asistencia_evento');
+
+      clientePg.on('notification', (msg: any) => {
+        if (msg.channel !== 'asistencia_evento' || !msg.payload) return;
+        try {
+          const data = JSON.parse(msg.payload);
+          if (data.grupo_id === req.grupo_id) {
+            call.write({
+              asistencia_id: data.asistencia_id,
+              catequizando_id: data.catequizando_id,
+              identidad_operativa: data.identidad_operativa,
+              estado: estadoAProto(data.estado),
+              fecha: data.fecha,
+            });
+          }
+        } catch {
+          // ignorar payload malformado
+        }
+      });
+    } catch (error: any) {
+      await limpiar();
+      call.emit('error', { code: grpc.status.INTERNAL, message: error.message });
     }
   },
 };
