@@ -1,0 +1,43 @@
+{
+  "version": "1.0",
+  "fecha": "2026-10-25",
+  "agente": "Antigravity",
+  "modelo": "gemini-3.8-flash",
+  "rama": "tarea3/p3-actualizacion",
+  "tareas": ["T009-31"],
+  "alcance": [
+    "tarea3/servicio-actualizacion/salud.proto",
+    "tarea3/servicio-actualizacion/servidor.ts",
+    "tarea3/servicio-actualizacion/cliente.ts",
+    "tarea3/servicio-actualizacion/index.ts",
+    "tarea3/servicio-actualizacion/index.mjs",
+    "tarea3/servicio-actualizacion/tsconfig.json",
+    "tarea3/servicio-actualizacion/pruebas/t009-31-salud-y-auth.test.ts",
+    "docs/agent-trace/tarea3-p3.json",
+    "specs/009-graphql-grpc-mcp/tasks.md"
+  ],
+  "fuentes": [
+    "AGENTS.md",
+    "docs/constitution.md",
+    "specs/009-graphql-grpc-mcp/spec.md",
+    "specs/009-graphql-grpc-mcp/plan.md",
+    "specs/009-graphql-grpc-mcp/tasks.md",
+    "tarea3/contratos/sigecat.proto",
+    "docs/tarea-3/REPARTO.md"
+  ],
+  "tareasCatalogo": ["T009-31"],
+  "cambios": [
+    "T009-31: Carga de sigecat.proto y salud.proto en servicio gRPC con protoLoader",
+    "Implementación de ServidorActualizacion con servicio Actualizacion y Health en puerto 50051 (o configurable)",
+    "Interceptor de autorización para validar JWT demo con compartido/auth.ts (rechaza sin token o rol SUP con PERMISSION_DENIED)",
+    "Servicio de salud estándar grpc.health.v1.Health con método Check y Watch devolviendo SERVING",
+    "Pruebas automatizadas en t009-31-salud-y-auth.test.ts verificando arranque, salud y rechazo de SUP"
+  ],
+  "verificacion": {
+    "unitarios": "PASS: npx tsx --test tarea3/servicio-actualizacion/pruebas/t009-31-salud-y-auth.test.ts (3/3 pasados)",
+    "typecheck": "PASS: npx tsc --noEmit -p tarea3/servicio-actualizacion/tsconfig.json sin errores",
+    "typecheckRaiz": "PASS: npm run typecheck sin errores",
+    "testRaiz": "PASS: npm test (233 pasados)",
+    "testTarea3": "PASS: npm --prefix tarea3 test (16 pasados, 1 skip esperado)"
+  }
+}
