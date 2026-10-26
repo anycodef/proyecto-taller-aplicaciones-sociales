@@ -12,6 +12,7 @@ import type {
   FechaCivil,
   Grupo,
   NivelRiesgo,
+  ResumenAsistencia,
   Riesgo,
 } from '../compartido/tipos.ts';
 
@@ -42,6 +43,17 @@ export interface Datos {
     desde: string | null
   ) => Promise<FilaCatequizando[]>;
   totalDeCatequizandos: (grupoId: string) => Promise<number>;
+  resumenDelDomingo: (grupoId: string, fecha: FechaCivil) => Promise<ResumenAsistencia>;
+  riesgoDelGrupo: (grupoId: string, nivelMinimo: NivelRiesgo) => Promise<Riesgo[]>;
+}
+
+// Orden del enum del contrato: `nivelMinimo` incluye su nivel y los de arriba.
+const ORDEN_RIESGO: NivelRiesgo[] = ['BAJO', 'MEDIO', 'ALTO'];
+
+export function nivelesDesde(nivelMinimo: NivelRiesgo): NivelRiesgo[] {
+  const posicion = ORDEN_RIESGO.indexOf(nivelMinimo);
+  if (posicion < 0) throw new Error(`Nivel de riesgo desconocido: ${nivelMinimo}`);
+  return ORDEN_RIESGO.slice(posicion);
 }
 
 function aCatequizando(fila: Record<string, unknown>): FilaCatequizando {
@@ -150,6 +162,50 @@ export function crearDatos(ejecutor: EjecutorSql): Datos {
         [grupoId]
       );
       return Number(rows[0]?.total ?? 0);
+    },
+
+    async resumenDelDomingo(grupoId, fecha) {
+      // Se agrupa en PostgreSQL: el servicio no trae las filas para contarlas.
+      const { rows } = await ejecutor.query(
+        `SELECT a.estado, count(*)::int AS cuantas
+           FROM demo_tarea3.asistencia a
+           JOIN demo_tarea3.catequizando c ON c.id = a.catequizando_id
+          WHERE c.grupo_id = $1::uuid AND a.fecha = $2::date
+          GROUP BY a.estado`,
+        [grupoId, fecha]
+      );
+      const resumen: ResumenAsistencia = {
+        fecha,
+        presentes: 0,
+        ausentes: 0,
+        justificadas: 0,
+        tardanzas: 0,
+      };
+      for (const fila of rows) {
+        const cuantas = Number(fila.cuantas);
+        if (fila.estado === 'PRESENTE') resumen.presentes = cuantas;
+        else if (fila.estado === 'AUSENTE') resumen.ausentes = cuantas;
+        else if (fila.estado === 'JUSTIFICADA') resumen.justificadas = cuantas;
+        else if (fila.estado === 'TARDANZA') resumen.tardanzas = cuantas;
+      }
+      return resumen;
+    },
+
+    async riesgoDelGrupo(grupoId, nivelMinimo) {
+      const { rows } = await ejecutor.query(
+        `SELECT r.catequizando_id, r.nivel, r.motivo, r.calculado_en
+           FROM demo_tarea3.riesgo r
+           JOIN demo_tarea3.catequizando c ON c.id = r.catequizando_id
+          WHERE c.grupo_id = $1::uuid AND r.nivel = ANY($2::text[])
+          ORDER BY array_position($2::text[], r.nivel) DESC, r.catequizando_id`,
+        [grupoId, nivelesDesde(nivelMinimo)]
+      );
+      return rows.map((fila) => ({
+        catequizandoId: String(fila.catequizando_id),
+        nivel: String(fila.nivel) as NivelRiesgo,
+        motivo: String(fila.motivo),
+        calculadoEn: new Date(String(fila.calculado_en)).toISOString(),
+      }));
     },
   };
 }

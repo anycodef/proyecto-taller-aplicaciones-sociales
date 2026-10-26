@@ -9,6 +9,8 @@ import type {
   Contexto,
   FechaCivil,
   Grupo,
+  NivelRiesgo,
+  ResumenAsistencia,
   Riesgo,
 } from '../compartido/tipos.ts';
 import type { MapaResolvers } from './esquema.ts';
@@ -139,6 +141,29 @@ export function crearResolvers(
         const grupoId = exigirUuid(argumentos.grupoId, 'grupoId');
         exigirLecturaDeGrupo(token, grupoId);
         return resolverConexion(contexto, grupoId, argumentos.primero, argumentos.despues);
+      },
+
+      asistenciaDelDomingo: (
+        _origen,
+        argumentos: { grupoId: string; fecha: FechaCivil },
+        contexto
+      ): Promise<ResumenAsistencia> => {
+        const token = exigirToken(contexto);
+        const grupoId = exigirUuid(argumentos.grupoId, 'grupoId');
+        exigirLecturaDeGrupo(token, grupoId);
+        // La fecha ya la valido el escalar FechaCivil del contrato.
+        return contexto.datos.resumenDelDomingo(grupoId, argumentos.fecha);
+      },
+
+      riesgoDelGrupo: (
+        _origen,
+        argumentos: { grupoId: string; nivelMinimo?: NivelRiesgo },
+        contexto
+      ): Promise<Riesgo[]> => {
+        const token = exigirToken(contexto);
+        const grupoId = exigirUuid(argumentos.grupoId, 'grupoId');
+        exigirLecturaDeGrupo(token, grupoId);
+        return contexto.datos.riesgoDelGrupo(grupoId, argumentos.nivelMinimo ?? 'MEDIO');
       },
     },
 
