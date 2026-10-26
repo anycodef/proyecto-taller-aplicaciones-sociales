@@ -19,24 +19,24 @@ Dependencias nuevas: solo las de plan §3, en `tarea3/package.json`.
 
 ## P2 — Servicio de consulta GraphQL
 
-- [ ] **T009-21** Cargar `schema.graphql`, servidor HTTP con `graphql-http` en el puerto 4000 y `/salud`. RF: RF-902.
-- [ ] **T009-22** Contexto de petición: verificar JWT con `compartido/auth.ts`; `Query.yo`. RF: RF-906.
-- [ ] **T009-23** Resolvers `catequizando` y `catequizandos` con paginación (máx. 50) y DataLoader casero para evitar N+1. RF: RF-902, RNF-903. Hecho cuando: un test cuenta consultas SQL de una lista de 12 con asistencias (debe ser constante).
-- [ ] **T009-24** Resolvers `asistenciaDelDomingo` y `riesgoDelGrupo`. RF: RF-902.
-- [ ] **T009-25** Límite de profundidad 6 y rechazo con mensaje claro. RF: RNF-903.
-- [ ] **T009-26** Cliente gRPC hacia actualización (`proto-loader`, metadata `authorization` reenviada) y las tres mutaciones. RF: RF-904.
-- [ ] **T009-27** Mapeo de errores gRPC → `extensions.codigo`. RF: RF-906, RF-907. Hecho cuando: test confirma que no aparece ningún campo de salud o documento en el esquema introspectado.
-- [ ] **T009-28** Tests con cliente gRPC doble. RF: RF-902…RF-906.
+- [x] **T009-21** Cargar `schema.graphql`, servidor HTTP con `graphql-http` en el puerto 4000 y `/salud`. RF: RF-902.
+- [x] **T009-22** Contexto de petición: verificar JWT con `compartido/auth.ts`; `Query.yo`. RF: RF-906.
+- [x] **T009-23** Resolvers `catequizando` y `catequizandos` con paginación (máx. 50) y DataLoader casero para evitar N+1. RF: RF-902, RNF-903. Hecho cuando: un test cuenta consultas SQL de una lista de 12 con asistencias (debe ser constante).
+- [x] **T009-24** Resolvers `asistenciaDelDomingo` y `riesgoDelGrupo`. RF: RF-902.
+- [x] **T009-25** Límite de profundidad 6 y rechazo con mensaje claro. RF: RNF-903.
+- [x] **T009-26** Cliente gRPC hacia actualización (`proto-loader`, metadata `authorization` reenviada) y las tres mutaciones. RF: RF-904.
+- [x] **T009-27** Mapeo de errores gRPC → `extensions.codigo`. RF: RF-906, RF-907. Hecho cuando: test confirma que no aparece ningún campo de salud o documento en el esquema introspectado.
+- [x] **T009-28** Tests con cliente gRPC doble. RF: RF-902…RF-906.
 
 ## P3 — Servicio de actualización gRPC
 
-- [ ] **T009-31** Cargar `sigecat.proto`, servidor en 50051, interceptor de autenticación, servicio de salud. RF: RF-903, RF-906.
-- [ ] **T009-32** `RegistrarAsistencia` idempotente (`ON CONFLICT (id) DO NOTHING` + lectura) con permisos. RF: RF-903, RF-905.
-- [ ] **T009-33** `RegistrarAsistenciaLote` (client streaming) en una transacción, con conteos. RF: RF-903.
-- [ ] **T009-34** `RegistrarJustificacion` (cambia la asistencia a JUSTIFICADA). RF: RF-903, RF-905.
-- [ ] **T009-35** `RecalcularRiesgo` usando `compartido/riesgo.ts` y persistiendo. RF: RF-908.
-- [ ] **T009-36** `ObservarAsistencia` (server streaming) alimentado por `LISTEN/NOTIFY` de PostgreSQL. RF: RF-903.
-- [ ] **T009-37** Cierre ordenado, reintentos de conexión y tests con cliente gRPC real. RF: RF-903…RF-908.
+- [x] **T009-31** Cargar `sigecat.proto`, servidor en 50051, interceptor de autenticación, servicio de salud. RF: RF-903, RF-906.
+- [x] **T009-32** `RegistrarAsistencia` idempotente (`ON CONFLICT (id) DO NOTHING` + lectura) con permisos. RF: RF-903, RF-905.
+- [x] **T009-33** `RegistrarAsistenciaLote` (client streaming) en una transacción, con conteos. RF: RF-903.
+- [x] **T009-34** `RegistrarJustificacion` (cambia la asistencia a JUSTIFICADA). RF: RF-903, RF-905.
+- [x] **T009-35** `RecalcularRiesgo` usando `compartido/riesgo.ts` y persistiendo. RF: RF-908.
+- [x] **T009-36** `ObservarAsistencia` (server streaming) alimentado por `LISTEN/NOTIFY` de PostgreSQL. RF: RF-903.
+- [x] **T009-37** Cierre ordenado, reintentos de conexión y tests con cliente gRPC real. RF: RF-903…RF-908.
 
 ## P4 — Servidor MCP y agente
 
@@ -50,14 +50,15 @@ Dependencias nuevas: solo las de plan §3, en `tarea3/package.json`.
 
 ## P1 — Análisis, decisión y informe
 
-- [ ] **T009-11** Inventario de funcionalidades candidatas (≥ 10) desde las specs 001–008 y requerimientos R1–R27. RF: RF-901.
-- [ ] **T009-12** `matriz-aplicabilidad.md`: protocolo recomendado, veredicto y justificación por fila; incluir los «no aplicable» honestos (p. ej. sync WatermelonDB, enlaces de familia). RF: RF-901.
-- [ ] **T009-13** Sección «Dónde sí y dónde no» para consultas y para actualizaciones (síntesis de la matriz). RF: RF-901.
-- [ ] **T009-14** ADR `20261019-graphql-grpc-mcp.md` (Log4brains, plantilla `docs/adr/template.md`); regenerar el índice si aplica. RF: RF-901, RF-911.
+- [x] **T009-11** Inventario de funcionalidades candidatas (≥ 10) desde las specs 001–008 y requerimientos R1–R27. RF: RF-901.
+- [x] **T009-12** `matriz-aplicabilidad.md`: protocolo recomendado, veredicto y justificación por fila; incluir los «no aplicable» honestos (p. ej. sync WatermelonDB, enlaces de familia). RF: RF-901.
+- [x] **T009-13** Sección «Dónde sí y dónde no» para consultas y para actualizaciones (síntesis de la matriz). RF: RF-901.
+- [x] **T009-14** ADR `20261019-graphql-grpc-mcp.md` (Log4brains, plantilla `docs/adr/template.md`); regenerar el índice si aplica. RF: RF-901, RF-911.
 - [ ] **T009-15** `decision-agente-mcp.md`: tabla comparativa GraphQL/gRPC/MCP para agentes y conclusión; respaldarla con medición real de tokens/bytes tomada de P4 y P5 (misma pregunta por los tres caminos). RF: RF-911.
-- [ ] **T009-16** Diagrama C4/secuencia de la demo en `docs/diagrams/` (DSL existente) y en el informe. RF: RF-912.
-- [ ] **T009-17** `docs/tarea-3/informe.md` (documento final de entrega: análisis, arquitectura, demo, decisión MCP, reparto del equipo con commits). RF: RF-913.
-- [ ] **T009-18** Guion de exposición (10 min, quién dice qué) y checklist de ensayo. RF: RF-913.
+  - P1 listo: decisión, medición reproducible de contratos y pedidos en `docs/tarea-3/`. Falta reemplazar la medición por la e2e de P4/P5.
+- [x] **T009-16** Diagrama C4/secuencia de la demo en `docs/diagrams/` (DSL existente) y en el informe. RF: RF-912.
+- [x] **T009-17** `docs/tarea-3/informe.md` (documento final de entrega: análisis, arquitectura, demo, decisión MCP, reparto del equipo con commits). RF: RF-913.
+- [x] **T009-18** Guion de exposición (10 min, quién dice qué) y checklist de ensayo. RF: RF-913.
 
 ## Hito final (todas/os)
 

@@ -1,0 +1,43 @@
+{
+  "version": "1.0",
+  "fecha": "2026-10-25",
+  "agente": "OpenCode",
+  "modelo": "nemotron-3.5-super-vl-free",
+  "rama": "tarea3/p5-integracion",
+  "tareas": ["T009-51", "T009-52", "T009-53", "T009-54", "T009-55", "T009-56", "T009-57", "T009-58", "T009-59", "T009-60"],
+  "alcance": [
+    "tarea3/package.json", "tarea3/tsconfig.json", "tarea3/package-lock.json",
+    "tarea3/bd/migracion.sql", "tarea3/scripts/bd-subir.mjs", "tarea3/scripts/bd-subir.d.mts",
+    "tarea3/scripts/bd-sembrar.mjs", "tarea3/scripts/bd-sembrar.d.mts",
+    "tarea3/compartido/riesgo.ts", "tarea3/compartido/auth.ts", "tarea3/compartido/bd.ts",
+    "tarea3/compartido/tipos.ts",
+    "tarea3/scripts/verificar-cobertura-rf.mjs", "tarea3/scripts/verificar-cobertura-rf.d.mts",
+    "tarea3/scripts/demo.mjs", "tarea3/scripts/token.mjs",
+    "tarea3/pruebas-e2e/*.test.ts",
+    "tarea3/evidencia/*",
+    "docs/agent-trace/tarea3-p5.json",
+    "docs/tarea-3/ejecutar.md", "docs/tarea-3/evidencia.md"
+  ],
+  "fuentes": ["AGENTS.md", "docs/constitution.md", "specs/009-graphql-grpc-mcp/spec.md", "specs/009-graphql-grpc-mcp/plan.md", "specs/009-graphql-grpc-mcp/tasks.md", "tarea3/contratos/", "docs/tarea-3/REPARTO.md"],
+  "tareasCatalogo": ["T009-51", "T009-52", "T009-53", "T009-54", "T009-55", "T009-56", "T009-57", "T009-58", "T009-59", "T009-60"],
+  "cambios": [
+    "Base de P5: package.json con scripts demo/test/token/bd:subir/bd:sembrar/typecheck y dependencias exactas del plan §3; tsconfig estricto Node16/ESM",
+    "T009-52: bd/migracion.sql (esquema demo_tarea3 reejecutable) + scripts/bd-subir.mjs (pool pg, reentrante) + prueba RF-912",
+    "T009-53: scripts/bd-sembrar.mjs (2 grupos, 12 catequizandos con identidadOperativa, 6 domingos, casos BAJO/MEDIO/ALTO) + prueba RNF-901",
+    "T009-54: compartido/riesgo.ts (regla pura 0-1 BAJO, 2 MEDIO, >=3 ALTO; justificada no cuenta) + pruebas RF-908",
+    "T009-55: compartido/auth.ts (JWT HS256 jose, emitirToken, verificarToken, puedeLeerGrupo, puedeEscribir; SUP nunca escribe) + pruebas RF-906",
+    "T009-56: compartido/bd.ts (pool + transacción), compartido/tipos.ts (contratos TS), prueba RF-902; @types/pg y allowImportingTsExtensions",
+    "T009-57: scripts/verificar-cobertura-rf.mjs escanea tarea3/ y cuenta RF-9xx + prueba RNF-905",
+    "T009-58: scripts/demo.mjs (sube BD, siembra, arranca servicios si existen P2/P3, recorrido) y scripts/token.mjs (JWT demo); `npm --prefix tarea3 run demo` → código 0",
+    "T009-59: pruebas-e2e/recorrido.test.ts (GraphQL → mutación gRPC → consulta → lote → streaming; salta si servicios P2/P3 no están) RF-902/903/904/905/912",
+    "T009-60: docs/tarea-3/ejecutar.md y docs/tarea-3/evidencia.md con tabla viñeta→artefacto→comando→log→commits; tarea3/evidencia/ con salidas reales"
+  ],
+  "verificacion": {
+    "npmTestTarea3": "PASS: 17 tests, 16 pass, 0 fail, 1 skip (recorrido espera servicios P2/P3)",
+    "typecheckTarea3": "PASS: tsc --noEmit sin errores",
+    "lintTarea3": "PENDIENTE: ejecutar npm --prefix tarea3 run lint",
+    "demoTarea3": "PASS: `npm --prefix tarea3 run demo` código 0 (modo base; recorrido completo requiere P2/P3)",
+    "coberturaRf": "PASS: script cuenta RF-9xx (RF-902/905/906/908/912 cubiertos; 903/904 son P2/P3, 907 introspección, 913 documentación)",
+    "checksRaiz": "PENDIENTE: npm test, npm run typecheck, npm run lint (pendiente de ejecutar tras commits)"
+  }
+}

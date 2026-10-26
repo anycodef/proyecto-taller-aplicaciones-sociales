@@ -1,0 +1,53 @@
+{
+  "version": "1.0",
+  "fecha": "2026-10-25",
+  "agente": "Antigravity",
+  "modelo": "gemini-3.8-flash",
+  "rama": "tarea3/p3-actualizacion",
+  "tareas": ["T009-31", "T009-32", "T009-33", "T009-34", "T009-35", "T009-36", "T009-37"],
+  "alcance": [
+    "tarea3/servicio-actualizacion/salud.proto",
+    "tarea3/servicio-actualizacion/servidor.ts",
+    "tarea3/servicio-actualizacion/cliente.ts",
+    "tarea3/servicio-actualizacion/index.ts",
+    "tarea3/servicio-actualizacion/index.mjs",
+    "tarea3/servicio-actualizacion/tsconfig.json",
+    "tarea3/servicio-actualizacion/pruebas/t009-31-salud-y-auth.test.ts",
+    "tarea3/servicio-actualizacion/pruebas/t009-32-registrar-asistencia.test.ts",
+    "tarea3/servicio-actualizacion/pruebas/t009-33-asistencia-lote.test.ts",
+    "tarea3/servicio-actualizacion/pruebas/t009-34-registrar-justificacion.test.ts",
+    "tarea3/servicio-actualizacion/pruebas/t009-35-recalcular-riesgo.test.ts",
+    "tarea3/servicio-actualizacion/pruebas/t009-36-observar-asistencia.test.ts",
+    "tarea3/servicio-actualizacion/pruebas/t009-37-cliente-real.test.ts",
+    "docs/agent-trace/tarea3-p3.json",
+    "specs/009-graphql-grpc-mcp/tasks.md"
+  ],
+  "fuentes": [
+    "AGENTS.md",
+    "docs/constitution.md",
+    "specs/009-graphql-grpc-mcp/spec.md",
+    "specs/009-graphql-grpc-mcp/plan.md",
+    "specs/009-graphql-grpc-mcp/tasks.md",
+    "tarea3/contratos/sigecat.proto",
+    "docs/tarea-3/REPARTO.md"
+  ],
+  "tareasCatalogo": ["T009-31", "T009-32", "T009-33", "T009-34", "T009-35", "T009-36", "T009-37"],
+  "cambios": [
+    "T009-31: Carga de sigecat.proto y salud.proto en servicio gRPC con protoLoader, salud y auth",
+    "T009-32: RegistrarAsistencia idempotente por id con ON CONFLICT DO NOTHING y permisos por grupo",
+    "T009-33: RegistrarAsistenciaLote con client streaming procesado en una sola transacción transaccionar()",
+    "T009-34: RegistrarJustificacion transaccional e idempotente por UUID cliente, actualiza asistencia a JUSTIFICADA y valida alcance de grupo",
+    "T009-35: RecalcularRiesgo con regla pura de compartido/riesgo.ts y persistencia atómica en demo_tarea3.riesgo",
+    "T009-36: ObservarAsistencia server streaming conectado a PostgreSQL LISTEN/NOTIFY con filtro de grupo, emite solo identidad_operativa y limpia conexión en desconexión",
+    "T009-37: Cierre ordenado con SIGTERM y tryShutdown con temporizador de seguridad; reintentos de conexión con esperarConexion; suite completa con cliente gRPC real contra BD de pruebas cubriendo RF-903 a RF-908",
+    "Pruebas automatizadas en t009-37-cliente-real.test.ts (recorrido real, idempotencia explícita, denegación CAT en otro grupo, denegación SUP escribiendo, parada ordenada)"
+  ],
+  "verificacion": {
+    "unitarios": "PASS: 17/17 tests propios de P3 en verde (t009-31 a t009-37)",
+    "typecheck": "PASS: npx tsc --noEmit -p tarea3/servicio-actualizacion/tsconfig.json sin errores",
+    "typecheckRaiz": "PASS: npm run typecheck sin errores",
+    "lintRaiz": "PASS: npm run lint sin errores ni advertencias en servicio-actualizacion",
+    "testRaiz": "PASS: npm test (55 cliente, 178 api = 233 pasados)",
+    "testTarea3": "PASS: npm --prefix tarea3 test (16 pasados, 1 skip)"
+  }
+}

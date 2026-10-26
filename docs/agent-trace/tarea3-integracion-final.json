@@ -1,0 +1,36 @@
+{
+  "version": "1.0",
+  "fecha": "2026-10-26",
+  "agente": "Codex",
+  "rama": "tarea3/p4-mcp",
+  "objetivo": "Integrar las ramas P1-P5, cerrar la evidencia y preparar la publicación en main.",
+  "ramasIntegradas": [
+    "tarea3/p1-analisis",
+    "tarea3/p2-consulta",
+    "tarea3/p3-actualizacion",
+    "tarea3/p4-mcp",
+    "tarea3/p5-integracion"
+  ],
+  "cambios": [
+    "Demo de un comando que migra, siembra, arranca GraphQL y gRPC y ejecuta consulta, mutación, consulta posterior, lote y streaming reales",
+    "Suite oficial de tarea3 ampliada a las pruebas de documentación, GraphQL, gRPC, MCP, agente y E2E",
+    "Cobertura consolidada de RF-901 a RF-913 sobre 28 archivos de prueba",
+    "Contraseña PostgreSQL local predeterminada y siembra sin dependencia transitiva de uuid",
+    "Pruebas E2E compatibles con PUERTO_POSTGRES",
+    "Informe, guion y evidencia actualizados con resultados integrados, transcripción del agente y medición real",
+    "Ruta, autorización y cierre por cancelación corregidos en el recorrido gRPC integrado"
+  ],
+  "verificacion": {
+    "demo": "PASÓ: npm --prefix tarea3 run demo, cinco pasos reales y código 0 sin PGPASSWORD manual",
+    "tarea3": "PASÓ: 113/113, 0 fallos y 0 omitidos",
+    "cobertura": "PASÓ: RF-901 a RF-913 citados en tests",
+    "cliente": "PASÓ: 29 suites y 55/55 tests",
+    "api": "PASÓ: 26 suites y 178/178 tests, incluida integración PostgreSQL/Azurite",
+    "typecheck": "PASÓ: tarea3, cliente y API",
+    "lint": "PASÓ: 0 errores y 0 advertencias"
+  },
+  "notas": [
+    "La restricción de edad 6-15 de la migración demo queda documentada como riesgo; no se editó una migración ya aplicada.",
+    "npm install informa 5 vulnerabilidades en dependencias de tarea3 (2 moderadas, 3 altas); no se ejecutó npm audit fix --force por implicar cambios mayores no autorizados."
+  ]
+}

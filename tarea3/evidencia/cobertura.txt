@@ -1,0 +1,5 @@
+=== Cobertura de RF sobre la Tarea 3 ===
+Archivos de prueba escaneados: 28
+Identificadores citados: RF-901, RF-902, RF-903, RF-904, RF-905, RF-906, RF-907, RF-908, RF-909, RF-910, RF-911, RF-912, RF-913
+
+RESULTADO: RF-901 a RF-913 tienen al menos un test que cita su identificador.

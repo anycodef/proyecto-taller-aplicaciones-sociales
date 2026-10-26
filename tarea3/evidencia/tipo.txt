@@ -1,0 +1,3 @@
+> sigecat-tarea3@0.1.0 typecheck
+
+PASÓ: base compartida, servicio de actualización, servicio de consulta, servidor MCP y agente sin errores de tipos.
