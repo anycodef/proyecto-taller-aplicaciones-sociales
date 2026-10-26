@@ -40,6 +40,8 @@
     "tarea3/servicio-consulta/errores.ts",
     "tarea3/servicio-consulta/pruebas/t009-27-errores-y-datos-protegidos.test.ts",
     "tarea3/servicio-consulta/pruebas/t009-28-integracion.test.ts",
+    "docs/tarea-3/pedidos/p2-para-p5.md",
+    "docs/tarea-3/pedidos/p2-para-p1.md",
     "docs/agent-trace/tarea3-p2.json",
     "specs/009-graphql-grpc-mcp/tasks.md"
   ],
@@ -85,7 +87,8 @@
     "T009-27: errores.ts traduce el estado de gRPC a extensions.codigo (PERMISSION_DENIED y UNAUTHENTICATED a fuera_de_alcance, NOT_FOUND a no_encontrado, INVALID_ARGUMENT y FAILED_PRECONDITION a entrada_invalida, UNAVAILABLE y DEADLINE_EXCEEDED a servicio_no_disponible, el resto a error_interno) con mensaje fijo por codigo",
     "T009-27: test que recorre el esquema y la introspeccion completa comprobando que ningun nombre de tipo, campo, argumento ni valor de enum alude a salud, neurodivergencia o documentos, y que registradoPor devuelve identidadOperativa",
     "T009-28: suite de integracion que habla por HTTP con el servicio real leyendo PostgreSQL real y escribiendo contra el doble gRPC; aplica bd/migracion.sql y siembra ella misma, sin pasos manuales (RNF-904)",
-    "T009-28: incluye la consulta de servidor-mcp/cliente-graphql.ts campo por campo, para que lo que P4 pide quede probado antes de integrar"
+    "T009-28: incluye la consulta de servidor-mcp/cliente-graphql.ts campo por campo, para que lo que P4 pide quede probado antes de integrar",
+    "Pedidos escritos sin tocar archivos ajenos: p2-para-p5.md (uuid no declarado en bd-sembrar, glob de test que deja fuera a P2 y P3, cobertura RF que solo mira pruebas-e2e, contrasena de pg en compartido/bd.ts, demo.mjs que dice ejecutar el recorrido sin ejecutarlo, lock desincronizado) y p2-para-p1.md (regla de FAM, codigos de error, no reenvio de mensajes, datos para la medicion de tokens)"
   ],
   "decisiones": [
     "Resolvers y escalar se asignan sobre el esquema construido del SDL en vez de anadir @graphql-tools, que no esta autorizado por plan §3; el contrato sigue siendo la unica fuente del esquema",
@@ -114,6 +117,9 @@
     "humo": "PASO: npx tsx servicio-consulta/index.mjs responde /salud {estado:ok} e introspeccion de Mutation con las tres mutaciones del contrato",
     "nMas1": "PASO: la lista del grupo con grupo, riesgo y asistencias cuesta 5 consultas (sin lotes serian 20) y pedir 12 nodos cuesta lo mismo que pedir 2",
     "profundidad": "PASO: comprobado con sonda que la consulta de 7 niveles devuelve codigo profundidad_excedida con accept ausente, application/json (200, como la especificacion GraphQL-over-HTTP exige) y application/graphql-response+json (400)",
-    "integracion": "PASO: 11 tests contra PostgreSQL 16.15 real en 127.0.0.1:55432 (api/docker-compose.yml) con el doble gRPC; el lote real gasta 5 consultas"
-  }
+    "integracion": "PASO: 11 tests contra PostgreSQL 16.15 real en 127.0.0.1:55432 (api/docker-compose.yml) con el doble gRPC; el lote real gasta 5 consultas",
+    "recorridoReal": "PASO: con PostgreSQL 16.15 en 55432, el servicio gRPC real de P3 en 50051 y el de consulta en 4000: riesgoDelGrupo, registrarAsistencia (repetido false y luego true), recalcularRiesgo a ALTO y la consulta posterior; SUP, FAM, CAT en grupo ajeno, lectura ajena y sin token devuelven fuera_de_alcance; 7 niveles devuelve profundidad_excedida",
+    "demoP5": "OBSERVADO: npm --prefix tarea3 run demo sale en 0 y encuentra servicio-consulta/index.mjs, pero su linea «recorrido ejecutado contra servicios reales» no ejecuta ningun recorrido (codigo de P5); queda pedido, no se declara RF-912 cubierto"
+  },
+  "cobertura": "Tests que citan su RF en el nombre, en servicio-consulta/pruebas/: RF-902 en 23, RF-904 en 7, RF-905 en 1, RF-906 en 13, RF-907 en 6, RNF-903 en 11. 61 tests en 8 archivos."
 }
