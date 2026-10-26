@@ -77,13 +77,54 @@ if (serviciosListos) {
 
 Solo imprime la línea si `/salud` respondió; no hay consulta, ni mutación, ni lote, ni streaming. Hoy `npm --prefix tarea3 run demo` sale con código 0 y el mensaje `recorrido ejecutado contra servicios reales` sin haber tocado GraphQL. RF-912 pide que el comando «ejecute un recorrido que imprime cada paso (consulta → mutación → consulta → streaming)».
 
-Ya está comprobado que el recorrido real funciona con los servicios de verdad (ver §7), así que es cuestión de llamarlo desde `demo.mjs`. También conviene que la demo falle con código distinto de 0 si el recorrido falla: hoy el `.catch` termina en `process.exit(0)`.
+Ya está comprobado que el recorrido real funciona con los servicios de verdad (ver §8), así que es cuestión de llamarlo desde `demo.mjs`. También conviene que la demo falle con código distinto de 0 si el recorrido falla: hoy el `.catch` termina en `process.exit(0)`.
 
 ## 6. `package-lock.json` se desincroniza al instalar
 
 `tarea3/package.json` fija `"@types/pg": "8.15.6"` y el lock tiene `"^8.15.6"`, así que cada `npm --prefix tarea3 install` deja el lock modificado. Lo revertí en cada commit para no tocar tu archivo. Pedido: `npm install` una vez y commitear el lock ya normalizado.
 
-## 7. Lo que sí quedó verificado por mi parte
+## 7. `recorrido.test.ts` tiene mal la ruta del proto, y hasta ahora no se notaba
+
+Con P2 en marcha tu recorrido e2e ya no se salta, y al ejecutarse aparece un error de ruta:
+
+```
+$ npm --prefix tarea3 test
+✖ RF-902/903/904/905/912: recorrido e2e GraphQL → gRPC → GraphQL → lote → streaming
+  Error: ENOENT: no such file or directory, open
+  '/home/.../proyecto-taller-aplicaciones-sociales/contratos/sigecat.proto'
+      at TestContext.<anonymous> (tarea3/pruebas-e2e/recorrido.test.ts:75:34)
+```
+
+La línea 75 es:
+
+```js
+protoLoader.loadSync(join(import.meta.dirname, '..', '..', 'contratos', 'sigecat.proto'), {
+```
+
+`import.meta.dirname` es `tarea3/pruebas-e2e`, así que `'..', '..'` sube a la raíz del repositorio y busca `/contratos/sigecat.proto`, que no existe. Debería ser un solo nivel:
+
+```js
+protoLoader.loadSync(join(import.meta.dirname, '..', 'contratos', 'sigecat.proto'), {
+```
+
+**Lo importante: los pasos 1, 2 y 3 sí pasaron.** El fallo es posterior, en el paso 4 (el lote por gRPC), que no depende de P2. Es decir, con los dos servicios arriba:
+
+- paso 1, consulta GraphQL `catequizandos` → 200 con `total >= 1`
+- paso 2, mutación `registrarAsistencia` delegada por gRPC → `repetido: false`
+- paso 3, el mismo `id` otra vez (RF-905) → `repetido: true`
+
+Esos tres asserts se ejecutaron y pasaron antes del ENOENT. El recorrido GraphQL → gRPC → GraphQL está probado; lo que queda roto es la carga del proto para el tramo de lote y streaming, y es un cambio de una línea en tu archivo.
+
+Para reproducirlo:
+
+```bash
+export PGPASSWORD=postgres
+npx tsx tarea3/servicio-actualizacion/index.mjs &   # P3, puerto 50051
+npx tsx tarea3/servicio-consulta/index.mjs &        # P2, puerto 4000
+npm --prefix tarea3 test
+```
+
+## 8. Lo que sí quedó verificado por mi parte
 
 Con PostgreSQL 16.15 en `127.0.0.1:55432` (`api/docker-compose.yml`), el servicio de P3 en 50051 y el mío en 4000, ambos arrancados con `tsx`:
 
@@ -103,6 +144,6 @@ Con PostgreSQL 16.15 en `127.0.0.1:55432` (`api/docker-compose.yml`), el servici
 
 El recorrido GraphQL → gRPC → GraphQL que `pruebas-e2e/recorrido.test.ts` deja en `t.skip` ya se puede ejecutar: el servicio escucha en 4000, responde `/salud` con `{"estado":"ok","servicio":"servicio-consulta"}` y `scripts/demo.mjs` lo encuentra en `servicio-consulta/index.mjs`, como esperaba.
 
-## 8. Contrato que respeté sin tocarlo
+## 9. Contrato que respeté sin tocarlo
 
 Para que no haya sorpresas al integrar: la consulta `catequizandos(grupoId:) { nodos { id identidadOperativa } total }` y la mutación `registrarAsistencia` con repetición de `id` que usa tu `recorrido.test.ts` están cubiertas tal cual en `servicio-consulta/pruebas/t009-28-integracion.test.ts`, igual que las seis operaciones exactas de `servidor-mcp/cliente-graphql.ts` de P4.

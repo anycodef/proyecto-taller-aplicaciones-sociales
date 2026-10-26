@@ -41,4 +41,10 @@ Y un número que puede servir de apoyo a la sección de rendimiento: la lista de
 
 ## 5. Lo que queda fuera de mi alcance
 
-En `docs/tarea-3/pedidos/p2-para-p5.md` quedan seis cosas de archivos de P5, dos de ellas con efecto en la evidencia que tú revisas: `scripts/demo.mjs` imprime «recorrido ejecutado contra servicios reales» sin ejecutar ningún recorrido, y `npm --prefix tarea3 test` no corre los tests de P2 ni los de P3 por el glob. Conviene no dar por buena la cobertura de RNF-905 hasta que eso se arregle.
+En `docs/tarea-3/pedidos/p2-para-p5.md` quedan siete cosas de archivos de P5, tres con efecto directo en la evidencia que tú revisas:
+
+1. `scripts/demo.mjs` imprime «recorrido ejecutado contra servicios reales» sin ejecutar ninguna consulta, mutación, lote ni streaming, y sale con código 0 igualmente. RF-912 no está cubierto todavía.
+2. `npm --prefix tarea3 test` no corre los tests de P2 ni los de P3 por el glob del script, así que la cobertura de RNF-905 que informa el script no refleja lo que existe.
+3. `pruebas-e2e/recorrido.test.ts` tiene mal la ruta del proto (sube dos niveles en vez de uno). Mientras no existía P2 el test se saltaba y el error no se veía; ahora se ejecuta y falla en el paso 4. Los pasos 1 a 3 (consulta → mutación por gRPC → idempotencia) sí pasan, así que el tramo GraphQL → gRPC → GraphQL de RF-902/904/905 está demostrado; lo que falta es el tramo de lote y streaming.
+
+Conviene no dar por cerrados RF-912 ni RNF-905 hasta que esos tres se arreglen.
