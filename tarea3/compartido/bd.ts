@@ -9,6 +9,7 @@ const pool = new Pool({
   host: process.env.PGHOST ?? '127.0.0.1',
   port: Number(process.env.PUERTO_POSTGRES ?? process.env.PGPORT ?? 55432),
   user: process.env.PGUSER ?? 'postgres',
+  password: process.env.PGPASSWORD ?? 'postgres',
   database: process.env.PGDATABASE ?? 'sigecat',
 });
 

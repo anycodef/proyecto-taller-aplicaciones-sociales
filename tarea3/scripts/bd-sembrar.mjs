@@ -1,5 +1,5 @@
 import pg from 'pg';
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'node:crypto';
 
 const { Pool } = pg;
 
@@ -7,6 +7,7 @@ const POOL = new Pool({
   host: process.env.PGHOST ?? '127.0.0.1',
   port: Number(process.env.PUERTO_POSTGRES ?? process.env.PGPORT ?? 55432),
   user: process.env.PGUSER ?? 'postgres',
+  password: process.env.PGPASSWORD ?? 'postgres',
   database: process.env.PGDATABASE ?? 'sigecat',
 });
 
@@ -38,7 +39,6 @@ const DOMINGOS = [
   '2026-10-04', '2026-10-11', '2026-10-18', '2026-10-25', '2026-11-01', '2026-11-08',
 ];
 const REGISTRADO_POR = 'Coordinadora Demo - Identidad Operativa';
-const ESTADOS = ['PRESENTE', 'AUSENTE', 'JUSTIFICADA', 'TARDANZA'];
 
 export async function sembrar() {
   await POOL.query('BEGIN');
@@ -93,13 +93,12 @@ export async function sembrar() {
         await POOL.query(
           `INSERT INTO demo_tarea3.asistencia (id, catequizando_id, fecha, estado, registrado_por)
            VALUES ($1,$2,$3,$4,$5)`,
-          [uuidv4(), c.id, DOMINGOS[i], estados[i], REGISTRADO_POR]
+          [randomUUID(), c.id, DOMINGOS[i], estados[i], REGISTRADO_POR]
         );
       }
     }
 
     await POOL.query('COMMIT');
-    // eslint-disable-next-line no-console
     console.log('[bd:sembrar] siembra ficticia completada: 2 grupos, 12 catequizandos, 6 domingos');
   } catch (error) {
     await POOL.query('ROLLBACK');
@@ -111,7 +110,6 @@ export async function sembrar() {
 
 if (process.argv[1] && process.argv[1].endsWith('bd-sembrar.mjs')) {
   sembrar().catch((error) => {
-    // eslint-disable-next-line no-console
     console.error('[bd:sembrar] error:', error.message);
     process.exit(1);
   });

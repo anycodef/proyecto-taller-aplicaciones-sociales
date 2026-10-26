@@ -71,13 +71,14 @@ test("RF-913 el informe y el guion distinguen lo verificado de lo pendiente", ()
     assert.ok(informe.includes(seccion), `Falta la sección: ${seccion}`);
   }
   assert.match(informe, /npm test/);
-  assert.match(informe, /PENDIENTE/);
-  assert.match(informe, /origin\/tarea3\/p5-integracion/);
+  assert.match(informe, /PASÓ/);
+  assert.match(informe, /P2 \| Servicio de consulta GraphQL \| T009-21 a T009-28/);
+  assert.match(informe, /Producción.*demo local/s);
 
   const guion = leer("docs/tarea-3/guion-exposicion.md");
   assert.match(guion, /10 minutos/);
   assert.match(guion, /Checklist de ensayo/);
   assert.match(guion, /\| P1 \|/);
   assert.match(guion, /\| P5 \|/);
-  assert.match(guion, /No se afirma «funciona»/);
+  assert.match(guion, /evidencia previa/);
 });

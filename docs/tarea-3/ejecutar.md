@@ -49,23 +49,27 @@ Imprime un JWT HS256 para autenticar contra los servicios.
 npm --prefix tarea3 run demo
 ```
 
-Esto sube la BD, migra, siembra y (cuando P2 y P3 hayan mergéado sus servicios)
-arranca servicio-consulta (puerto 4000) y servicio-actualizacion (puerto 50051),
+Esto sube la BD, migra, siembra, arranca servicio-consulta (puerto 4000) y
+servicio-actualizacion (puerto 50051),
 esperando salud y ejecutando el recorrido:
 **consulta GraphQL → mutación (delega por gRPC) → consulta refleja el cambio → lote → streaming**,
 imprimiendo cada paso.
 
 Salida esperada (ver `tarea3/evidencia/demo-output.txt`):
 ```
-[demo] hito 1: subiendo base de datos (bd:subir)
+[demo] subiendo base de datos
 [bd:subir] esquema demo_tarea3 creado en PostgreSQL
-[demo] hito 1: sembrando datos ficticios (bd:sembrar)
+[demo] sembrando datos ficticios
 [bd:sembrar] siembra ficticia completada: 2 grupos, 12 catequizandos, 6 domingos
-[demo] AVISO: servicio-consulta o servicio-actualizacion no implementados aún (P2/P3).
-[demo] La base está lista. El recorrido completo requiere P2 y P3.
-[demo] OK (modo base, sin servicios)
+[demo] 1/5 consulta completada: 6 catequizandos
+[demo] 2/5 mutación completada: id=<uuid>, repetido=false
+[demo] 3/5 consulta posterior confirmó la escritura
+[demo] 4/5 lote completado: registrados=2, repetidos=0
+[demo] 5/5 streaming recibió asistencia=<uuid>
+[demo] OK: recorrido completo contra servicios reales
 ```
-El comando termina con **código de salida 0**.
+El comando termina con código 0 únicamente si todos los pasos pasan; ante un
+fallo devuelve un código distinto de cero.
 
 ## 5. Ejecutar las pruebas de tarea3
 
@@ -90,7 +94,7 @@ Deben terminar sin errores.
 node tarea3/scripts/verificar-cobertura-rf.mjs
 ```
 
-Cuenta los identificadores `RF-9xx` citados en los nombres de test de `tarea3/`.
+Cuenta los identificadores `RF-9xx` citados en los nombres de test de P1–P5.
 Ver `tarea3/evidencia/cobertura.txt`.
 
 ## 8. Checks integrales (raíz)

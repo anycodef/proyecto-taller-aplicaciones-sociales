@@ -11,6 +11,7 @@ function crearPool() {
     host: process.env.PGHOST ?? '127.0.0.1',
     port: Number(process.env.PUERTO_POSTGRES ?? process.env.PGPORT ?? 55432),
     user: process.env.PGUSER ?? 'postgres',
+    password: process.env.PGPASSWORD ?? 'postgres',
     database: process.env.PGDATABASE ?? 'sigecat',
   });
 }
@@ -20,7 +21,6 @@ export async function subir() {
   try {
     const sql = await readFile(RUTA_MIGRACION, 'utf8');
     await pool.query(sql);
-    // eslint-disable-next-line no-console
     console.log('[bd:subir] esquema demo_tarea3 creado en PostgreSQL');
   } finally {
     await pool.end();
@@ -29,7 +29,6 @@ export async function subir() {
 
 if (process.argv[1] && process.argv[1].endsWith('bd-subir.mjs')) {
   subir().catch((error) => {
-    // eslint-disable-next-line no-console
     console.error('[bd:subir] error:', error.message);
     process.exit(1);
   });

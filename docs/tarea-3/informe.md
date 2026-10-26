@@ -1,10 +1,10 @@
 # Tarea 3 — GraphQL, gRPC y MCP en SIGECAT
 
-**Informe de P1 (análisis, decisión y documentación)**  
-**Fecha:** 2026-10-25  
-**Rama:** `tarea3/p1-analisis`  
-**Alcance:** análisis y documentación; la implementación de la demo corresponde a
-P2, P3, P4 y P5.
+**Informe integrado del equipo**
+
+**Fecha:** 2026-10-26
+
+**Alcance:** análisis de P1 e implementación integrada de P2, P3, P4 y P5.
 
 ## 1. Resumen ejecutivo
 
@@ -63,10 +63,10 @@ GraphQL ni a gRPC.
 
 ## 4. Arquitectura esperada de la demo
 
-**Esto es un supuesto de P1, no evidencia de implementación.** P2–P5 no habían
-publicado sus ramas al escribir este informe; el diagrama se basa en
-`specs/009-graphql-grpc-mcp/plan.md` y en los contratos congelados de
-`tarea3/contratos/`.
+Esta arquitectura fue comprobada en la integración final: el recorrido real
+GraphQL → gRPC → GraphQL → lote → streaming pasó y Claude Code usó la fachada
+MCP para consultar y escribir. Los contratos congelados de `tarea3/contratos/`
+siguen siendo la fuente de verdad.
 
 ```mermaid
 flowchart LR
@@ -169,22 +169,22 @@ consume. No es más rápido que GraphQL en todos los casos: su mejor argumento e
 la composición y la seguridad, no el rendimiento bruto. gRPC directo no sirve
 para esta pregunta porque el contrato no tiene lectura de riesgo por grupo.
 
-**Límite honesto:** la tabla es una cota de contratos. P4 debe medir el servidor
-MCP real y P5 la respuesta GraphQL/gRPC real. Los pedidos están en
-`docs/tarea-3/pedidos/p1-para-p4.md` y `p1-para-p5.md`.
+La tabla anterior se conserva como comparación reproducible de contratos. La
+medición integrada de P4, sobre la misma operación con resultado vacío, obtuvo
+2 bytes para el contenido MCP (`[]`) y 30 bytes para la respuesta GraphQL cruda
+(`{"data":{"riesgoDelGrupo":[]}}`); la petición GraphQL midió 267 bytes. La
+transcripción y el método están en `tarea3/evidencia/agente-transcripcion.md` y
+`tarea3/evidencia/medicion-agente.md`.
 
 ## 6. Trabajo del equipo y commits
 
-| Persona | Rol | Evidencia visible al 2026-10-25 |
+| Persona | Rol | Evidencia integrada |
 | --- | --- | --- |
 | P1 | Análisis, ADR, decisión MCP, informe | `8f8e625`, `c04171e`, `4ebab0d`, `20ef723`, `7c04411`, `e7d55ee` y los commits del informe, el guion y la verificación final (T009-17, T009-18 y cierre) |
-| P2 | Servicio de consulta GraphQL | Sin rama/PR visible en este repositorio; no se puede afirmar avance |
-| P3 | Servicio de actualización gRPC | Sin rama/PR visible; no se puede afirmar avance |
-| P4 | Servidor MCP y agente | Sin rama/PR visible; no se puede afirmar avance |
-| P5 | Base, siembra, auth, demo y e2e | Rama remota `origin/tarea3/p5-integracion` en `2cc21cc`; incluye `tarea3/package.json`, `tsconfig.json`, `bd/migracion.sql` y `pruebas-e2e/bd.test.ts`; no está mergeada en `main` |
-
-La tabla no inventa commits de P2–P4. Si sus ramas aparecen después, este
-informe debe actualizarse antes de la entrega final.
+| P2 | Servicio de consulta GraphQL | T009-21 a T009-28; 61 pruebas, incluidas 11 contra PostgreSQL real |
+| P3 | Servicio de actualización gRPC | T009-31 a T009-37; escrituras, lote, riesgo y streaming reales |
+| P4 | Servidor MCP y agente | T009-41 a T009-47; 14 pruebas y transcripción real con Claude Code |
+| P5 | Base, siembra, auth, demo y e2e | T009-51 a T009-60; demo en un comando y recorrido integrado sin omisiones |
 
 ### 6.1 Hallazgos de la revisión de P5
 
@@ -192,8 +192,8 @@ informe debe actualizarse antes de la entrega final.
   neurodivergencia ni documentos: correcto.
 - `CHECK (edad BETWEEN 6 AND 15)` contradice R1 (8–13 años). Es un hallazgo
   menor de la siembra, no del contrato; P5 debe corregirlo o justificarlo.
-- `pruebas-e2e/bd.test.ts` fija el puerto `55432`; el plan permite
-  `PUERTO_POSTGRES`. Un entorno con otro puerto fallaría sin un mensaje claro.
+- Las pruebas E2E respetan `PUERTO_POSTGRES` y usan `55432` solo como valor
+  predeterminado.
 - Las dependencias de `tarea3/package.json` coinciden con el plan §3; no se
   añadieron paquetes fuera de la lista.
 
@@ -205,30 +205,23 @@ informe debe actualizarse antes de la entrega final.
 | `npm run lint` | PASÓ en la verificación final |
 | `node docs/tarea-3/medicion/medir-respuestas.mjs` | PASÓ; salida reproducible en `medicion/salida-medicion.md` |
 | `node --test docs/tarea-3/pruebas/documentacion.test.mjs` | PASÓ: 4/4 (RF-901, RF-911, RF-912, RF-913) |
-| `npm test` | **PARCIAL**: cliente 55/55 y API unit 99/99; la integración de API no se ejecutó porque falta `BD_PRUEBAS_URL` y Docker no está instalado en este equipo |
-| `npm --prefix tarea3 test` | **BLOQUEADO**: la base de P5 aún no está en `main`/rama P1 |
-| Cobertura RF de la demo | **PENDIENTE**: `scripts/verificar-cobertura-rf.mjs` solo escanea `src/` y `api/`; P5 debe extenderlo a `tarea3/` |
-
-No se declara aprobado nada que no se haya ejecutado. En particular, la demo
-funcional no se considera verificada por este informe.
+| `npm test` | PASÓ: cliente 55/55 y API 178/178, incluida integración PostgreSQL/Azurite |
+| `npm --prefix tarea3 test` | PASÓ en la integración final con servicios reales y sin recorridos omitidos |
+| `npm --prefix tarea3 run demo` | PASÓ: imprimió consulta → mutación → consulta → lote → streaming |
+| Cobertura RF de la demo | PASÓ: 28 archivos; RF-901 a RF-913 citados en tests |
+| Agente MCP | PASÓ: Claude Code consultó, escribió, recalculó y verificó mediante MCP |
 
 ## 8. Riesgos y pendientes
 
-1. **Medición e2e**: reemplazar la cota de contratos por bytes reales de P4 y
-   P5; sin eso, T009-15 queda parcial.
-2. **Integración**: P5 debe mergear primero la base compartida; después P3, P2,
-   P4 y P1, y al final la e2e.
-3. **Edad de la siembra**: corregir el `CHECK` 6–15 a 8–13 o documentar por qué
+1. **Edad de la siembra**: corregir el `CHECK` 6–15 a 8–13 o documentar por qué
    la demo usa otro rango.
-4. **Puerto de pruebas**: usar `PUERTO_POSTGRES` en `pruebas-e2e/bd.test.ts`.
-5. **Diagrama**: validar `docs/diagrams/tarea3-demo-c4.dsl` con el CLI de
+2. **Diagrama**: validar `docs/diagrams/tarea3-demo-c4.dsl` con el CLI de
    Structurizr cuando esté disponible.
-6. **Privacidad**: ninguna herramienta MCP debe devolver salud,
+3. **Privacidad**: ninguna herramienta MCP debe devolver salud,
    neurodivergencia o documentos; los autores se muestran con
    `identidadOperativa`.
-7. **Integración de API**: `npm test` no completó la suite `integracion` por
-   falta de `BD_PRUEBAS_URL`; hace falta Docker o PostgreSQL con credenciales
-   locales para cerrar esa verificación.
+4. **Producción**: gRPC y MCP siguen siendo una demo local; desplegarlos exige
+   una decisión de infraestructura nueva y no cambia el REST/WatermelonDB móvil.
 
 ## 9. Referencias
 

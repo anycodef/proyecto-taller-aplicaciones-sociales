@@ -1,9 +1,8 @@
 # Guion de exposición — Tarea 3 (10 minutos)
 
-**Regla de oro:** no afirmar que un servicio corre si no se ejecutó. Si P2, P3 o
-P4 no están integrados, se muestra el contrato, el diagrama y se dice
-explícitamente «esto está implementado por otra persona; hoy no lo ejecutamos».
-La honestidad vale más que una demo inventada.
+**Regla de oro:** ejecutar la demo antes de exponer y mostrar la evidencia
+guardada si el entorno del aula falla. La honestidad vale más que repetir una
+salida vieja como si fuera una ejecución nueva.
 
 ## Reparto y tiempos
 
@@ -45,8 +44,8 @@ Mostrar la tabla de 22 filas y detenerse en tres «no»:
 > app. Las mutaciones del contrato existen, pero delegan por gRPC para no
 > duplicar reglas.»
 
-Si el servicio no está levantado: mostrar `schema.graphql`, la consulta de riesgo
-y la medición de 2 llamadas; decir que la ejecución queda pendiente.
+Si el servicio no está levantado en el aula: mostrar `schema.graphql` y la salida
+de la última integración, indicando que es evidencia previa.
 
 ### P3 — gRPC (3:40–5:00)
 
@@ -64,8 +63,8 @@ Si el servicio no está levantado: mostrar `sigecat.proto` y explicar
 > GraphQL; para escribir, GraphQL delega en gRPC. El agente no ve salud,
 > neurodivergencia ni documentos.»
 
-Si el agente no está disponible: mostrar `herramientas-mcp.md`, la transcripción
-de P4 si existe y la medición de 568 bytes; decir que la demo real está pendiente.
+Si el agente no está disponible: mostrar `herramientas-mcp.md`,
+`agente-transcripcion.md` y `medicion-agente.md`; la demo real ya quedó registrada.
 
 ### P5 — Demo y e2e (6:50–8:30)
 
@@ -130,7 +129,7 @@ salida vieja como si fuera nueva.
 
 ## Frases que no se deben decir
 
-- «Ya está todo integrado» si P2–P5 no están mergeados.
+- «La ejecución en vivo pasó» si en el aula solo se mostró evidencia previa.
 - «Los tests pasan» sin mostrar la salida.
 - «GraphQL es más rápido» sin la medición y sin decir que es una cota.
 - «gRPC funciona en Azure Functions»: no es cierto con el plan aprobado.

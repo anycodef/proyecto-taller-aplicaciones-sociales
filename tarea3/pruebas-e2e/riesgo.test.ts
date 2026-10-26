@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { calcularRiesgo } from '../compartido/riesgo.ts';
 
-const casos: Array<{ nombre: string; asistencias: any[]; esperado: { nivel: string; contiene: string } }> = [
+const casos: { nombre: string; asistencias: any[]; esperado: { nivel: string; contiene: string } }[] = [
   {
     nombre: 'sin faltas -> BAJO',
     asistencias: [

@@ -7,7 +7,7 @@ const { Pool } = pg;
 
 const pool = new Pool({
   host: '127.0.0.1',
-  port: 55432,
+  port: Number(process.env.PUERTO_POSTGRES ?? process.env.PGPORT ?? 55432),
   user: 'postgres',
   database: 'sigecat',
 });

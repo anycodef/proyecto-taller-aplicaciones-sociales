@@ -17,11 +17,9 @@ const sub = args.sub || crypto.randomUUID();
 
 emitirToken({ rol, grupoId, identidadOperativa, sub })
   .then((token) => {
-    // eslint-disable-next-line no-console
     console.log(token);
   })
   .catch((error) => {
-    // eslint-disable-next-line no-console
     console.error('[token] error:', error.message);
     process.exit(1);
   });

@@ -79,10 +79,11 @@ la sesión y es la más pequeña de las tres.
   `RecalcularRiesgo`, lo que además cambia el estado y no es una consulta. Es la
   evidencia más fuerte de que gRPC no es la interfaz del agente, sino el canal
   interno de escritura.
-- **La medición no sustituye la demo**: P4 debe medir la respuesta real del
-  servidor MCP y P5 la respuesta real de GraphQL/gRPC cuando estén integrados.
-  Los pedidos están en `docs/tarea-3/pedidos/p1-para-p4.md` y
-  `p1-para-p5.md`; esta tabla se reemplaza antes del cierre.
+- **La demo integrada complementa esta cota**: P4 midió la respuesta real de
+  la misma operación vacía en 2 bytes de contenido MCP frente a 30 bytes de
+  respuesta GraphQL cruda y 267 bytes de petición GraphQL. El detalle está en
+  `tarea3/evidencia/medicion-agente.md`; la sesión real está en
+  `tarea3/evidencia/agente-transcripcion.md`.
 
 ## Conclusión
 

@@ -10,7 +10,12 @@ const GRUPO_ID = '11111111-1111-1111-1111-111111111101';
 const CATEQUIZANDO_ID = '22222222-2222-2222-2222-222222222101';
 const URL_GRAPHQL = 'http://127.0.0.1:4000/graphql';
 
-const pool = new Pool({ host: '127.0.0.1', port: 55432, user: 'postgres', database: 'sigecat' });
+const pool = new Pool({
+  host: '127.0.0.1',
+  port: Number(process.env.PUERTO_POSTGRES ?? process.env.PGPORT ?? 55432),
+  user: 'postgres',
+  database: 'sigecat',
+});
 
 async function serviciosDisponibles() {
   try {
@@ -86,7 +91,8 @@ test('RF-902/903/904/905/912: recorrido e2e GraphQL → gRPC → GraphQL → lot
   metadata.set('authorization', `Bearer ${token}`);
   const lote = await new Promise<any>((resolver, rechazar) => {
     const llamada = cliente.RegistrarAsistenciaLote(metadata, (error: any, respuesta: any) => {
-      error ? rechazar(error) : resolver(respuesta);
+      if (error) rechazar(error);
+      else resolver(respuesta);
     });
     llamada.write({ id: '44444444-4444-4444-4444-444444444402', catequizando_id: CATEQUIZANDO_ID, fecha: '2026-11-15', estado: 1 });
     llamada.write({ id: '44444444-4444-4444-4444-444444444403', catequizando_id: CATEQUIZANDO_ID, fecha: '2026-11-15', estado: 1 });
