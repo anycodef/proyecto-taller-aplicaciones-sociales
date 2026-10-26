@@ -4,7 +4,7 @@
   "agente": "Codex",
   "modelo": "gpt-5.6-sol",
   "rama": "tarea3/p4-mcp",
-  "tareas": ["T009-41", "T009-42", "T009-43"],
+  "tareas": ["T009-41", "T009-42", "T009-43", "T009-44"],
   "alcance": [
     "tarea3/servidor-mcp/**",
     "tarea3/agente/**",
@@ -26,14 +26,15 @@
     "Tres herramientas de lectura del contrato con esquemas de entrada y anotaciones",
     "Validación Zod previa a la ejecución y pruebas con cliente MCP real en memoria",
     "Cliente GraphQL con token SIGECAT_TOKEN y selección mínima de campos por herramienta",
-    "Herramientas de escritura no destructivas e idempotentes con UUID generado en el servidor MCP"
+    "Herramientas de escritura no destructivas e idempotentes con UUID generado en el servidor MCP",
+    "Recurso parametrizado de riesgo y prompt revision-dominical con validación de grupo"
   ],
   "verificacion": {
     "npmTest": "PASÓ: cliente 29 suites/55 tests; API 26 suites/178 tests con PostgreSQL y Azurite locales",
     "typecheck": "PASÓ: npm run typecheck",
     "lint": "PASÓ: npm run lint",
     "tarea3Test": "PASÓ: 16 tests, 1 omitido por ausencia del servicio GraphQL de P2; el script de P5 aún no incluye servidor-mcp",
-    "mcpDirecto": "PASÓ: 6 tests RF-902/RF-905/RF-909, incluidas escrituras con UUID y transporte MCP en memoria",
+    "mcpDirecto": "PASÓ: 8 tests RF-902/RF-905/RF-909, incluidos recurso, prompt y transporte MCP en memoria",
     "typecheckP4": "PASÓ: tsc --noEmit -p tarea3/servidor-mcp/tsconfig.json"
   }
 }
