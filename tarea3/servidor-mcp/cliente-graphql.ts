@@ -1,4 +1,4 @@
-import type { EjecutorHerramientaLectura } from "./servidor.js";
+import type { EjecutorHerramienta } from "./servidor.js";
 
 type ConfiguracionGraphql = {
   url?: string;
@@ -24,6 +24,20 @@ const consultas = {
   }`,
 } as const;
 
+const mutaciones = {
+  registrar_asistencia: `mutation RegistrarAsistencia($entrada: RegistrarAsistenciaEntrada!) {
+    registrarAsistencia(entrada: $entrada) { id repetido }
+  }`,
+  registrar_justificacion: `mutation RegistrarJustificacion($entrada: RegistrarJustificacionEntrada!) {
+    registrarJustificacion(entrada: $entrada) { id repetido }
+  }`,
+  recalcular_riesgo: `mutation RecalcularRiesgo($catequizandoId: ID!) {
+    recalcularRiesgo(catequizandoId: $catequizandoId) {
+      catequizandoId nivel motivo calculadoEn
+    }
+  }`,
+} as const;
+
 function consultaCatequizando(incluirAsistencias: boolean): string {
   const asistencias = incluirAsistencias
     ? "asistencias { id fecha estado registradoPor }"
@@ -37,7 +51,7 @@ function consultaCatequizando(incluirAsistencias: boolean): string {
   }`;
 }
 
-export function crearEjecutorGraphql(configuracion: ConfiguracionGraphql = {}): EjecutorHerramientaLectura {
+export function crearEjecutorGraphql(configuracion: ConfiguracionGraphql = {}): EjecutorHerramienta {
   const url = configuracion.url ?? "http://localhost:4000/graphql";
   const token = configuracion.token ?? process.env.SIGECAT_TOKEN;
   const hacerFetch = configuracion.fetch ?? globalThis.fetch;
@@ -47,11 +61,16 @@ export function crearEjecutorGraphql(configuracion: ConfiguracionGraphql = {}): 
   }
 
   return async (nombre, entrada) => {
+    const esEscritura = nombre in mutaciones;
     const query = nombre === "consultar_catequizando"
       ? consultaCatequizando(entrada.incluirAsistencias === true)
-      : consultas[nombre];
-    const variables = { ...entrada };
-    delete variables.incluirAsistencias;
+      : esEscritura
+        ? mutaciones[nombre as keyof typeof mutaciones]
+        : consultas[nombre as keyof typeof consultas];
+    const variables = nombre === "registrar_asistencia" || nombre === "registrar_justificacion"
+      ? { entrada }
+      : { ...entrada };
+    delete (variables as Record<string, unknown>).incluirAsistencias;
 
     const respuesta = await hacerFetch(url, {
       method: "POST",
@@ -68,6 +87,9 @@ export function crearEjecutorGraphql(configuracion: ConfiguracionGraphql = {}): 
 
     if (nombre === "listar_riesgo_grupo") return cuerpo.data?.riesgoDelGrupo;
     if (nombre === "consultar_catequizando") return cuerpo.data?.catequizando;
-    return cuerpo.data?.asistenciaDelDomingo;
+    if (nombre === "resumen_asistencia_domingo") return cuerpo.data?.asistenciaDelDomingo;
+    if (nombre === "registrar_asistencia") return cuerpo.data?.registrarAsistencia;
+    if (nombre === "registrar_justificacion") return cuerpo.data?.registrarJustificacion;
+    return cuerpo.data?.recalcularRiesgo;
   };
 }
