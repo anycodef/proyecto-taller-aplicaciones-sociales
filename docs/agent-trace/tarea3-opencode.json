@@ -1,0 +1,23 @@
+{
+  "version": "1.0",
+  "fecha": "2026-10-26",
+  "agente": "Codex",
+  "rama": "main",
+  "requisito": "RF-910",
+  "objetivo": "Permitir que OpenCode descubra y use el servidor MCP SIGECAT.",
+  "cambios": [
+    "Configuración local opencode.json con transporte stdio",
+    "Token SIGECAT_TOKEN referenciado desde el entorno, sin secretos versionados",
+    "Documentación de arranque y comprobación con opencode mcp list",
+    "Prueba de estructura, comando, cwd y sustitución de entorno"
+  ],
+  "fuenteConfiguracion": "https://docs.opencode.ai/docs/mcp-servers/",
+  "verificacion": {
+    "mcp": "PASÓ: 15/15 pruebas de servidor, agente y configuraciones Claude Code/OpenCode",
+    "cliente": "PASÓ: 55/55 pruebas",
+    "api": "PASÓ: 178/178 pruebas",
+    "typecheck": "PASÓ: cliente y API",
+    "lint": "PASÓ: 0 errores y 0 advertencias"
+  },
+  "limitacion": "OpenCode no está instalado en el equipo de verificación; se valida el contrato de configuración y el servidor MCP mediante la suite existente."
+}

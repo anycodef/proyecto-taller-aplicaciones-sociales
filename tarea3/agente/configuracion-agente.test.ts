@@ -5,6 +5,7 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 const raizTarea3 = new URL("../", import.meta.url);
+const raizRepositorio = new URL("../../", import.meta.url);
 
 test("RF-910: la configuración descubre el servidor MCP por stdio sin guardar el token", async () => {
   const texto = await readFile(new URL(".mcp.json", raizTarea3), "utf8");
@@ -16,6 +17,30 @@ test("RF-910: la configuración descubre el servidor MCP por stdio sin guardar e
   assert.equal(sigecat?.command, "node");
   assert.deepEqual(sigecat?.args, ["--import", "tsx", "servidor-mcp/principal.ts"]);
   assert.equal(sigecat?.env?.SIGECAT_TOKEN, "${SIGECAT_TOKEN}");
+  assert.doesNotMatch(texto, /Bearer\s+[A-Za-z0-9_-]+/);
+});
+
+test("RF-910: OpenCode descubre el mismo servidor MCP sin guardar el token", async () => {
+  const texto = await readFile(new URL("opencode.json", raizRepositorio), "utf8");
+  const configuracion = JSON.parse(texto) as {
+    mcp?: Record<
+      string,
+      {
+        type?: string;
+        command?: string[];
+        cwd?: string;
+        enabled?: boolean;
+        environment?: Record<string, string>;
+      }
+    >;
+  };
+  const sigecat = configuracion.mcp?.sigecat;
+
+  assert.equal(sigecat?.type, "local");
+  assert.deepEqual(sigecat?.command, ["node", "--import", "tsx", "servidor-mcp/principal.ts"]);
+  assert.equal(sigecat?.cwd, "tarea3");
+  assert.equal(sigecat?.enabled, true);
+  assert.equal(sigecat?.environment?.SIGECAT_TOKEN, "{env:SIGECAT_TOKEN}");
   assert.doesNotMatch(texto, /Bearer\s+[A-Za-z0-9_-]+/);
 });
 

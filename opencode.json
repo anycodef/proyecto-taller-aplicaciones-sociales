@@ -1,0 +1,19 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "sigecat": {
+      "type": "local",
+      "command": [
+        "node",
+        "--import",
+        "tsx",
+        "servidor-mcp/principal.ts"
+      ],
+      "cwd": "tarea3",
+      "enabled": true,
+      "environment": {
+        "SIGECAT_TOKEN": "{env:SIGECAT_TOKEN}"
+      }
+    }
+  }
+}

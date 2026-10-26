@@ -71,6 +71,27 @@ Salida esperada (ver `tarea3/evidencia/demo-output.txt`):
 El comando termina con código 0 únicamente si todos los pasos pasan; ante un
 fallo devuelve un código distinto de cero.
 
+### Usar el servidor MCP con OpenCode
+
+El archivo `opencode.json` de la raíz registra el mismo servidor MCP local que
+usa Claude Code. Con GraphQL y gRPC levantados, generar el token en PowerShell y
+arrancar OpenCode desde la raíz:
+
+```powershell
+$env:SIGECAT_TOKEN = (
+  .\tarea3\node_modules\.bin\tsx.cmd tarea3/scripts/token.mjs `
+    --rol=COORD `
+    --identidad=Coordinacion-Demo `
+    --sub=aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa
+).Trim()
+
+opencode mcp list
+opencode
+```
+
+`opencode mcp list` debe mostrar `sigecat` conectado. El token se toma del
+entorno mediante `{env:SIGECAT_TOKEN}` y nunca se guarda en el repositorio.
+
 ## 5. Ejecutar las pruebas de tarea3
 
 ```bash
