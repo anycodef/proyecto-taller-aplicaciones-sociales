@@ -9,7 +9,8 @@
     "T009-22",
     "T009-23",
     "T009-24",
-    "T009-25"
+    "T009-25",
+    "T009-26"
   ],
   "alcance": [
     "tarea3/servicio-consulta/esquema.ts",
@@ -31,6 +32,9 @@
     "tarea3/servicio-consulta/pruebas/t009-24-domingo-y-riesgo.test.ts",
     "tarea3/servicio-consulta/profundidad.ts",
     "tarea3/servicio-consulta/pruebas/t009-25-profundidad.test.ts",
+    "tarea3/servicio-consulta/cliente-grpc.ts",
+    "tarea3/servicio-consulta/pruebas/doble-grpc.ts",
+    "tarea3/servicio-consulta/pruebas/t009-26-mutaciones-por-grpc.test.ts",
     "docs/agent-trace/tarea3-p2.json",
     "specs/009-graphql-grpc-mcp/tasks.md"
   ],
@@ -52,7 +56,8 @@
     "T009-22",
     "T009-23",
     "T009-24",
-    "T009-25"
+    "T009-25",
+    "T009-26"
   ],
   "base": "Rama creada desde origin/tarea3/p3-actualizacion para disponer de compartido/ (P5) y del servidor gRPC real (P3), segun el orden de merge de plan §7.",
   "cambios": [
@@ -66,7 +71,10 @@
     "T009-23: cargadores.ts crea los cargadores por peticion, no por proceso, para que la cache no sirva datos de un grupo a quien no puede verlos",
     "T009-23: catequizando y catequizandos con paginacion keyset por id (cursor opaco base64url), recorte a 50 y autorizacion por rol; FAM se resuelve por catequizando segun delega compartido/auth.ts",
     "T009-24: asistenciaDelDomingo agrupa por estado en PostgreSQL (una consulta, sin traer filas para contarlas) y riesgoDelGrupo filtra por nivelMinimo con nivelesDesde, ordenando de ALTO a BAJO con array_position",
-    "T009-25: profundidad.ts corta en validacion las consultas de mas de 6 niveles con mensaje que dice la profundidad medida, el maximo y el nombre de la operacion; mide fragmentos y fragmentos en linea, y no gira en redondo con fragmentos ciclicos"
+    "T009-25: profundidad.ts corta en validacion las consultas de mas de 6 niveles con mensaje que dice la profundidad medida, el maximo y el nombre de la operacion; mide fragmentos y fragmentos en linea, y no gira en redondo con fragmentos ciclicos",
+    "T009-26: cliente-grpc.ts carga sigecat.proto con las mismas opciones que el servidor de P3 (keepCase, enums String) y reenvia el Authorization original en la metadata authorization",
+    "T009-26: las tres mutaciones delegan en P3 sin tocar PostgreSQL; traducen camelCase a snake_case campo a campo y validan el UUID antes de gastar una llamada gRPC",
+    "T009-26: index.ts fija PGPASSWORD=postgres si no viene del entorno, igual que hizo P3, porque compartido/bd.ts no pasa contrasena y el contenedor local la exige"
   ],
   "decisiones": [
     "Resolvers y escalar se asignan sobre el esquema construido del SDL en vez de anadir @graphql-tools, que no esta autorizado por plan §3; el contrato sigue siendo la unica fuente del esquema",
@@ -78,10 +86,13 @@
     "El orden de riesgoDelGrupo se calcula con array_position sobre los niveles pedidos y no con ORDER BY nivel DESC: el nivel es texto, y alfabeticamente ALTO iria antes que MEDIO y BAJO antes que MEDIO, que no es el orden del enum del contrato",
     "La introspeccion queda exenta del limite de profundidad: su forma la fija el esquema y no el cliente, asi que no es vector de abuso, y contarla romperia a GraphiQL, Postman y al propio descubrimiento del contrato",
     "Solo los campos con hijos suman nivel; los fragmentos no suman por si mismos, para que la misma consulta escrita con o sin fragmentos mida igual y no se pueda esquivar el limite partiendola en fragmentos",
-    "Verificado en el codigo de graphql-http que validationRules se concatena a specifiedRules ([...specifiedRules, ...validationRules]) y no las reemplaza; hay un test que lo guarda por si cambia"
+    "Verificado en el codigo de graphql-http que validationRules se concatena a specifiedRules ([...specifiedRules, ...validationRules]) y no las reemplaza; hay un test que lo guarda por si cambia",
+    "El doble de gRPC de las pruebas es un servidor gRPC real cargado del contrato congelado, no un objeto que finge ser el cliente: asi se comprueba lo que de verdad puede romperse (nombres de campo del proto, enums y viaje de la metadata) en vez de comprobar un doble a medida",
+    "Si el servicio de actualizacion devolviera NIVEL_RIESGO_NO_ESPECIFICADO (valor cero del enum del proto), la mutacion falla con entrada_invalida en vez de servir un nivel que el contrato GraphQL no declara",
+    "Las pruebas de consulta reciben un cliente gRPC que lanza si se le llama, para que quede probado que leer nunca escribe"
   ],
   "verificacion": {
-    "pruebasP2": "PASO: npx tsx --test 'servicio-consulta/pruebas/*.test.ts' con 34 tests en verde",
+    "pruebasP2": "PASO: npx tsx --test 'servicio-consulta/pruebas/*.test.ts' con 43 tests en verde",
     "typecheck": "PASO: npx tsc --noEmit -p tarea3/servicio-consulta/tsconfig.json sin salida",
     "lint": "PASO: npx eslint tarea3/servicio-consulta sin avisos ni errores",
     "humo": "PASO: npx tsx servicio-consulta/index.mjs responde /salud {estado:ok} e introspeccion de Mutation con las tres mutaciones del contrato",

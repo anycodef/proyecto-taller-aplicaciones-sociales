@@ -3,14 +3,23 @@
 
 import { pool } from '../compartido/bd.ts';
 import { crearAplicacion } from './aplicacion.ts';
+import { crearClienteGrpc } from './cliente-grpc.ts';
 import { crearDatos, type EjecutorSql } from './datos.ts';
 import { crearServidor, PUERTO_PREDETERMINADO } from './servidor.ts';
+
+// compartido/bd.ts no pasa contrasena, asi que pg la toma de PGPASSWORD; el
+// contenedor local de api/docker-compose.yml usa `postgres`. Mismo apano que
+// hizo P3 en su servicio.
+if (!process.env.PGPASSWORD) {
+  process.env.PGPASSWORD = 'postgres';
+}
 
 const puerto = Number(process.env.PUERTO_CONSULTA ?? PUERTO_PREDETERMINADO);
 
 const ejecutor: EjecutorSql = { query: (texto, valores) => pool.query(texto, valores) };
+const cliente = crearClienteGrpc();
 
-const servidor = crearServidor(crearAplicacion({ datos: crearDatos(ejecutor) }));
+const servidor = crearServidor(crearAplicacion({ datos: crearDatos(ejecutor), cliente }));
 
 servidor.listen(puerto, '127.0.0.1', () => {
   console.log(`[servicio-consulta] escuchando en http://127.0.0.1:${puerto}/graphql`);

@@ -15,6 +15,8 @@ export interface DependenciasServicio extends DependenciasResolvers {
   datos: Datos;
 }
 
+export type { DependenciasResolvers };
+
 export function crearAplicacion(dependencias: DependenciasServicio): OpcionesServidor {
   const esquema = construirEsquema();
   aplicarResolvers(esquema, crearResolvers(dependencias));

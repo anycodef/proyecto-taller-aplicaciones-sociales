@@ -4,6 +4,7 @@
 import type { AddressInfo } from 'node:net';
 import { crearServidor, type OpcionesServidor } from '../servidor.ts';
 import { crearDatos, type Datos, type EjecutorSql } from '../datos.ts';
+import type { ClienteActualizacion } from '../cliente-grpc.ts';
 
 // Ejecutor SQL de mentira que apunta cada consulta recibida: con el se cuenta
 // el numero de idas a la base y se demuestra que el cargador evita el N+1.
@@ -31,6 +32,20 @@ export function datosSinBase(): Datos {
       throw new Error('esta prueba no deberia consultar la base de datos');
     },
   });
+}
+
+// Para las pruebas de consulta: llamar al servicio de actualizacion seria un
+// error, porque leer nunca debe escribir.
+export function clienteSinGrpc(): ClienteActualizacion {
+  const fallar = () => {
+    throw new Error('esta prueba no deberia llamar al servicio de actualizacion');
+  };
+  return {
+    registrarAsistencia: fallar,
+    registrarJustificacion: fallar,
+    recalcularRiesgo: fallar,
+    cerrar: () => {},
+  };
 }
 
 export interface ServidorDePrueba {

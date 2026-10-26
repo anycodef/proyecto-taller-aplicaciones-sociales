@@ -4,7 +4,7 @@ import { Kind, parse, type OperationDefinitionNode, type SelectionSetNode } from
 import { emitirToken } from '../../compartido/auth.ts';
 import { crearAplicacion } from '../aplicacion.ts';
 import { medirProfundidad, PROFUNDIDAD_MAXIMA } from '../profundidad.ts';
-import { datosSinBase, levantarServidor } from './ayuda.ts';
+import { clienteSinGrpc, datosSinBase, levantarServidor } from './ayuda.ts';
 
 const CATEQUIZANDO = '22222222-2222-2222-2222-222222222101';
 
@@ -55,7 +55,7 @@ function fragmentosDe(consulta: string): Map<string, SelectionSetNode> {
 }
 
 async function servidor() {
-  return levantarServidor(crearAplicacion({ datos: datosSinBase() }));
+  return levantarServidor(crearAplicacion({ datos: datosSinBase(), cliente: clienteSinGrpc() }));
 }
 
 function tokenCoord() {

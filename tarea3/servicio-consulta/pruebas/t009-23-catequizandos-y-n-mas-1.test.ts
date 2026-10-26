@@ -4,7 +4,7 @@ import { emitirToken } from '../../compartido/auth.ts';
 import { crearAplicacion } from '../aplicacion.ts';
 import { crearDatos } from '../datos.ts';
 import { MAXIMO_POR_PAGINA } from '../resolvers.ts';
-import { crearEjecutorEspia, levantarServidor, type EjecutorEspia } from './ayuda.ts';
+import { clienteSinGrpc, crearEjecutorEspia, levantarServidor, type EjecutorEspia } from './ayuda.ts';
 import { CATEQUIZANDOS, DOMINGOS, GRUPOS, REGISTRADO_POR, RIESGOS } from './siembra-prueba.ts';
 
 // Responde el conjunto de la siembra desde memoria, para contar consultas sin
@@ -65,7 +65,7 @@ function responder(texto: string, valores: unknown[]): Record<string, unknown>[]
 
 async function servidorConEspia() {
   const espia = crearEjecutorEspia(responder);
-  const servidor = await levantarServidor(crearAplicacion({ datos: crearDatos(espia) }));
+  const servidor = await levantarServidor(crearAplicacion({ datos: crearDatos(espia), cliente: clienteSinGrpc() }));
   const token = await emitirToken({
     rol: 'COORD',
     identidadOperativa: 'Coordinadora Demo',

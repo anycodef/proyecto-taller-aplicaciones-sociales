@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { emitirToken } from '../../compartido/auth.ts';
 import { crearAplicacion } from '../aplicacion.ts';
 import { crearDatos, nivelesDesde } from '../datos.ts';
-import { crearEjecutorEspia, levantarServidor } from './ayuda.ts';
+import { clienteSinGrpc, crearEjecutorEspia, levantarServidor } from './ayuda.ts';
 import { CATEQUIZANDOS, GRUPOS, PLAN_ASISTENCIAS, RIESGOS } from './siembra-prueba.ts';
 
 // El domingo 3 de la siembra (indice 2) reparte PRESENTE, AUSENTE y JUSTIFICADA.
@@ -57,7 +57,7 @@ function responder(texto: string, valores: unknown[]): Record<string, unknown>[]
 
 async function servidorConEspia() {
   const espia = crearEjecutorEspia(responder);
-  const servidor = await levantarServidor(crearAplicacion({ datos: crearDatos(espia) }));
+  const servidor = await levantarServidor(crearAplicacion({ datos: crearDatos(espia), cliente: clienteSinGrpc() }));
   const token = await emitirToken({
     rol: 'COORD',
     identidadOperativa: 'Coordinadora Demo',

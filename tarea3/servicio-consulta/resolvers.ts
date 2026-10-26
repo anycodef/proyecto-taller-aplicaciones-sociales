@@ -7,12 +7,16 @@ import type {
   Asistencia,
   ConexionCatequizandos,
   Contexto,
+  EstadoAsistencia,
   FechaCivil,
+  gRPCRiesgo,
   Grupo,
   NivelRiesgo,
+  ResultadoEscritura,
   ResumenAsistencia,
   Riesgo,
 } from '../compartido/tipos.ts';
+import type { ClienteActualizacion } from './cliente-grpc.ts';
 import type { MapaResolvers } from './esquema.ts';
 import {
   errorEntradaInvalida,
@@ -28,8 +32,25 @@ export const MAXIMO_POR_PAGINA = 50;
 const PATRON_UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export interface DependenciasResolvers {
-  // El cliente gRPC de las mutaciones se suma en T009-26.
-  marcador?: never;
+  // Quien escribe es el servicio de P3; aqui solo se delega (RF-904).
+  cliente: ClienteActualizacion;
+}
+
+// El contrato GraphQL usa camelCase y el proto snake_case con keepCase; la
+// traduccion se hace campo a campo y en un solo sitio.
+function aRiesgo(respuesta: gRPCRiesgo): Riesgo {
+  const nivel = respuesta.nivel;
+  if (nivel !== 'BAJO' && nivel !== 'MEDIO' && nivel !== 'ALTO') {
+    throw errorEntradaInvalida(
+      `El servicio de actualizacion devolvio un nivel que el contrato no declara: ${nivel}`
+    );
+  }
+  return {
+    catequizandoId: respuesta.catequizando_id,
+    nivel,
+    motivo: respuesta.motivo,
+    calculadoEn: respuesta.calculado_en,
+  };
 }
 
 function codificarCursor(id: string): string {
@@ -103,8 +124,10 @@ async function resolverConexion(
 }
 
 export function crearResolvers(
-  _dependencias: DependenciasResolvers = {}
+  dependencias: DependenciasResolvers
 ): MapaResolvers<ContextoPeticion> {
+  const { cliente } = dependencias;
+
   return {
     Query: {
       yo: (_origen, _argumentos, contexto): Contexto => {
@@ -164,6 +187,68 @@ export function crearResolvers(
         const grupoId = exigirUuid(argumentos.grupoId, 'grupoId');
         exigirLecturaDeGrupo(token, grupoId);
         return contexto.datos.riesgoDelGrupo(grupoId, argumentos.nivelMinimo ?? 'MEDIO');
+      },
+    },
+
+    // Las tres mutaciones del contrato delegan por gRPC en el servicio de
+    // actualizacion. Aqui no se consulta ni se escribe en PostgreSQL: solo se
+    // exige un token, se traducen los nombres de campo y se devuelve la
+    // respuesta (RF-904).
+    Mutation: {
+      registrarAsistencia: async (
+        _origen,
+        argumentos: {
+          entrada: {
+            id: string;
+            catequizandoId: string;
+            fecha: FechaCivil;
+            estado: EstadoAsistencia;
+          };
+        },
+        contexto
+      ): Promise<ResultadoEscritura> => {
+        exigirToken(contexto);
+        const { entrada } = argumentos;
+        return cliente.registrarAsistencia(
+          {
+            // El UUID lo genera el cliente (RF-905); aqui no se inventa.
+            id: exigirUuid(entrada.id, 'entrada.id'),
+            catequizando_id: exigirUuid(entrada.catequizandoId, 'entrada.catequizandoId'),
+            fecha: entrada.fecha,
+            estado: entrada.estado,
+          },
+          contexto.autorizacion
+        );
+      },
+
+      registrarJustificacion: async (
+        _origen,
+        argumentos: { entrada: { id: string; asistenciaId: string; motivo: string } },
+        contexto
+      ): Promise<ResultadoEscritura> => {
+        exigirToken(contexto);
+        const { entrada } = argumentos;
+        return cliente.registrarJustificacion(
+          {
+            id: exigirUuid(entrada.id, 'entrada.id'),
+            asistencia_id: exigirUuid(entrada.asistenciaId, 'entrada.asistenciaId'),
+            motivo: entrada.motivo,
+          },
+          contexto.autorizacion
+        );
+      },
+
+      recalcularRiesgo: async (
+        _origen,
+        argumentos: { catequizandoId: string },
+        contexto
+      ): Promise<Riesgo> => {
+        exigirToken(contexto);
+        const respuesta = await cliente.recalcularRiesgo(
+          { catequizando_id: exigirUuid(argumentos.catequizandoId, 'catequizandoId') },
+          contexto.autorizacion
+        );
+        return aRiesgo(respuesta);
       },
     },
 
