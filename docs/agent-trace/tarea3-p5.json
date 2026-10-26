@@ -4,8 +4,8 @@
   "agente": "OpenCode",
   "modelo": "nemotron-3.5-super-vl-free",
   "rama": "tarea3/p5-integracion",
-  "tareas": ["T009-51"],
-  "alcance": ["tarea3/package.json", "tarea3/tsconfig.json", "docs/agent-trace/tarea3-p5.json"],
+  "tareas": ["T009-51", "T009-52"],
+  "alcance": ["tarea3/package.json", "tarea3/tsconfig.json", "tarea3/bd/migracion.sql", "tarea3/scripts/bd-subir.mjs", "tarea3/scripts/bd-subir.d.mts", "tarea3/pruebas-e2e/bd.test.ts", "docs/agent-trace/tarea3-p5.json"],
   "fuentes": ["AGENTS.md", "docs/constitution.md", "specs/009-graphql-grpc-mcp/spec.md", "specs/009-graphql-grpc-mcp/plan.md", "specs/009-graphql-grpc-mcp/tasks.md", "tarea3/contratos/"],
   "tareasCatalogo": ["T009-51"],
   "cambios": [
