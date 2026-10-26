@@ -50,14 +50,15 @@ Dependencias nuevas: solo las de plan §3, en `tarea3/package.json`.
 
 ## P1 — Análisis, decisión y informe
 
-- [ ] **T009-11** Inventario de funcionalidades candidatas (≥ 10) desde las specs 001–008 y requerimientos R1–R27. RF: RF-901.
-- [ ] **T009-12** `matriz-aplicabilidad.md`: protocolo recomendado, veredicto y justificación por fila; incluir los «no aplicable» honestos (p. ej. sync WatermelonDB, enlaces de familia). RF: RF-901.
-- [ ] **T009-13** Sección «Dónde sí y dónde no» para consultas y para actualizaciones (síntesis de la matriz). RF: RF-901.
-- [ ] **T009-14** ADR `20261019-graphql-grpc-mcp.md` (Log4brains, plantilla `docs/adr/template.md`); regenerar el índice si aplica. RF: RF-901, RF-911.
+- [x] **T009-11** Inventario de funcionalidades candidatas (≥ 10) desde las specs 001–008 y requerimientos R1–R27. RF: RF-901.
+- [x] **T009-12** `matriz-aplicabilidad.md`: protocolo recomendado, veredicto y justificación por fila; incluir los «no aplicable» honestos (p. ej. sync WatermelonDB, enlaces de familia). RF: RF-901.
+- [x] **T009-13** Sección «Dónde sí y dónde no» para consultas y para actualizaciones (síntesis de la matriz). RF: RF-901.
+- [x] **T009-14** ADR `20261019-graphql-grpc-mcp.md` (Log4brains, plantilla `docs/adr/template.md`); regenerar el índice si aplica. RF: RF-901, RF-911.
 - [ ] **T009-15** `decision-agente-mcp.md`: tabla comparativa GraphQL/gRPC/MCP para agentes y conclusión; respaldarla con medición real de tokens/bytes tomada de P4 y P5 (misma pregunta por los tres caminos). RF: RF-911.
-- [ ] **T009-16** Diagrama C4/secuencia de la demo en `docs/diagrams/` (DSL existente) y en el informe. RF: RF-912.
-- [ ] **T009-17** `docs/tarea-3/informe.md` (documento final de entrega: análisis, arquitectura, demo, decisión MCP, reparto del equipo con commits). RF: RF-913.
-- [ ] **T009-18** Guion de exposición (10 min, quién dice qué) y checklist de ensayo. RF: RF-913.
+  - P1 listo: decisión, medición reproducible de contratos y pedidos en `docs/tarea-3/`. Falta reemplazar la medición por la e2e de P4/P5.
+- [x] **T009-16** Diagrama C4/secuencia de la demo en `docs/diagrams/` (DSL existente) y en el informe. RF: RF-912.
+- [x] **T009-17** `docs/tarea-3/informe.md` (documento final de entrega: análisis, arquitectura, demo, decisión MCP, reparto del equipo con commits). RF: RF-913.
+- [x] **T009-18** Guion de exposición (10 min, quién dice qué) y checklist de ensayo. RF: RF-913.
 
 ## Hito final (todas/os)
 
