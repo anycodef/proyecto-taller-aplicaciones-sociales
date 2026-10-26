@@ -26,3 +26,19 @@ test("RF-910: el guion contiene consulta, escritura y verificación de riesgo", 
   assert.match(guion, /Recalcula su riesgo/);
   assert.match(guion, /usando solo las herramientas/);
 });
+
+test("RF-910: la evidencia conserva la ejecución real y su medición", async () => {
+  const transcripcion = await readFile(
+    new URL("evidencia/agente-transcripcion.md", raizTarea3),
+    "utf8",
+  );
+  const medicion = await readFile(new URL("evidencia/medicion-agente.md", raizTarea3), "utf8");
+
+  assert.match(transcripcion, /Claude Code 2\.1\.310/);
+  assert.match(transcripcion, /listar_riesgo_grupo/);
+  assert.match(transcripcion, /registrar_asistencia/);
+  assert.match(transcripcion, /recalcular_riesgo/);
+  assert.match(transcripcion, /0a651c86-553e-4ce6-b451-4648ba80054b/);
+  assert.match(medicion, /MCP, contenido de herramienta \| `\[\]` \| 2/);
+  assert.match(medicion, /GraphQL, respuesta HTTP cruda .* \| 30/);
+});
