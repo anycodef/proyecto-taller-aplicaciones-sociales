@@ -30,13 +30,13 @@ Dependencias nuevas: solo las de plan §3, en `tarea3/package.json`.
 
 ## P3 — Servicio de actualización gRPC
 
-- [ ] **T009-31** Cargar `sigecat.proto`, servidor en 50051, interceptor de autenticación, servicio de salud. RF: RF-903, RF-906.
-- [ ] **T009-32** `RegistrarAsistencia` idempotente (`ON CONFLICT (id) DO NOTHING` + lectura) con permisos. RF: RF-903, RF-905.
-- [ ] **T009-33** `RegistrarAsistenciaLote` (client streaming) en una transacción, con conteos. RF: RF-903.
-- [ ] **T009-34** `RegistrarJustificacion` (cambia la asistencia a JUSTIFICADA). RF: RF-903, RF-905.
-- [ ] **T009-35** `RecalcularRiesgo` usando `compartido/riesgo.ts` y persistiendo. RF: RF-908.
-- [ ] **T009-36** `ObservarAsistencia` (server streaming) alimentado por `LISTEN/NOTIFY` de PostgreSQL. RF: RF-903.
-- [ ] **T009-37** Cierre ordenado, reintentos de conexión y tests con cliente gRPC real. RF: RF-903…RF-908.
+- [x] **T009-31** Cargar `sigecat.proto`, servidor en 50051, interceptor de autenticación, servicio de salud. RF: RF-903, RF-906.
+- [x] **T009-32** `RegistrarAsistencia` idempotente (`ON CONFLICT (id) DO NOTHING` + lectura) con permisos. RF: RF-903, RF-905.
+- [x] **T009-33** `RegistrarAsistenciaLote` (client streaming) en una transacción, con conteos. RF: RF-903.
+- [x] **T009-34** `RegistrarJustificacion` (cambia la asistencia a JUSTIFICADA). RF: RF-903, RF-905.
+- [x] **T009-35** `RecalcularRiesgo` usando `compartido/riesgo.ts` y persistiendo. RF: RF-908.
+- [x] **T009-36** `ObservarAsistencia` (server streaming) alimentado por `LISTEN/NOTIFY` de PostgreSQL. RF: RF-903.
+- [x] **T009-37** Cierre ordenado, reintentos de conexión y tests con cliente gRPC real. RF: RF-903…RF-908.
 
 ## P4 — Servidor MCP y agente
 

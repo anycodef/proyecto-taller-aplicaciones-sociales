@@ -1,0 +1,572 @@
+// Servidor gRPC de actualización de SIGECAT (spec 009, RF-903).
+// Implementa contratos/sigecat.proto en puerto 50051 con interceptor de auth (RF-906).
+
+import * as grpc from '@grpc/grpc-js';
+import * as protoLoader from '@grpc/proto-loader';
+import { fileURLToPath } from 'node:url';
+import { dirname, join } from 'node:path';
+import { verificarToken, puedeEscribir, puedeLeerGrupo, type TokenPayload } from '../compartido/auth.ts';
+import { pool, transaccionar } from '../compartido/bd.ts';
+import { calcularRiesgo } from '../compartido/riesgo.ts';
+
+if (!process.env.PGPASSWORD) {
+  process.env.PGPASSWORD = 'postgres';
+}
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+const RUTA_PROTO = join(__dirname, '..', 'contratos', 'sigecat.proto');
+const RUTA_SALUD = join(__dirname, 'salud.proto');
+
+export interface ServidorConfig {
+  puerto?: number;
+  host?: string;
+}
+
+// Carga de definiciones gRPC
+const definicionActualizacion = protoLoader.loadSync(RUTA_PROTO, {
+  keepCase: true,
+  longs: String,
+  enums: String,
+  defaults: true,
+  oneofs: true,
+});
+
+const definicionSalud = protoLoader.loadSync(RUTA_SALUD, {
+  keepCase: true,
+  longs: String,
+  enums: String,
+  defaults: true,
+  oneofs: true,
+});
+
+const paqueteActualizacion = grpc.loadPackageDefinition(definicionActualizacion) as any;
+const paqueteSalud = grpc.loadPackageDefinition(definicionSalud) as any;
+
+const ServicioActualizacion = paqueteActualizacion.sigecat.actualizacion.v1.Actualizacion.service;
+const ServicioSalud = paqueteSalud.grpc.health.v1.Health.service;
+
+export interface ContextoAutenticado {
+  token: string;
+  autor: TokenPayload;
+}
+
+// Interceptor / validador de metadata "authorization" (RF-906).
+export async function validarAutenticacion(metadata: grpc.Metadata, requiereEscritura = true): Promise<ContextoAutenticado> {
+  const encabezados = metadata.get('authorization');
+  if (!encabezados || encabezados.length === 0) {
+    const error = new Error('no_autenticado: falta metadata authorization') as any;
+    error.code = grpc.status.PERMISSION_DENIED;
+    throw error;
+  }
+
+  const raw = String(encabezados[0]);
+  const token = raw.startsWith('Bearer ') ? raw.slice(7).trim() : raw.trim();
+
+  let autor: TokenPayload;
+  try {
+    autor = await verificarToken(token);
+  } catch (err: any) {
+    const error = new Error(`token_invalido: ${err.message}`) as any;
+    error.code = grpc.status.PERMISSION_DENIED;
+    throw error;
+  }
+
+  if (requiereEscritura && !puedeEscribir(autor.rol)) {
+    const error = new Error('fuera_de_alcance: el rol SUP no puede escribir') as any;
+    error.code = grpc.status.PERMISSION_DENIED;
+    throw error;
+  }
+
+  return { token, autor };
+}
+
+// Verifica si un catequista tiene alcance sobre un catequizando dado su id
+export async function validarAlcanceCatequizando(autor: TokenPayload, catequizandoId: string): Promise<{ catequizandoId: string; grupoId: string; identidadOperativa: string }> {
+  const res = await pool.query(
+    'SELECT id, grupo_id, identidad_operativa FROM demo_tarea3.catequizando WHERE id = $1',
+    [catequizandoId]
+  );
+  if (res.rowCount === 0) {
+    const error = new Error('no_encontrado: el catequizando no existe') as any;
+    error.code = grpc.status.NOT_FOUND;
+    throw error;
+  }
+  const fila = res.rows[0];
+  if (autor.rol === 'CAT') {
+    if (!autor.grupoId || autor.grupoId !== fila.grupo_id) {
+      const error = new Error('fuera_de_alcance: el catequizando no pertenece a su grupo') as any;
+      error.code = grpc.status.PERMISSION_DENIED;
+      throw error;
+    }
+  } else if (autor.rol === 'FAM') {
+    const error = new Error('fuera_de_alcance: el rol FAM no puede escribir asistencia') as any;
+    error.code = grpc.status.PERMISSION_DENIED;
+    throw error;
+  }
+  return { catequizandoId: fila.id, grupoId: fila.grupo_id, identidadOperativa: fila.identidad_operativa };
+}
+
+// Servicio de salud gRPC
+const manejadoresSalud = {
+  Check: (_call: any, callback: any) => {
+    callback(null, { status: 'SERVING' });
+  },
+  Watch: (call: any) => {
+    call.write({ status: 'SERVING' });
+  },
+};
+
+export function normalizarEstado(estado: any): 'PRESENTE' | 'AUSENTE' | 'JUSTIFICADA' | 'TARDANZA' {
+  if (typeof estado === 'string') {
+    if (estado === 'PRESENTE' || estado === 'AUSENTE' || estado === 'JUSTIFICADA' || estado === 'TARDANZA') {
+      return estado;
+    }
+    const num = parseInt(estado, 10);
+    if (!isNaN(num)) return normalizarEstado(num);
+  }
+  switch (estado) {
+    case 1: return 'PRESENTE';
+    case 2: return 'AUSENTE';
+    case 3: return 'JUSTIFICADA';
+    case 4: return 'TARDANZA';
+    default: return 'PRESENTE';
+  }
+}
+
+export function estadoAProto(estado: string): number {
+  switch (estado) {
+    case 'PRESENTE': return 1;
+    case 'AUSENTE': return 2;
+    case 'JUSTIFICADA': return 3;
+    case 'TARDANZA': return 4;
+    default: return 0;
+  }
+}
+
+export function nivelRiesgoAProto(nivel: string): number {
+  switch (nivel) {
+    case 'BAJO': return 1;
+    case 'MEDIO': return 2;
+    case 'ALTO': return 3;
+    default: return 0;
+  }
+}
+
+// Implementación de Actualizacion
+const manejadoresActualizacion = {
+  RegistrarAsistencia: async (call: any, callback: any) => {
+    try {
+      const { autor } = await validarAutenticacion(call.metadata, true);
+      const req = call.request;
+      if (!req.id || !req.catequizando_id || !req.fecha) {
+        callback({ code: grpc.status.INVALID_ARGUMENT, message: 'Faltan campos obligatorios (id, catequizando_id, fecha)' });
+        return;
+      }
+      const { grupoId, identidadOperativa } = await validarAlcanceCatequizando(autor, req.catequizando_id);
+      const estado = normalizarEstado(req.estado);
+
+      const res = await pool.query(
+        `INSERT INTO demo_tarea3.asistencia (id, catequizando_id, fecha, estado, registrado_por)
+         VALUES ($1, $2, $3, $4, $5)
+         ON CONFLICT (id) DO NOTHING
+         RETURNING id`,
+        [req.id, req.catequizando_id, req.fecha, estado, autor.identidadOperativa]
+      );
+
+      const repetido = (res.rowCount ?? 0) === 0;
+
+      if (!repetido) {
+        const evento = JSON.stringify({
+          asistencia_id: req.id,
+          catequizando_id: req.catequizando_id,
+          grupo_id: grupoId,
+          identidad_operativa: identidadOperativa,
+          estado,
+          fecha: req.fecha,
+        });
+        await pool.query('SELECT pg_notify($1, $2)', ['asistencia_evento', evento]).catch(() => {});
+      }
+
+      callback(null, { id: req.id, repetido });
+    } catch (error: any) {
+      callback({ code: error.code ?? grpc.status.INTERNAL, message: error.message });
+    }
+  },
+  RegistrarAsistenciaLote: async (call: any, callback: any) => {
+    let autor: TokenPayload;
+    try {
+      const auth = await validarAutenticacion(call.metadata, true);
+      autor = auth.autor;
+    } catch (error: any) {
+      callback({ code: error.code ?? grpc.status.INTERNAL, message: error.message });
+      return;
+    }
+
+    const solicitudes: any[] = [];
+    call.on('data', (req: any) => {
+      solicitudes.push(req);
+    });
+
+    call.on('error', (err: any) => {
+      callback({ code: grpc.status.CANCELLED, message: err.message });
+    });
+
+    call.on('end', async () => {
+      try {
+        const resumen = await transaccionar(async (cliente) => {
+          let registrados = 0;
+          let repetidos = 0;
+          let rechazados = 0;
+          const eventosNotificar: string[] = [];
+
+          for (const req of solicitudes) {
+            if (!req.id || !req.catequizando_id || !req.fecha) {
+              rechazados++;
+              continue;
+            }
+
+            // Validar existencia y alcance del catequizando
+            const catRes = await cliente.query(
+              'SELECT id, grupo_id, identidad_operativa FROM demo_tarea3.catequizando WHERE id = $1',
+              [req.catequizando_id]
+            );
+            if (catRes.rowCount === 0) {
+              rechazados++;
+              continue;
+            }
+
+            const catFila = catRes.rows[0];
+            if (autor.rol === 'CAT' && (!autor.grupoId || autor.grupoId !== catFila.grupo_id)) {
+              rechazados++;
+              continue;
+            }
+            if (autor.rol === 'FAM') {
+              rechazados++;
+              continue;
+            }
+
+            let estado: string;
+            try {
+              estado = normalizarEstado(req.estado);
+            } catch {
+              rechazados++;
+              continue;
+            }
+
+            const insertRes = await cliente.query(
+              `INSERT INTO demo_tarea3.asistencia (id, catequizando_id, fecha, estado, registrado_por)
+               VALUES ($1, $2, $3, $4, $5)
+               ON CONFLICT (id) DO NOTHING
+               RETURNING id`,
+              [req.id, req.catequizando_id, req.fecha, estado, autor.identidadOperativa]
+            );
+
+            if ((insertRes.rowCount ?? 0) > 0) {
+              registrados++;
+              eventosNotificar.push(
+                JSON.stringify({
+                  asistencia_id: req.id,
+                  catequizando_id: req.catequizando_id,
+                  grupo_id: catFila.grupo_id,
+                  identidad_operativa: catFila.identidad_operativa,
+                  estado,
+                  fecha: req.fecha,
+                })
+              );
+            } else {
+              repetidos++;
+            }
+          }
+
+          for (const evento of eventosNotificar) {
+            await cliente.query('SELECT pg_notify($1, $2)', ['asistencia_evento', evento]).catch(() => {});
+          }
+
+          return { registrados, repetidos, rechazados };
+        });
+
+        callback(null, resumen);
+      } catch (error: any) {
+        callback({ code: error.code ?? grpc.status.INTERNAL, message: error.message });
+      }
+    });
+  },
+  RegistrarJustificacion: async (call: any, callback: any) => {
+    try {
+      const { autor } = await validarAutenticacion(call.metadata, true);
+      const req = call.request;
+      if (!req.id || !req.asistencia_id || !req.motivo) {
+        callback({ code: grpc.status.INVALID_ARGUMENT, message: 'Faltan campos obligatorios (id, asistencia_id, motivo)' });
+        return;
+      }
+
+      // Validar existencia de asistencia y alcance por grupo
+      const asisRes = await pool.query(
+        `SELECT a.id, a.catequizando_id, a.fecha, c.grupo_id, c.identidad_operativa
+         FROM demo_tarea3.asistencia a
+         JOIN demo_tarea3.catequizando c ON c.id = a.catequizando_id
+         WHERE a.id = $1`,
+        [req.asistencia_id]
+      );
+
+      if (asisRes.rowCount === 0) {
+        callback({ code: grpc.status.NOT_FOUND, message: 'no_encontrado: la asistencia no existe' });
+        return;
+      }
+
+      const asisFila = asisRes.rows[0];
+      if (autor.rol === 'CAT') {
+        if (!autor.grupoId || autor.grupoId !== asisFila.grupo_id) {
+          callback({ code: grpc.status.PERMISSION_DENIED, message: 'fuera_de_alcance: la asistencia pertenece a otro grupo' });
+          return;
+        }
+      } else if (autor.rol === 'FAM') {
+        callback({ code: grpc.status.PERMISSION_DENIED, message: 'fuera_de_alcance: el rol FAM no puede justificar directamente' });
+        return;
+      }
+
+      const resultado = await transaccionar(async (cliente) => {
+        // Verificar idempotencia por id de la justificación
+        const existe = await cliente.query('SELECT id FROM demo_tarea3.justificacion WHERE id = $1', [req.id]);
+        if ((existe.rowCount ?? 0) > 0) {
+          return { id: req.id, repetido: true };
+        }
+
+        const justRes = await cliente.query(
+          `INSERT INTO demo_tarea3.justificacion (id, asistencia_id, motivo, estado)
+           VALUES ($1, $2, $3, 'APROBADA')
+           ON CONFLICT (id) DO NOTHING
+           RETURNING id`,
+          [req.id, req.asistencia_id, req.motivo]
+        );
+
+        const inserto = (justRes.rowCount ?? 0) > 0;
+        if (inserto) {
+          // Cambiar estado de la asistencia a JUSTIFICADA
+          await cliente.query(
+            `UPDATE demo_tarea3.asistencia SET estado = 'JUSTIFICADA' WHERE id = $1`,
+            [req.asistencia_id]
+          );
+
+          // Notificar cambio
+          const evento = JSON.stringify({
+            asistencia_id: req.asistencia_id,
+            catequizando_id: asisFila.catequizando_id,
+            grupo_id: asisFila.grupo_id,
+            identidad_operativa: asisFila.identidad_operativa,
+            estado: 'JUSTIFICADA',
+            fecha: asisFila.fecha,
+          });
+          await cliente.query('SELECT pg_notify($1, $2)', ['asistencia_evento', evento]).catch(() => {});
+        }
+
+        return { id: req.id, repetido: !inserto };
+      });
+
+      callback(null, resultado);
+    } catch (error: any) {
+      callback({ code: error.code ?? grpc.status.INTERNAL, message: error.message });
+    }
+  },
+  RecalcularRiesgo: async (call: any, callback: any) => {
+    try {
+      const { autor } = await validarAutenticacion(call.metadata, true);
+      const req = call.request;
+      if (!req.catequizando_id) {
+        callback({ code: grpc.status.INVALID_ARGUMENT, message: 'Falta campo obligatorio catequizando_id' });
+        return;
+      }
+
+      await validarAlcanceCatequizando(autor, req.catequizando_id);
+
+      // Leer historial de asistencias
+      const asisRes = await pool.query(
+        `SELECT to_char(fecha, 'YYYY-MM-DD') AS fecha, estado
+         FROM demo_tarea3.asistencia
+         WHERE catequizando_id = $1
+         ORDER BY fecha ASC`,
+        [req.catequizando_id]
+      );
+
+      const asistencias = asisRes.rows.map((f) => ({
+        fecha: f.fecha,
+        estado: f.estado,
+      }));
+
+      const { nivel, motivo } = calcularRiesgo(asistencias);
+
+      // Persistir en demo_tarea3.riesgo
+      const upsertRes = await pool.query(
+        `INSERT INTO demo_tarea3.riesgo (catequizando_id, nivel, motivo, calculado_en)
+         VALUES ($1, $2, $3, NOW())
+         ON CONFLICT (catequizando_id) DO UPDATE
+           SET nivel = EXCLUDED.nivel,
+               motivo = EXCLUDED.motivo,
+               calculado_en = NOW()
+         RETURNING catequizando_id, nivel, motivo, to_char(calculado_en, 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS calculado_en`,
+        [req.catequizando_id, nivel, motivo]
+      );
+
+      const fila = upsertRes.rows[0];
+      callback(null, {
+        catequizando_id: fila.catequizando_id,
+        nivel: nivelRiesgoAProto(fila.nivel),
+        motivo: fila.motivo,
+        calculado_en: fila.calculado_en,
+      });
+    } catch (error: any) {
+      callback({ code: error.code ?? grpc.status.INTERNAL, message: error.message });
+    }
+  },
+  ObservarAsistencia: async (call: any) => {
+    let autor: TokenPayload;
+    try {
+      const auth = await validarAutenticacion(call.metadata, false);
+      autor = auth.autor;
+    } catch (error: any) {
+      call.emit('error', { code: error.code ?? grpc.status.INTERNAL, message: error.message });
+      return;
+    }
+
+    const req = call.request;
+    if (!req.grupo_id) {
+      call.emit('error', { code: grpc.status.INVALID_ARGUMENT, message: 'Falta campo obligatorio grupo_id' });
+      return;
+    }
+
+    if (!puedeLeerGrupo(autor.rol, autor.grupoId, req.grupo_id)) {
+      call.emit('error', {
+        code: grpc.status.PERMISSION_DENIED,
+        message: 'fuera_de_alcance: no tiene permisos para observar este grupo',
+      });
+      return;
+    }
+
+    let clientePg: any = null;
+    let limpiado = false;
+
+    const limpiar = async () => {
+      if (limpiado) return;
+      limpiado = true;
+      if (clientePg) {
+        try {
+          await clientePg.query('UNLISTEN asistencia_evento');
+        } catch {
+          // ignore unlisten error on teardown
+        } finally {
+          clientePg.release();
+        }
+      }
+    };
+
+    call.on('cancelled', limpiar);
+    call.on('close', limpiar);
+    call.on('finish', limpiar);
+    call.on('error', limpiar);
+
+    try {
+      clientePg = await pool.connect();
+      await clientePg.query('LISTEN asistencia_evento');
+
+      clientePg.on('notification', (msg: any) => {
+        if (msg.channel !== 'asistencia_evento' || !msg.payload) return;
+        try {
+          const data = JSON.parse(msg.payload);
+          if (data.grupo_id === req.grupo_id) {
+            call.write({
+              asistencia_id: data.asistencia_id,
+              catequizando_id: data.catequizando_id,
+              identidad_operativa: data.identidad_operativa,
+              estado: estadoAProto(data.estado),
+              fecha: data.fecha,
+            });
+          }
+        } catch {
+          // ignorar payload malformado
+        }
+      });
+    } catch (error: any) {
+      await limpiar();
+      call.emit('error', { code: grpc.status.INTERNAL, message: error.message });
+    }
+  },
+};
+
+export class ServidorActualizacion {
+  private servidor: grpc.Server;
+  private puertoAsignado: number = 0;
+  private iniciado = false;
+
+  constructor(manejadoresPersonalizados?: Partial<typeof manejadoresActualizacion>) {
+    this.servidor = new grpc.Server();
+    const manejadoresCombinados = { ...manejadoresActualizacion, ...manejadoresPersonalizados };
+    this.servidor.addService(ServicioActualizacion, manejadoresCombinados);
+    this.servidor.addService(ServicioSalud, manejadoresSalud);
+  }
+
+  public iniciar(config: ServidorConfig = {}): Promise<number> {
+    const host = config.host ?? '0.0.0.0';
+    const puerto = config.puerto ?? 50051;
+    const direccion = `${host}:${puerto}`;
+
+    return new Promise((resolve, reject) => {
+      this.servidor.bindAsync(direccion, grpc.ServerCredentials.createInsecure(), (error, puertoFinal) => {
+        if (error) {
+          reject(error);
+          return;
+        }
+        this.puertoAsignado = puertoFinal;
+        this.iniciado = true;
+        resolve(puertoFinal);
+      });
+    });
+  }
+
+  public detener(timeoutMs = 2000): Promise<void> {
+    return new Promise((resolve) => {
+      if (!this.iniciado) {
+        resolve();
+        return;
+      }
+      let terminado = false;
+      const temporizador = setTimeout(() => {
+        if (!terminado) {
+          terminado = true;
+          this.servidor.forceShutdown();
+          this.iniciado = false;
+          resolve();
+        }
+      }, timeoutMs);
+
+      this.servidor.tryShutdown((err) => {
+        if (!terminado) {
+          terminado = true;
+          clearTimeout(temporizador);
+          if (err) {
+            this.servidor.forceShutdown();
+          }
+          this.iniciado = false;
+          resolve();
+        }
+      });
+    });
+  }
+
+  public obtenerPuerto(): number {
+    return this.puertoAsignado;
+  }
+}
+
+export async function verificarSalud(puerto = 50051, host = '127.0.0.1'): Promise<{ status: string }> {
+  return new Promise((resolve, reject) => {
+    const ClienteSalud = paqueteSalud.grpc.health.v1.Health;
+    const cliente = new ClienteSalud(`${host}:${puerto}`, grpc.credentials.createInsecure());
+    cliente.Check({ service: '' }, (error: any, respuesta: any) => {
+      cliente.close();
+      if (error) reject(error);
+      else resolve(respuesta);
+    });
+  });
+}
