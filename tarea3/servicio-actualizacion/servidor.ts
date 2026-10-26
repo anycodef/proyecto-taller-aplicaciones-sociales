@@ -117,12 +117,69 @@ const manejadoresSalud = {
   },
 };
 
-// Implementación de Actualizacion (stubs para T009-31, se implementan en T009-32..36)
+export function normalizarEstado(estado: any): 'PRESENTE' | 'AUSENTE' | 'JUSTIFICADA' | 'TARDANZA' {
+  if (typeof estado === 'string') {
+    if (estado === 'PRESENTE' || estado === 'AUSENTE' || estado === 'JUSTIFICADA' || estado === 'TARDANZA') {
+      return estado;
+    }
+    const num = parseInt(estado, 10);
+    if (!isNaN(num)) return normalizarEstado(num);
+  }
+  switch (estado) {
+    case 1: return 'PRESENTE';
+    case 2: return 'AUSENTE';
+    case 3: return 'JUSTIFICADA';
+    case 4: return 'TARDANZA';
+    default: return 'PRESENTE';
+  }
+}
+
+export function estadoAProto(estado: string): number {
+  switch (estado) {
+    case 'PRESENTE': return 1;
+    case 'AUSENTE': return 2;
+    case 'JUSTIFICADA': return 3;
+    case 'TARDANZA': return 4;
+    default: return 0;
+  }
+}
+
+// Implementación de Actualizacion
 const manejadoresActualizacion = {
   RegistrarAsistencia: async (call: any, callback: any) => {
     try {
-      await validarAutenticacion(call.metadata, true);
-      callback({ code: grpc.status.UNIMPLEMENTED, message: 'RegistrarAsistencia se implementa en T009-32' });
+      const { autor } = await validarAutenticacion(call.metadata, true);
+      const req = call.request;
+      if (!req.id || !req.catequizando_id || !req.fecha) {
+        callback({ code: grpc.status.INVALID_ARGUMENT, message: 'Faltan campos obligatorios (id, catequizando_id, fecha)' });
+        return;
+      }
+      const { grupoId, identidadOperativa } = await validarAlcanceCatequizando(autor, req.catequizando_id);
+      const estado = normalizarEstado(req.estado);
+
+      const res = await pool.query(
+        `INSERT INTO demo_tarea3.asistencia (id, catequizando_id, fecha, estado, registrado_por)
+         VALUES ($1, $2, $3, $4, $5)
+         ON CONFLICT (id) DO NOTHING
+         RETURNING id`,
+        [req.id, req.catequizando_id, req.fecha, estado, autor.identidadOperativa]
+      );
+
+      const repetido = (res.rowCount ?? 0) === 0;
+
+      if (!repetido) {
+        const evento = JSON.stringify({
+          asistencia_id: req.id,
+          catequizando_id: req.catequizando_id,
+          grupo_id: grupoId,
+          identidad_operativa: identidadOperativa,
+          estado,
+          fecha: req.fecha,
+        });
+        await pool.query('SELECT pg_notify($1, $2)', ['asistencia_evento', evento]).catch(() => {});
+      }
+
+      callback(null, { id: req.id, repetido });
     } catch (error: any) {
       callback({ code: error.code ?? grpc.status.INTERNAL, message: error.message });
     }
