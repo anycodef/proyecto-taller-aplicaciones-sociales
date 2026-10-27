@@ -6,7 +6,8 @@
   "type": "module",
   "scripts": {
     "demo": "tsx scripts/demo.mjs",
-    "test": "tsx --test --test-concurrency=1 pruebas-e2e/*.test.ts servicio-actualizacion/pruebas/*.test.ts servicio-consulta/pruebas/*.test.ts servidor-mcp/*.test.ts agente/*.test.ts ../docs/tarea-3/pruebas/*.test.mjs",
+    "demo:web": "tsx scripts/demo-web.mjs",
+    "test": "tsx --test --test-concurrency=1 pruebas-e2e/*.test.ts servicio-actualizacion/pruebas/*.test.ts servicio-consulta/pruebas/*.test.ts servidor-mcp/*.test.ts agente/*.test.ts interfaz-web/*.test.ts ../docs/tarea-3/pruebas/*.test.mjs",
     "token": "tsx scripts/token.mjs",
     "bd:subir": "tsx scripts/bd-subir.mjs",
     "bd:sembrar": "tsx scripts/bd-sembrar.mjs",

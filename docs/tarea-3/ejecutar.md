@@ -71,6 +71,27 @@ Salida esperada (ver `tarea3/evidencia/demo-output.txt`):
 El comando termina con código 0 únicamente si todos los pasos pasan; ante un
 fallo devuelve un código distinto de cero.
 
+### Demo visual de GraphQL
+
+Para una exposición en navegador o Postman, mantener PostgreSQL levantado y ejecutar:
+
+```bash
+docker compose -f api/docker-compose.yml up -d postgres
+npm --prefix tarea3 run demo:web
+```
+
+El comando migra y siembra datos ficticios, arranca gRPC en `50051`, GraphQL en
+`http://127.0.0.1:4000/graphql` y la interfaz visual en
+`http://127.0.0.1:4173`. La página permite seleccionar campos, ejecutar una
+consulta, registrar una asistencia mediante una mutación y confirmar la
+persistencia con una consulta posterior. El JWT de coordinación se genera y se
+mantiene solo en la memoria del servidor local de demostración.
+
+Para Postman u otro cliente, usar directamente `POST
+http://127.0.0.1:4000/graphql` con `Content-Type: application/json` y un JWT
+generado mediante `npm --prefix tarea3 run token -- --rol COORD` en la cabecera
+`Authorization: Bearer <token>`.
+
 ### Usar el servidor MCP con OpenCode
 
 El archivo `opencode.json` de la raíz registra el mismo servidor MCP local que
