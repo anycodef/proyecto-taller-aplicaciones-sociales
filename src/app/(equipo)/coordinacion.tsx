@@ -10,6 +10,7 @@ const OPCIONES: { titulo: string; subtitulo: string; ruta: Href }[] = [
   { titulo: "Delegaciones", subtitulo: "Continuidad del equipo dominical", ruta: "/delegaciones" },
   { titulo: "Auditoría", subtitulo: "Quién consultó qué", ruta: "/auditoria" },
   { titulo: "Avisos del sistema", subtitulo: "Alertas para la coordinación", ruta: "/avisos-sistema" },
+  { titulo: "Grupos", subtitulo: "Grupos del ciclo y conteo de niños", ruta: "/coordinacion/grupos" as Href },
   { titulo: "Pasar lista", subtitulo: "Vista del catequista", ruta: "/asistencia" },
 ];
 

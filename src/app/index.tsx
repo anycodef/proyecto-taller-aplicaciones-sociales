@@ -70,7 +70,14 @@ export default function Inicio() {
         ¿Aún no tienes enlace? Pídelo a la coordinación.
       </Text>
       {__DEV__ ? (
-        <Boton etiqueta="Galería de componentes" variante="enlace" alPresionar={() => router.push("/galeria")} />
+        <>
+          <Boton etiqueta="Galería de componentes" variante="enlace" alPresionar={() => router.push("/galeria")} />
+          <Boton
+            etiqueta="Navegación de pantallas"
+            variante="secundario"
+            alPresionar={() => router.push("/navegacion" as Href)}
+          />
+        </>
       ) : null}
     </ScrollView>
   );
