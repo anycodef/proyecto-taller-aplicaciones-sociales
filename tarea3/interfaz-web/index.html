@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Demostración visual de GraphQL y gRPC en SIGECAT" />
+    <title>Laboratorio GraphQL | SIGECAT</title>
+    <link rel="stylesheet" href="/estilos.css" />
+  </head>
+  <body>
+    <header class="cabecera">
+      <div>
+        <p class="marca">SIGECAT · TAREA 3</p>
+        <h1>GraphQL en ejecución</h1>
+        <p class="bajada">Una demostración visual del recorrido consulta → mutación → confirmación.</p>
+      </div>
+      <div class="estado-general" aria-live="polite">
+        <span class="pulso"></span>
+        <div>
+          <strong id="estadoTexto">Verificando servicios…</strong>
+          <small id="endpointTexto">Conectando con el backend local</small>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section class="flujo" aria-label="Arquitectura de la demostración">
+        <div><span>1</span><strong>Interfaz web</strong><small>selecciona campos</small></div>
+        <b>→</b>
+        <div><span>2</span><strong>GraphQL</strong><small>puerto 4000</small></div>
+        <b>→</b>
+        <div><span>3</span><strong>gRPC</strong><small>solo escrituras</small></div>
+        <b>→</b>
+        <div><span>4</span><strong>PostgreSQL</strong><small>datos ficticios</small></div>
+      </section>
+
+      <section class="panel principal">
+        <div class="titulo-paso">
+          <span>01</span>
+          <div>
+            <p class="sobrelinea">CONSULTA SELECTIVA</p>
+            <h2>Pide únicamente lo que necesitas</h2>
+            <p>Marca o desmarca campos y observa cómo cambia tanto la consulta como la respuesta.</p>
+          </div>
+        </div>
+
+        <div class="rejilla-consulta">
+          <form id="formConsulta" class="controles">
+            <label>
+              Grupo de demostración
+              <select id="grupoId">
+                <option value="11111111-1111-1111-1111-111111111101">Primera Comunión A</option>
+                <option value="11111111-1111-1111-1111-111111111102">Confirmación B</option>
+              </select>
+            </label>
+            <fieldset>
+              <legend>Campos solicitados</legend>
+              <label class="opcion"><input type="checkbox" name="campo" value="id" checked /> Identificador</label>
+              <label class="opcion"><input type="checkbox" name="campo" value="identidadOperativa" checked /> Identidad operativa</label>
+              <label class="opcion"><input type="checkbox" name="campo" value="edad" checked /> Edad</label>
+              <label class="opcion"><input type="checkbox" name="campo" value="riesgo { nivel motivo }" /> Riesgo</label>
+            </fieldset>
+            <label>
+              Cantidad de resultados
+              <input id="limite" type="range" min="1" max="6" value="3" />
+              <output id="limiteValor">3</output>
+            </label>
+            <button class="boton primario" type="submit">Ejecutar consulta GraphQL</button>
+          </form>
+
+          <div class="resultado">
+            <div class="resultado-cabecera">
+              <div>
+                <p class="sobrelinea">RESPUESTA REAL</p>
+                <h3 id="resultadoTitulo">Lista preparada</h3>
+              </div>
+              <span id="duracionConsulta" class="latencia">— ms</span>
+            </div>
+            <div id="listaCatequizandos" class="lista-vacia">
+              Ejecuta la consulta para visualizar los datos devueltos por GraphQL.
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="titulo-paso">
+          <span>02</span>
+          <div>
+            <p class="sobrelinea naranja">MUTACIÓN DE DATOS</p>
+            <h2>Registra una asistencia</h2>
+            <p>GraphQL recibe la mutación y delega la escritura al microservicio gRPC.</p>
+          </div>
+        </div>
+
+        <div class="rejilla-mutacion">
+          <form id="formMutacion" class="controles">
+            <label>
+              Catequizando
+              <select id="catequizandoId" required>
+                <option value="22222222-2222-2222-2222-222222222101">Ana García López</option>
+                <option value="22222222-2222-2222-2222-222222222102">Luis Pérez Méndez</option>
+                <option value="22222222-2222-2222-2222-222222222103">Carmen Ruiz Díaz</option>
+              </select>
+            </label>
+            <div class="dos-columnas">
+              <label>Fecha <input id="fecha" type="date" value="2026-11-15" required /></label>
+              <label>
+                Estado
+                <select id="estado">
+                  <option>PRESENTE</option>
+                  <option>AUSENTE</option>
+                  <option>JUSTIFICADA</option>
+                  <option>TARDANZA</option>
+                </select>
+              </label>
+            </div>
+            <button class="boton secundario" type="submit">Registrar mediante GraphQL</button>
+          </form>
+
+          <div id="recorridoMutacion" class="recorrido">
+            <div data-paso="graphql"><span>1</span><strong>GraphQL</strong><small>recibe la mutación</small></div>
+            <i></i>
+            <div data-paso="grpc"><span>2</span><strong>gRPC</strong><small>procesa la escritura</small></div>
+            <i></i>
+            <div data-paso="postgres"><span>3</span><strong>PostgreSQL</strong><small>guarda el UUID</small></div>
+            <i></i>
+            <div data-paso="confirmacion"><span>4</span><strong>Confirmación</strong><small>GraphQL vuelve a consultar</small></div>
+          </div>
+          <div id="mensajeMutacion" class="mensaje-neutro">Completa el formulario para iniciar el recorrido.</div>
+        </div>
+      </section>
+
+      <section class="panel inspector">
+        <div class="titulo-paso compacto">
+          <span>03</span>
+          <div>
+            <p class="sobrelinea">INSPECTOR TÉCNICO</p>
+            <h2>Lo que realmente viaja por HTTP</h2>
+          </div>
+        </div>
+        <div class="codigo-rejilla">
+          <div>
+            <div class="codigo-titulo"><strong>Solicitud GraphQL</strong><span>POST /graphql</span></div>
+            <pre id="codigoSolicitud">La consulta aparecerá aquí.</pre>
+          </div>
+          <div>
+            <div class="codigo-titulo"><strong>Respuesta JSON</strong><span id="codigoEstado">pendiente</span></div>
+            <pre id="codigoRespuesta">La respuesta aparecerá aquí.</pre>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <strong>Datos 100 % ficticios</strong>
+      <span>JWT COORD generado únicamente en memoria · Sin salud, documentos ni neurodivergencia</span>
+    </footer>
+    <script src="/app.js" defer></script>
+  </body>
+</html>

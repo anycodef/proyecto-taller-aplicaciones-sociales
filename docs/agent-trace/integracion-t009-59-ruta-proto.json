@@ -1,0 +1,11 @@
+{
+  "version": "1.0",
+  "fecha": "2026-10-26",
+  "agente": "Codex",
+  "rama": "tarea3/p4-mcp",
+  "tarea": "T009-59",
+  "cambio": "Corregir la ruta relativa del contrato sigecat.proto, enviar autorización en los tramos gRPC directos y tratar la cancelación deliberada del streaming como cierre esperado.",
+  "causa": "Desde tarea3/pruebas-e2e se subían dos niveles y se buscaba contratos/ en la raíz; tras corregirlo, el lote reveló que sus llamadas gRPC no enviaban el JWT y el streaming rechazaba la cancelación que el propio test programa.",
+  "archivo": "tarea3/pruebas-e2e/recorrido.test.ts",
+  "verificacion": "PASÓ: npm --prefix tarea3 test con PostgreSQL, servicio-consulta y servicio-actualizacion reales; 17 pruebas, 0 omitidas y recorrido GraphQL → gRPC → GraphQL → lote → streaming aprobado."
+}

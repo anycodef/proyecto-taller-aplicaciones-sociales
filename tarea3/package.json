@@ -1,0 +1,32 @@
+{
+  "name": "sigecat-tarea3",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Demo GraphQL + gRPC + MCP de SIGECAT (Tarea 3 del taller). Base, siembra, auth, riesgo, orquestación, e2e y evidencia (P5).",
+  "type": "module",
+  "scripts": {
+    "demo": "tsx scripts/demo.mjs",
+    "demo:web": "tsx scripts/demo-web.mjs",
+    "test": "tsx --test --test-concurrency=1 pruebas-e2e/*.test.ts servicio-actualizacion/pruebas/*.test.ts servicio-consulta/pruebas/*.test.ts servidor-mcp/*.test.ts agente/*.test.ts interfaz-web/*.test.ts ../docs/tarea-3/pruebas/*.test.mjs",
+    "token": "tsx scripts/token.mjs",
+    "bd:subir": "tsx scripts/bd-subir.mjs",
+    "bd:sembrar": "tsx scripts/bd-sembrar.mjs",
+    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p servicio-actualizacion/tsconfig.json && tsc --noEmit -p servicio-consulta/tsconfig.json && tsc --noEmit -p servidor-mcp/tsconfig.json && tsc --noEmit -p agente/tsconfig.json"
+  },
+  "dependencies": {
+    "@grpc/grpc-js": "1.12.2",
+    "@grpc/proto-loader": "0.7.13",
+    "@modelcontextprotocol/sdk": "0.5.0",
+    "graphql": "16.10.0",
+    "graphql-http": "1.23.0",
+    "jose": "5.9.6",
+    "pg": "8.13.1",
+    "tsx": "4.19.1",
+    "zod": "3.24.1"
+  },
+  "devDependencies": {
+    "@types/node": "22.10.0",
+    "@types/pg": "8.15.6",
+    "typescript": "6.0.3"
+  }
+}

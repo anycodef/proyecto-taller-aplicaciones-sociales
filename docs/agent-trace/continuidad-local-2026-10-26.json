@@ -1,0 +1,16 @@
+{
+  "version": "1.0",
+  "fecha": "2026-10-26",
+  "agente": "Codex",
+  "rama": "tarea3/p4-mcp",
+  "tipo": "checkpoint-wip",
+  "motivo": "Conservar y publicar cambios locales preexistentes para que Claude Cloud pueda continuar el trabajo.",
+  "archivos": [
+    "package-lock.json",
+    "src/app/(equipo)/_layout.tsx",
+    "src/app/(equipo)/coordinacion.tsx",
+    "src/app/index.tsx"
+  ],
+  "estado": "Trabajo en curso; este checkpoint no declara completa ninguna tarea de las specs.",
+  "verificacion": "El diff fue revisado antes del commit y no contiene secretos. Las verificaciones integrales realizadas previamente en este mismo árbol pasaron; no se repitieron para el checkpoint."
+}

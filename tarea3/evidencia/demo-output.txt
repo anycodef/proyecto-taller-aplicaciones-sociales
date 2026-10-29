@@ -1,0 +1,18 @@
+> sigecat-tarea3@0.1.0 demo
+> tsx scripts/demo.mjs
+
+[demo] subiendo base de datos
+[bd:subir] esquema demo_tarea3 creado en PostgreSQL
+[demo] sembrando datos ficticios
+[bd:sembrar] siembra ficticia completada: 2 grupos, 12 catequizandos, 6 domingos
+[demo] arrancando servicios GraphQL y gRPC
+[servicio-actualizacion] Servidor gRPC escuchando en puerto 50051
+[servicio-consulta] escuchando en http://127.0.0.1:4000/graphql
+[demo] 1/5 consulta completada: 6 catequizandos
+[demo] 2/5 mutación completada: repetido=false
+[demo] 3/5 consulta posterior confirmó la escritura
+[demo] 4/5 lote completado: registrados=2, repetidos=0
+[demo] 5/5 streaming recibió un evento de asistencia
+[demo] OK: recorrido completo contra servicios reales
+
+Código de salida: 0. Los UUID variables se omiten de esta copia para que la evidencia sea reproducible.

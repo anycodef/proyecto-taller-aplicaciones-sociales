@@ -1,0 +1,9 @@
+> sigecat-tarea3@0.1.0 test
+> suite conjunta P1-P5
+
+tests 113
+pass 113
+fail 0
+skipped 0
+
+Incluye documentación, base, GraphQL, gRPC, MCP y el recorrido real GraphQL → gRPC → GraphQL → lote → streaming.

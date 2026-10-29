@@ -1,0 +1,90 @@
+"""Contrato GraphQL de consulta de SIGECAT (spec 009, RF-902/RF-904). CONGELADO."""
+
+scalar FechaCivil # AAAA-MM-DD, zona America/Lima
+
+enum EstadoAsistencia { PRESENTE AUSENTE JUSTIFICADA TARDANZA }
+enum NivelRiesgo { BAJO MEDIO ALTO }
+enum RolDemo { COORD CAT FAM SUP }
+
+type Contexto {
+  identidadOperativa: String!
+  rol: RolDemo!
+  grupoId: ID
+}
+
+"""Nunca incluye salud, neurodivergencia ni documentos (RF-907)."""
+type Catequizando {
+  id: ID!
+  identidadOperativa: String!
+  edad: Int!
+  grupo: Grupo!
+  asistencias(desde: FechaCivil, hasta: FechaCivil): [Asistencia!]!
+  riesgo: Riesgo
+}
+
+type Grupo {
+  id: ID!
+  nombre: String!
+  catequizandos(primero: Int = 20, despues: String): ConexionCatequizandos!
+}
+
+type Asistencia {
+  id: ID!
+  fecha: FechaCivil!
+  estado: EstadoAsistencia!
+  registradoPor: String! # siempre identidadOperativa
+}
+
+type Riesgo {
+  catequizandoId: ID!
+  nivel: NivelRiesgo!
+  motivo: String!
+  calculadoEn: String!
+}
+
+type ConexionCatequizandos {
+  nodos: [Catequizando!]!
+  siguiente: String
+  total: Int!
+}
+
+type ResumenAsistencia {
+  fecha: FechaCivil!
+  presentes: Int!
+  ausentes: Int!
+  justificadas: Int!
+  tardanzas: Int!
+}
+
+input RegistrarAsistenciaEntrada {
+  id: ID! # UUID generado por el cliente (RF-905)
+  catequizandoId: ID!
+  fecha: FechaCivil!
+  estado: EstadoAsistencia!
+}
+
+input RegistrarJustificacionEntrada {
+  id: ID! # UUID generado por el cliente
+  asistenciaId: ID!
+  motivo: String!
+}
+
+type ResultadoEscritura {
+  id: ID!
+  repetido: Boolean! # true si el id ya existía (idempotencia)
+}
+
+type Query {
+  yo: Contexto!
+  catequizando(id: ID!): Catequizando
+  catequizandos(grupoId: ID!, primero: Int = 20, despues: String): ConexionCatequizandos!
+  asistenciaDelDomingo(grupoId: ID!, fecha: FechaCivil!): ResumenAsistencia!
+  riesgoDelGrupo(grupoId: ID!, nivelMinimo: NivelRiesgo = MEDIO): [Riesgo!]!
+}
+
+"""Todas delegan por gRPC en servicio-actualizacion (RF-904)."""
+type Mutation {
+  registrarAsistencia(entrada: RegistrarAsistenciaEntrada!): ResultadoEscritura!
+  registrarJustificacion(entrada: RegistrarJustificacionEntrada!): ResultadoEscritura!
+  recalcularRiesgo(catequizandoId: ID!): Riesgo!
+}

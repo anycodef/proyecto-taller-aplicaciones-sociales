@@ -1,0 +1,19 @@
+{
+  "version": "1.0",
+  "fecha": "2026-10-19",
+  "agente": "Claude Code",
+  "modelo": "claude-sonnet-5-5",
+  "rama": "main",
+  "tareas": ["spec-009"],
+  "alcance": ["specs/009-graphql-grpc-mcp/**", "specs/README.md", "tarea3/contratos/**", "docs/tarea-3/**", "docs/agent-trace/tarea3-spec.json"],
+  "fuentes": ["AGENTS.md", "docs/constitution.md", "specs/README.md"],
+  "cambios": [
+    "Spec 009 (spec, plan, tasks) para la Tarea 3: analisis GraphQL/gRPC, demo de consulta y actualizacion, decision MCP",
+    "Contratos congelados: schema.graphql, sigecat.proto y herramientas MCP",
+    "Reparto para 5 personas y prompts por persona en docs/tarea-3",
+    "Fila de la spec 009 en specs/README.md"
+  ],
+  "verificacion": {
+    "npmTest": "NO EJECUTADO: solo documentacion y contratos, sin codigo"
+  }
+}

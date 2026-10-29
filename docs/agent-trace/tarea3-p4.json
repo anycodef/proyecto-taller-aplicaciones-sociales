@@ -1,0 +1,44 @@
+{
+  "version": "1.0",
+  "fecha": "2026-10-26",
+  "agente": "Codex",
+  "modelo": "gpt-5.6-sol",
+  "rama": "tarea3/p4-mcp",
+  "tareas": ["T009-41", "T009-42", "T009-43", "T009-44", "T009-45", "T009-46", "T009-47"],
+  "alcance": [
+    "tarea3/servidor-mcp/**",
+    "tarea3/agente/**",
+    "tarea3/.mcp.json",
+    "tarea3/evidencia/agente-*",
+    "docs/tarea-3/pedidos/p4-para-p5.md",
+    "docs/agent-trace/tarea3-p4.json"
+  ],
+  "fuentes": [
+    "AGENTS.md",
+    "docs/constitution.md",
+    "specs/009-graphql-grpc-mcp/spec.md",
+    "specs/009-graphql-grpc-mcp/plan.md",
+    "specs/009-graphql-grpc-mcp/tasks.md",
+    "tarea3/contratos/herramientas-mcp.md"
+  ],
+  "cambios": [
+    "Servidor MCP con transporte stdio y dependencia de consultas inyectable",
+    "Tres herramientas de lectura del contrato con esquemas de entrada y anotaciones",
+    "Validación Zod previa a la ejecución y pruebas con cliente MCP real en memoria",
+    "Cliente GraphQL con token SIGECAT_TOKEN y selección mínima de campos por herramienta",
+    "Herramientas de escritura no destructivas e idempotentes con UUID generado en el servidor MCP",
+    "Recurso parametrizado de riesgo y prompt revision-dominical con validación de grupo",
+    "Errores MCP controlados sin filtración de mensajes internos",
+    "Prueba integrada con cliente MCP real sobre GraphQL doble y contrato exacto",
+    "Configuración MCP, guion, transcripción real con Claude Code y medición frente a GraphQL"
+  ],
+  "verificacion": {
+    "npmTest": "PASÓ: cliente 29 suites/55 tests; API 26 suites/178 tests con PostgreSQL y Azurite locales",
+    "typecheck": "PASÓ: npm run typecheck",
+    "lint": "PASÓ: npm run lint",
+    "tarea3Test": "PASÓ: 17 tests, 0 omitidos, incluido recorrido real GraphQL → gRPC → GraphQL → lote → streaming",
+    "mcpDirecto": "PASÓ: 14 tests RF-902/RF-905/RF-906/RF-907/RF-909/RF-910, incluida evidencia del agente",
+    "typecheckP4": "PASÓ: tsc --noEmit para servidor-mcp y agente",
+    "t00947": "PASÓ: Claude Code 2.1.310 conectado al MCP sigecat consultó riesgo, registró asistencia, recalculó y verificó el resultado solo mediante herramientas MCP; transcripción y medición guardadas"
+  }
+}

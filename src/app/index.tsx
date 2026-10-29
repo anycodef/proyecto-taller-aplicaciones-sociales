@@ -69,6 +69,9 @@ export default function Inicio() {
       <Text style={[tipografia.nota, estilos.pie]}>
         ¿Aún no tienes enlace? Pídelo a la coordinación.
       </Text>
+      {__DEV__ ? (
+        <Boton etiqueta="Galería de componentes" variante="enlace" alPresionar={() => router.push("/galeria")} />
+      ) : null}
     </ScrollView>
   );
 }
