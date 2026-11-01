@@ -1,0 +1,40 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-01",
+  "agente": "Codex",
+  "modelo": "GPT-6 (familia declarada por el entorno; identificador exacto no expuesto)",
+  "rama": "tarea4/ia-arquitectura",
+  "base": "654dfea",
+  "spec": "specs/010-bitacora-ia",
+  "tareas": [
+    "T010-01"
+  ],
+  "solicitud": "Verificar que la rama esté actualizada y realizar únicamente el punto 1 de la tarea 4: bitácora de IA con 12 o más usos desde docs/agent-trace/. El usuario autorizó crear la spec mínima.",
+  "alcance": [
+    "specs/010-bitacora-ia/",
+    "docs/tarea4/",
+    "docs/agent-trace/tarea4-bitacora-ia.json"
+  ],
+  "cambios": [
+    "Rama creada desde origin/main en un worktree separado; directorio original preservado con sus cambios.",
+    "Bitácora de 14 usos con tarea, fecha, herramienta, modelo, prompt, resultado, verificación histórica y fuente.",
+    "Prompts reconstruidos y aceptación técnica inferida declarados; sin atribuir aprobación humana ni reejecuciones históricas.",
+    "Pruebas documentales con RF-1001, RF-1002 y RNF-1001."
+  ],
+  "verificacion": {
+    "rama": "git fetch origin --prune; HEAD=654dfea; git rev-list --left-right --count HEAD...origin/main = 0 0 al verificar la entrega.",
+    "documentacion": "PASÓ: node --test docs/tarea4/pruebas/bitacora-ia.test.mjs; 3/3 pruebas, 0 fallos, 0 omitidas. 14 usos distintos, campos y enlaces comprobados contra las trazas.",
+    "typecheck": "PASÓ: npm run typecheck; raíz y API; código de salida 0.",
+    "lint": "PASÓ: npm run lint tras instalar las dependencias existentes de tarea3; código de salida 0.",
+    "npmTest": "NO PASÓ: cliente 55/55 tests, 29/29 suites. La API se detuvo en globalSetup: Falta BD_PRUEBAS_URL. No se afirma ejecución de tests API ni cierre integral.",
+    "infraestructura": "No hay servicios locales en 55432, 5432 ni 10000. Docker Desktop no tiene socket activo; el socket del daemon de sistema rechaza el acceso y sudo requiere contraseña. No se cambiaron permisos ni configuración del sistema.",
+    "instalacion": "npm ci de raíz falló por entradas @emnapi faltantes/incompatibles en el lockfile. npm install sin lockfile falló por resolución de react-test-renderer. Para verificar se instaló sin guardar cambios, con legacy-peer-deps, react-test-renderer@19.2.3 y @react-native/jest-preset@0.86.3, ambos ya registrados en el lockfile. npm ci de api y tarea3 pasó. Los manifiestos y lockfiles permanecen intactos.",
+    "gitDiffCheck": "PASÓ: git diff --check. Solo se crearon la spec 010, la bitácora, sus pruebas y esta traza; no se modificó código ni trazas históricas.",
+    "cierre": "PENDIENTE: ejecutar npm test completo con PostgreSQL/Azurite y BD_PRUEBAS_URL. T010-01 permanece sin marcar. El usuario solicitó expresamente el commit y push tras conocer esta limitación."
+  },
+  "tareasMarcadasCompletas": false,
+  "publicacion": {
+    "solicitud": "El usuario pidió explícitamente crear el commit y pushear la rama después de recibir el informe de validación parcial.",
+    "alcance": "Publicar la entrega documental; no declarar cierre integral ni marcar T010-01 como completada."
+  }
+}
