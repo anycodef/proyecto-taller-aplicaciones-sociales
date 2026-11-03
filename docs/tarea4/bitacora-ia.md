@@ -176,17 +176,6 @@ el prompt resumido, el resultado y cómo se verificó.
 - **Verificación histórica:** Cuatro tests RNTL verificaron RF-112 (días restantes y prohibición de registros en requiere-conexion) y RF-111 (nuevo enlace tras cinco fallos), dentro del lote de 28 tests cliente. Typecheck y lint pasaron; la detección de red no queda acreditada.
 - **Fuente:** [cliente-t001-84.json](../agent-trace/cliente-t001-84.json).
 
-### Uso 14 — Análisis de GraphQL, gRPC y MCP
-
-- **Tarea:** T009-11 a T009-18.
-- **Fecha:** 2026-10-25.
-- **Herramienta:** OpenCode.
-- **Modelo:** `opencode/big-pickle`.
-- **Prompt reconstruido:** Analizar las funcionalidades y la aplicabilidad de GraphQL y gRPC, justificar el uso de MCP y documentar arquitectura, medición, informe y exposición.
-- **Resultado:** Modificado. Se limitó la decisión híbrida a la demo y se distinguió medición de contratos de medición e2e. La traza conserva T009-15 y T009-16 pendientes; no autoriza migración de producción.
-- **Verificación histórica:** node --test docs/tarea-3/pruebas/documentacion.test.mjs pasó 4/4 y se ejecutó el script de medición de contratos. Typecheck y lint pasaron; npm test fue parcial (55 cliente y 99 unitarios API), con integración bloqueada por falta de BD_PRUEBAS_URL. No se validó el DSL con Structurizr CLI.
-- **Fuente:** [tarea3-p1.json](../agent-trace/tarea3-p1.json).
-
 ## Revisión de la entrega
 
 La selección cubre configuración, programación, seguridad, pruebas, interfaz y
