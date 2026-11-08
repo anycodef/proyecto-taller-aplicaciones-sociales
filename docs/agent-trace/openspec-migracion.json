@@ -1,0 +1,38 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-08",
+  "fechaReferenciaLima": "2026-11-08T13:35:00-05:00",
+  "agente": "Cursor",
+  "modelo": "Grok 4.7",
+  "rama": "main",
+  "tareas": ["openspec-migracion"],
+  "alcance": ["openspec/**", ".opencode/**", "README.md", "docs/agent-trace/openspec-migracion.json"],
+  "autorizacion": "El usuario pidió commitear y pushear a main estos cambios, y actualizar el README.",
+  "cambios": [
+    "Specs de comportamiento 001-008 en openspec/specs, validadas con openspec validate --specs --strict",
+    "La spec 009 no se migró: GraphQL, gRPC y MCP no entran al producto; el transporte sigue en REST",
+    "openspec/config.yaml con el contexto de SIGECAT para los cambios siguientes",
+    "Comandos y skills de OpenSpec para OpenCode en .opencode",
+    "README actualizado con el flujo /opsx y la decisión de transporte"
+  ],
+  "fuentes": [
+    "docs/constitution.md",
+    "specs/001-acceso-y-roles/spec.md",
+    "specs/002-perfil-catequizando/spec.md",
+    "specs/003-asistencia-dominical/spec.md",
+    "specs/004-justificaciones/spec.md",
+    "specs/005-avance-formativo/spec.md",
+    "specs/006-aptitud-sacramental/spec.md",
+    "specs/007-riesgo-desercion/spec.md",
+    "specs/008-historial-ciclos/spec.md",
+    "https://openspec.dev/docs/quickstart",
+    "https://openspec.dev/docs/supported-tools"
+  ],
+  "verificacion": {
+    "openspecValidate": "openspec validate --specs --strict: 8 passed, 0 failed, después de escribir config.yaml",
+    "npmTest": "no ejecutado; esta tarea no toca código de producto",
+    "typecheck": "no ejecutado",
+    "lint": "no ejecutado",
+    "tareasMarcadasCompletas": false
+  }
+}
