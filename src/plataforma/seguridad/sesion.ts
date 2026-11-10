@@ -224,7 +224,11 @@ export function crearGestorSesion(opciones: GestorSesionOpciones): GestorSesion 
     const hash = await calcularHash(`${sesion.pinSal ?? ""}:${pin}`);
 
     if (sesion.pinHash && hash === sesion.pinHash) {
-      const actualizada: SesionAlmacenada = { ...sesion, intentosFallidos: 0, instanteMaximoVisto: ahora() };
+      const actualizada: SesionAlmacenada = {
+        ...sesion,
+        intentosFallidos: 0,
+        instanteMaximoVisto: Math.max(sesion.instanteMaximoVisto, ahora()),
+      };
       await almacen.guardarSesion(actualizada);
       const estado = estadoSesionLocal({
         ahoraDispositivo: ahora(),

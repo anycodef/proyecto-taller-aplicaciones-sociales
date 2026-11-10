@@ -16,6 +16,7 @@ import { obtenerFuenteInscripciones } from "../../asistencia/infraestructura/fue
 import { crearAviso, leerCorrecciones, leerMarcas, leerParametros, leerSesion, resolverCarneServidor } from "../../asistencia/infraestructura/repositorio-pg";
 import { esquemaPush, type EntradaCorreccion, type EntradaLista, type EntradaMarca, type EntradaPush, type EntradaSesion } from "../dominio/validacion";
 import { cargarContexto } from "../../seguridad/aplicacion/contexto";
+import { auditar } from "../../seguridad/aplicacion/auditar";
 import { actividadYaAplicada, procesarActividad } from "../../actividades/aplicacion/procesar-actividad";
 import { bloquearNinosDelPush, referenciasDePendiente, sinVinculoPersonal } from "../../asistencia/infraestructura/privacidad-pendientes";
 
@@ -23,12 +24,20 @@ type Fila = EntradaLista | EntradaMarca | EntradaCorreccion;
 type TablaInmutable = "lista_asistencia" | "marca_asistencia" | "correccion_asistencia";
 const huella = (fila: Fila | Record<string, unknown>): string => createHash("sha256").update(JSON.stringify(Object.entries(fila).sort(([a], [b]) => a.localeCompare(b)))).digest("hex");
 const iso = (hora: number): string => new Date(hora).toISOString();
+const rechazosAutorizacion = new Set(["autoria_invalida", "rol_no_autorizado", "manual_fuera_de_alcance", "correccion_no_autorizada"]);
+async function auditarRechazo(tabla: TablaInmutable, fila: Fila, cuenta: ContextoAcceso, motivo: string | null, tx: Tx): Promise<void> {
+  if (motivo && rechazosAutorizacion.has(motivo)) await auditar(cuenta, {
+    accion: "sincronizacion:operar", recursoTipo: tabla, recursoId: fila.id, resultado: "denegado",
+    detalle: { motivo: "fuera_de_alcance" },
+  }, tx);
+}
 const autorizadoAutor = (fila: Fila | EntradaSesion, autor: string, cuenta: ContextoAcceso): boolean => fila.cuenta_id === cuenta.cuentaId && autor === cuenta.cuentaId && fila.credencial_id === cuenta.credencialId && fila.dispositivo_id === cuenta.dispositivoId;
 async function repetida(tabla: TablaInmutable, fila: Fila, tx: Tx, cuenta: ContextoAcceso, retirada = false): Promise<"aceptada" | "rechazada" | null> {
   const resultado = await tx.query<{ huella_peticion: string; estado: "aceptada" | "rechazada" }>(`SELECT huella_peticion,estado FROM ${tabla} WHERE id=$1`, [fila.id]);
   if (!resultado.rows.length) return null;
   const autor = "confirmada_por" in fila ? fila.confirmada_por : "registrado_por" in fila ? fila.registrado_por : fila.corregido_por;
   if (!autorizadoAutor(fila, autor, cuenta)) {
+    await auditarRechazo(tabla, fila, cuenta, "autoria_invalida", tx);
     await crearAviso(tx, { tipo: "rechazo_registro", cicloId: fila.ciclo_id, sesionId: fila.sesion_id, referencia: fila.id, motivo: "autoria_invalida" });
     return "rechazada";
   }
@@ -37,6 +46,7 @@ async function repetida(tabla: TablaInmutable, fila: Fila, tx: Tx, cuenta: Conte
   return "rechazada";
 }
 async function guardar(tabla: TablaInmutable, fila: Fila, autor: string, cuenta: ContextoAcceso, motivo: string | null, tx: Tx, ninoId?: string | null, retirada = false): Promise<void> {
+  await auditarRechazo(tabla, fila, cuenta, motivo, tx);
   const entradaMinima = retirada ? sinVinculoPersonal(fila) : fila;
   const campos: Record<string, unknown> = { ...entradaMinima, cuenta_id: cuenta.cuentaId, credencial_id: cuenta.credencialId, dispositivo_id: cuenta.dispositivoId,
     estado: motivo ? "rechazada" : "aceptada", motivo_rechazo: motivo, huella_peticion: huella(entradaMinima) };

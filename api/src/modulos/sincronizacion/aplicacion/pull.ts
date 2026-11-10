@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import type { ContextoAcceso } from "@/lib/seguridad/contexto-acceso";
+import { autorizar } from "@/lib/seguridad/autorizacion";
 import { huellaAlcance } from "@/lib/sincronizacion/alcance";
 import type { CambiosPorTabla, RespuestaPull } from "@/lib/sincronizacion/protocolo";
 import { enTransaccion, type Tx } from "../../../compartido/bd/transaccion";
@@ -10,6 +11,7 @@ import { obtenerTablas } from "@/lib/sincronizacion/registro-tablas";
 import { incorporarLapidas } from "../../asistencia/infraestructura/lapidas-sincronizacion";
 export interface EntradaPull { ultimoPulso: number | null; versionEsquema: number; huellaAlcance?: string | null; migracion?: { tablas: string[]; columnas?: { tabla: string; columnas: string[] }[] } }
 export async function aplicarPull(entrada: EntradaPull, cuenta: ContextoAcceso, tx: Tx): Promise<RespuestaPull> {
+  if (!autorizar(cuenta, "sincronizacion:operar").permitido) throw new ErrorAplicacion(403, "fuera_de_alcance");
   if (entrada.versionEsquema !== 1 || (entrada.ultimoPulso !== null && (!Number.isSafeInteger(entrada.ultimoPulso) || entrada.ultimoPulso < 0 || entrada.ultimoPulso > Date.now()))) throw new ErrorAplicacion(422, "esquema_sincronizacion_invalido");
   const sello = await tx.query<{ timestamp: string }>("SELECT floor(extract(epoch FROM clock_timestamp())*1000)::bigint AS timestamp");
   const timestamp = Number(sello.rows[0].timestamp);

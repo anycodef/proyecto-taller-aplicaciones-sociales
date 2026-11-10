@@ -4,7 +4,7 @@ import { ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { Aviso, Boton, Insignia, Tarjeta } from "@/components/ui";
 import { PuntosPin, TecladoPin } from "@/components/seguridad/teclado-pin";
-import { DIAS_SESION_SIN_CONEXION, estadoSesionLocal } from "@/lib/seguridad/sesion-local";
+import { DIAS_SESION_SIN_CONEXION } from "@/lib/seguridad/sesion-local";
 import { useSesion } from "@/plataforma/seguridad/contexto-sesion";
 import { colores, espacio, tipografia } from "@/tema";
 
@@ -20,7 +20,8 @@ export function diasRestantes(ultimaRenovacion: number | null, ahora: number): n
 }
 
 export default function Desbloquear() {
-  const { gestor, contexto, ultimaRenovacion, bloqueada, intentosFallidos, cargando, cerrarSesion } = useSesion();
+  const { desbloquearSesion, contexto, ultimaRenovacion, bloqueada, desbloqueada, modoConsulta, cargando, cerrarSesion } = useSesion();
+  const [enviando, setEnviando] = useState(false);
   const [pantalla, setPantalla] = useState<Pantalla | null>(null);
   const [pin, setPin] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -29,41 +30,41 @@ export default function Desbloquear() {
   const [ahora] = useState(() => Date.now());
   const dias = diasRestantes(ultimaRenovacion, ahora);
 
-  const local = estadoSesionLocal({
-    ahoraDispositivo: ahora,
-    instanteMaximoVisto: ahora,
-    ultimaRenovacion: ultimaRenovacion ?? 0,
-    intentosFallidos,
-    bloqueada,
-  });
 
   const actual: Pantalla =
     pantalla ??
-    (bloqueada || local === "bloqueada"
+    (bloqueada
       ? "bloqueada"
-      : local === "requiere-conexion"
+      : desbloqueada && modoConsulta
         ? "requiere_conexion"
         : "entrar");
 
   const entrar = useCallback(async () => {
-    if (!cuentaId) return;
+    if (!cuentaId || enviando) return;
     setError(null);
-    const resultado = await gestor.desbloquear(cuentaId, pin);
-    if (resultado.estado === "operativa") {
-      router.replace("/");
-      return;
+    setEnviando(true);
+    try {
+      const resultado = await desbloquearSesion(pin);
+      if (resultado.estado === "operativa") {
+        router.replace("/");
+        return;
+      }
+      if (resultado.estado === "requiere-conexion") {
+        setPantalla("requiere_conexion");
+        return;
+      }
+      if (resultado.estado === "bloqueada") {
+        setPantalla("bloqueada");
+        return;
+      }
+      const restantes = Math.max(0, 5 - resultado.intentosFallidos);
+      setError(`El PIN no es correcto. Te quedan ${restantes} intentos.`);
+    } catch {
+      setError("No se pudo desbloquear la sesión. Inténtalo de nuevo.");
+    } finally {
+      setEnviando(false);
     }
-    if (resultado.estado === "requiere-conexion") {
-      setPantalla("requiere_conexion");
-      return;
-    }
-    if (resultado.estado === "bloqueada") {
-      setPantalla("bloqueada");
-      return;
-    }
-    const restantes = Math.max(0, 5 - resultado.intentosFallidos);
-    setError(`El PIN no es correcto. Te quedan ${restantes} intentos.`);
-  }, [cuentaId, gestor, pin]);
+  }, [cuentaId, desbloquearSesion, enviando, pin]);
 
   if (cargando) {
     return (
@@ -111,7 +112,13 @@ export default function Desbloquear() {
           </Text>
         </Tarjeta>
         <Boton etiqueta="Reintentar conexión" alPresionar={() => setPantalla("entrar")} />
-        <Boton etiqueta="Abrir en modo consulta" variante="secundario" alPresionar={() => router.replace("/")} />
+        <Boton
+          etiqueta="Abrir en modo consulta"
+          variante="secundario"
+          alPresionar={() => {
+            if (desbloqueada && modoConsulta) router.replace("/");
+          }}
+        />
       </Marco>
     );
   }

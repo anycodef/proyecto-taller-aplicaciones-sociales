@@ -18,7 +18,10 @@ export default function LayoutRaiz() {
  * En SDK 57 `Stack.Protected` no admite `redirectTo` (exige SDK 58).
  */
 function Navegacion() {
-  const { cargando, tipo } = useSesion();
+  const { cargando, tipo, desbloqueada, bloqueada, rolesEfectivos } = useSesion();
+  const autenticada = !cargando && desbloqueada && !bloqueada;
+  const equipo = autenticada && tipo === "equipo";
+  const tieneRolEquipo = rolesEfectivos.some((rol) => rol !== "familia");
 
   return (
     <Stack
@@ -28,10 +31,10 @@ function Navegacion() {
       }}
     >
       <Stack.Screen name="index" options={{ title: "SIGECAT" }} />
-      <Stack.Protected guard={!cargando && tipo === "equipo"}>
+      <Stack.Protected guard={equipo && tieneRolEquipo}>
         <Stack.Screen name="(equipo)" />
       </Stack.Protected>
-      <Stack.Protected guard={!cargando && tipo === "familia"}>
+      <Stack.Protected guard={autenticada && rolesEfectivos.includes("familia") && (tipo === "familia" || equipo)}>
         <Stack.Screen name="(familia)" />
       </Stack.Protected>
     </Stack>

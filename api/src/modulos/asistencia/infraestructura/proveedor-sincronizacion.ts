@@ -44,10 +44,11 @@ export const proveedorAsistencia: ProveedorSincronizacion = {
       const valores: unknown[] = [cicloId, hasta, desde];
       if (!coordinacion && tabla.alcance === "propias") { valores.push(cuenta.cuentaId); alcance = " AND t.cuenta_id=$4"; }
       if (!coordinacion && tabla.alcance === "mis_grupos") {
-        valores.push(cuenta.gruposAsignados, cuenta.cuentaId);
-        alcance = ` AND (EXISTS(SELECT 1 FROM inscripcion i JOIN asignacion_grupo a ON a.inscripcion_id=i.id
-          WHERE i.catequizando_id=t.catequizando_id AND i.ciclo_id=t.ciclo_id AND i.estado='vigente' AND a.hasta IS NULL AND a.grupo_id=ANY($4::uuid[]))${tabla.nombre === "correcciones_asistencia" ? " OR t.cuenta_id=$5" : ""})`;
-        if (tabla.nombre !== "correcciones_asistencia") valores.pop();
+        valores.push(cuenta.gruposAsignados);
+        alcance = ` AND EXISTS(SELECT 1 FROM inscripcion i JOIN asignacion_grupo a ON a.inscripcion_id=i.id
+          WHERE i.catequizando_id=t.catequizando_id AND i.ciclo_id=t.ciclo_id AND i.estado='vigente'
+            AND i.desde<=now() AND (i.hasta IS NULL OR i.hasta>now())
+            AND a.desde<=now() AND (a.hasta IS NULL OR a.hasta>now()) AND a.grupo_id=ANY($4::uuid[]))`;
       }
       const resultado = await tx.query<Record<string, unknown>>(`SELECT ${seleccion} FROM ${tabla.tablaSql} t
         WHERE t.ciclo_id=$1 AND t.actualizado_en<=to_timestamp($2/1000.0) AND ($3::double precision IS NULL OR t.actualizado_en>to_timestamp($3/1000.0))${alcance}`, valores);

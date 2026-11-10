@@ -132,6 +132,37 @@ afterAll(async () => {
   if (pool) { try { await pool.query(`DROP SCHEMA IF EXISTS ${esquema} CASCADE`); } finally { await pool.end(); } }
 });
 
+test("RF-102 RF-307 RNF-306: pull no revela correcciones propias de otro grupo ni asignaciones futuras", async () => {
+  const propio = await crearNino(), ajeno = await crearNino(grupoAjeno), futuro = await crearNino();
+  const correcciones: EntradaCorreccion[] = [propio, ajeno, futuro].map(catequizandoId => ({
+    id: randomUUID(), ciclo_id: cicloId, sesion_id: sesionId, catequizando_id: catequizandoId,
+    valor_anterior: "ausente", valor_nuevo: "presente", motivo: "Revisión de coordinación",
+    corregido_por: cuenta.cuentaId, cuenta_id: cuenta.cuentaId, credencial_id: cuenta.credencialId,
+    dispositivo_id: cuenta.dispositivoId!, hora_dispositivo: Date.parse("2020-10-05T09:00:00-05:00"), desfase_reloj_ms: 0,
+  }));
+  expect(await push({ changes: { correcciones_asistencia: { created: correcciones, updated: [], deleted: [] } } }, cuenta)).toMatchObject({ aceptados: 3, rechazados: 0 });
+  await pool.query("UPDATE asignacion_grupo SET desde=now()+interval '1 day' WHERE inscripcion_id IN (SELECT id FROM inscripcion WHERE catequizando_id=$1)", [futuro]);
+  const cat: ContextoAcceso = { ...cuenta, rolesPropios: ["catequista"] };
+  const limitado = await pull({ ultimoPulso: null, versionEsquema: 1 }, cat);
+  const ids = limitado.changes.correcciones_asistencia.created.map(fila => fila.id);
+  expect(ids).toContain(correcciones[0].id);
+  expect(ids).not.toContain(correcciones[1].id);
+  expect(ids).not.toContain(correcciones[2].id);
+  const completo = await pull({ ultimoPulso: null, versionEsquema: 1 }, cuenta);
+  expect(completo.changes.correcciones_asistencia.created.map(fila => fila.id)).toEqual(expect.arrayContaining(correcciones.map(fila => fila.id)));
+});
+
+test("RF-102 RF-304 RF-109: manual ajeno se rechaza, se audita y no altera asistencia", async () => {
+  const nino = await crearNino(grupoAjeno), autor = await crearCuenta("autorizacion");
+  await pool.query("DELETE FROM rol_cuenta WHERE cuenta_id=$1 AND rol='coordinacion'", [autor.cuentaId]);
+  const marca = nuevaMarca(nino, autor, { tipo_registro: "manual", codigo_leido: null });
+  expect(await push(lote([marca]), { ...autor, rolesPropios: ["catequista"] })).toMatchObject({ aceptados: 0, rechazados: 1 });
+  expect((await pool.query("SELECT id FROM asistencia WHERE sesion_id=$1 AND catequizando_id=$2", [sesionId, nino])).rowCount).toBe(0);
+  expect((await pool.query("SELECT cuenta_id,resultado,detalle FROM evento_auditoria WHERE recurso_id=$1", [marca.id])).rows).toEqual([
+    { cuenta_id: autor.cuentaId, resultado: "denegado", detalle: { motivo: "fuera_de_alcance" } },
+  ]);
+});
+
 test("RF-307 RF-308: UUID idempotente conserva un consolidado, ambos autores y recibido del primer insert", async () => {
   const nino = await crearNino(), marca = nuevaMarca(nino);
   expect(await push(lote([marca]), cuenta)).toEqual({ aceptados: 1, rechazados: 0, descartadosCierre: 0 });
@@ -435,7 +466,9 @@ test("RF-106 RF-307: retiro después de anulación entrega ids anteriores aun si
   trasAnulacion.forEach((respuesta, indice) => aplicarAlCliente(clientes[indice], respuesta));
   expect(trasAnulacion.every(respuesta => respuesta.experimentalStrategy === "replacement")).toBe(true);
   expect(clientes[0].get("marcas_asistencia")?.has(marca.id)).toBe(true);
-  expect(clientes[0].get("correcciones_asistencia")?.has(correccion.id)).toBe(true);
+  expect(clientes[0].get("correcciones_asistencia")?.has(correccion.id)).toBe(false);
+  expect(clientes[1].get("correcciones_asistencia")?.has(correccion.id)).toBe(false);
+  expect(clientes[2].get("correcciones_asistencia")?.has(correccion.id)).toBe(true);
   expect(clientes[2].get("asistencias")?.has(idAnterior)).toBe(true);
   await retirarEnTransaccion(nino);
   const posteriores = await Promise.all(destinatarios.map((ctx, indice) => pull({ ultimoPulso: trasAnulacion[indice].timestamp, huellaAlcance: trasAnulacion[indice].huellaAlcance, versionEsquema: 1 }, ctx)));
