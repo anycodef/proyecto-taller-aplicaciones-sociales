@@ -10,6 +10,24 @@
 
 ---
 
+## Ampliación aprobada 2026-11-09 — RNF-106
+
+T001-154 implementa una Function `GET estado` con `authLevel: function`, `SELECT 1`
+en el pool existente y respuesta mínima 200/503 sin logs de errores ni datos.
+APIM publica una API técnica separada con path `estado`, una única operación
+`GET /`, sin suscripción ni JWT; hereda la inyección de clave de host y reescribe
+al backend `/estado`. Nunca se modifica la protección de `/v1` para sondear.
+T001-155 añade un módulo Bicep independiente de disponibilidad que recibe la URL
+de estado de APIM y el id de Application Insights; evita el ciclo de dependencias
+telemetría → Functions → APIM → telemetría. Prueba estándar cada 300 s, timeout
+30 s, tres ubicaciones, TLS/status/contenido, sin redirecciones. Alerta
+WebtestLocationAvailabilityCriteria (dos ubicaciones, PT1M/PT5M, autoMitigate),
+grupo de acción con correo operativo y esquema común. `correoAlertas` vacío usa
+`correoPresupuesto`; activación ligada a `publicarPoliticas`. No se añaden paquetes,
+migraciones, credenciales sintéticas ni secretos en la sonda. Consultar precio
+regional antes de publicar: no es una garantía de coste cero. T001-156 queda
+abierta hasta el ensayo real en Azure de caída/aviso/recuperación.
+
 ## 1. Resumen y alcance
 
 **Acuerdo 2026-10-11:** este trabajo cubre backend F0–F4 completo, no solo primer corte. D-101–D-121 y S-01–S-20 están aceptados con los ajustes aquí registrados. Las secciones históricas de dudas contienen la motivación de la decisión; no son bloqueos de aprobación. UI, campo y despliegue se cierran solo con evidencia. Contratos transversales: [guía frontend](../../docs/backend-contratos.md); estado: [seguimiento](../../docs/backend-implementacion.md).

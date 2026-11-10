@@ -456,6 +456,29 @@ La gestión de cuentas y enlaces SHALL NOT generar costo por usuario ni por mens
 - **WHEN** se crea una cuenta, se genera un enlace o se envía ese enlace
 - **THEN** la operación no genera costo por usuario ni por mensaje
 
+### Requirement: RNF-106 Disponibilidad y alerta operativa
+
+Aprobado 2026-11-09. El sistema SHALL sondear APIM → Functions → PostgreSQL por HTTPS cada 300 segundos desde tres ubicaciones con timeout de 30 segundos, sin redirecciones y validando TLS, HTTP 200 y `{"estado":"disponible"}`. La API técnica separada GET `/estado/` SHALL NOT exigir credencial personal ni suscripción y SHALL NOT devolver datos personales, errores internos ni secretos. Functions SHALL seguir exigiendo clave de host y `/v1` SHALL mantener sus controles. PostgreSQL se comprueba con SELECT 1 de solo lectura y tiempo acotado, sin paquetes ni modelo nuevos. La respuesta SHALL ser 200/disponible o 503/no_disponible con no-store.
+
+#### Scenario: Caída sin usuarios conectados
+
+- **WHEN** la sonda falla desde al menos dos ubicaciones
+- **THEN** Azure Monitor evalúa cada minuto sobre una ventana de cinco minutos y envía alerta al correo operativo configurable, por defecto el responsable del presupuesto
+- **AND** un 401/403, redirección o contenido incorrecto no cuenta como disponibilidad
+
+#### Scenario: Recuperación y evidencia
+
+- **WHEN** se recupera la disponibilidad
+- **THEN** la alerta se resuelve automáticamente y notifica mediante el grupo de acción
+- **AND** la recepción real se acredita con un ensayo controlado en Azure, no con pruebas locales
+
+#### Scenario: Despliegue seguro y coste
+
+- **WHEN** se publican las políticas finales de producción
+- **THEN** se habilitan sonda y alerta sin secretos en la configuración de la sonda ni cambios a autenticación de datos
+- **AND** se revisa previamente el coste regional de pruebas estándar y alertas; no se usan SMS ni se promete coste cero
+- **AND** el alcance no certifica todos los flujos autenticados ni Blob Storage
+
 ### Requirement: RNF-105 Administración mínima
 
 Crear cuentas, asignar grupos, generar enlaces y delegar SHALL poder hacerse desde el celular, sin intervención técnica (R24).

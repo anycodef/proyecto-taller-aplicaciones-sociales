@@ -13,6 +13,7 @@
   "security": [{ "sesion": [], "suscripcion": [] }],
   "tags": [{ "name": "acceso" }, { "name": "seguridad" }, { "name": "inscripciones" }, { "name": "catequizandos" }, { "name": "asistencia" }, { "name": "sincronizacion" }, { "name": "transversal" }],
   "x-fuentes": [
+      "api/src/compartido/http/estado.ts",
     "api/src/modulos/seguridad/http/index.ts",
     "api/src/modulos/avisos/http/index.ts",
     "api/src/modulos/catequizandos/http/index.ts",
@@ -40,6 +41,31 @@
     "limites": { "sincronizacionPorMinuto": 30, "validacionCarnePorMinuto": 120, "asistenciaPorOperacionMinuto": 30, "ciclosPorMinuto": 30, "actividadesPorMinuto": 30, "busquedaApoderadosPorMinuto": 10, "pushMaximoBytes": 524288 }
   },
   "paths": {
+    "/estado": {
+      "get": {
+        "operationId": "estado",
+        "tags": ["transversal"],
+        "summary": "Comprobar disponibilidad técnica sin datos personales",
+        "description": "RNF-106. SELECT 1 en el pool existente con query_timeout de 5000 ms; conexión limitada a 5000 ms y statement_timeout de 15000 ms por el pool. Origen Functions exige clave de host. APIM publica exclusivamente GET /estado/ en una API técnica separada, sin JWT ni suscripción, e inyecta la clave de host sin exponerla. No modifica los controles de /v1.",
+        "servers": [
+          { "url": "http://localhost:7071/api", "description": "Origen Functions local; requiere clave de host fuera de desarrollo" },
+          { "url": "https://sigecat.example", "description": "APIM ilustrativo: URL pública /estado/ con barra final" }
+        ],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Disponible",
+            "headers": { "Cache-Control": { "schema": { "type": "string", "const": "no-store" } } },
+            "content": { "application/json": { "schema": { "type": "object", "additionalProperties": false, "required": ["estado"], "properties": { "estado": { "type": "string", "const": "disponible" } } }, "example": { "estado": "disponible" } } }
+          },
+          "503": {
+            "description": "No disponible, sin detalles internos",
+            "headers": { "Cache-Control": { "schema": { "type": "string", "const": "no-store" } } },
+            "content": { "application/json": { "schema": { "type": "object", "additionalProperties": false, "required": ["estado"], "properties": { "estado": { "type": "string", "const": "no_disponible" } } }, "example": { "estado": "no_disponible" } } }
+          }
+        }
+      }
+    },
     "/acceso/equipo/activar": { "post": { "operationId": "activarEquipo", "tags": ["acceso"], "summary": "Activar enlace del equipo en dispositivo", "security": [{ "suscripcion": [] }], "requestBody": { "$ref": "#/components/requestBodies/ActivarEquipo" }, "responses": { "200": { "$ref": "#/components/responses/SesionEquipo" }, "401": { "$ref": "#/components/responses/NoAutorizado" }, "422": { "$ref": "#/components/responses/EntradaInvalida" }, "500": { "$ref": "#/components/responses/ErrorInterno" } } } },
     "/acceso/familia/entrar": { "post": { "operationId": "entrarFamilia", "tags": ["acceso"], "summary": "Canjear enlace familiar sin PIN", "security": [{ "suscripcion": [] }], "requestBody": { "$ref": "#/components/requestBodies/EntrarFamilia" }, "responses": { "200": { "$ref": "#/components/responses/SesionFamilia" }, "401": { "$ref": "#/components/responses/NoAutorizado" }, "422": { "$ref": "#/components/responses/EntradaInvalida" }, "500": { "$ref": "#/components/responses/ErrorInterno" } } } },
     "/acceso/renovar": { "post": { "operationId": "renovarSesion", "tags": ["acceso"], "summary": "Rotar renovación antes de enviar pendientes", "description": "401 acceso_denegado para token/dispositivo inválido; credencial_terminada para cuenta/credencial terminada o fuera de ventana de reconexión. El conteo crea aviso, no contiene registros pendientes.", "security": [{ "suscripcion": [] }], "requestBody": { "$ref": "#/components/requestBodies/Renovar" }, "responses": { "200": { "$ref": "#/components/responses/SesionEquipo" }, "401": { "$ref": "#/components/responses/RenovacionDenegada" }, "422": { "$ref": "#/components/responses/EntradaInvalida" }, "500": { "$ref": "#/components/responses/ErrorInterno" } } } },

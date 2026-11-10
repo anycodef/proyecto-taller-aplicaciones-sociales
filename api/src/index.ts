@@ -15,6 +15,7 @@ import { app } from "@azure/functions";
 import { depurarLapidasSincronizacion } from "./modulos/asistencia/infraestructura/lapidas-sincronizacion";
 import { enTransaccion } from "./compartido/bd/transaccion";
 import { consultar } from "./compartido/bd/pool";
+import { registrarEstado } from "./compartido/http/estado";
 
 registrarProveedorResumen({ nombre: "resumenAsistencia", consultar: (id, cicloId, _contexto, tx) => consultarResumenAsistencia(id, cicloId, tx) });
 registrarParticipanteRetencion(participanteRetencionAsistencia);
@@ -22,6 +23,7 @@ registrarParticipanteRetencion(participanteRetencion);
 registrarParticipanteRetencion(participanteSeguridad);
 registrarParticipanteRetencion(participanteRetencionAvisos);
 registrarProveedor(proveedorAvisos);
+registrarEstado();
 registrarSeguridad();
 registrarAvisos();
 registrarCatequizandos();
