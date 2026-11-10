@@ -1,0 +1,22 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-09",
+  "agente": "Zed",
+  "modelo": "GPT-6.1-Sol",
+  "solicitud": "Usuario autoriza ampliar spec 001 para definir e implementar deteccion de caida y alerta",
+  "tarea": "T001-155",
+    "tareasRelacionadas": ["T001-154", "T001-156"],
+  "requisitos": ["RNF-106", "RF-101", "RNF-101", "RNF-103", "RNF-104"],
+  "alcance": ["infra/main.bicep", "infra/modulos/monitoreo.bicep", "infra/modulos/apim.bicep", "infra/modulos/disponibilidad.bicep", "infra/politicas/estado.xml", "infra/prod.example.bicepparam", "infra/scripts/desplegar.py", ".github/workflows/despliegue.yml", "api/pruebas/infra/plantilla.test.mjs", "infra/README.md", "docs/seguridad-acceso-y-operacion.md"],
+  "decisiones": ["API tecnica separada publica, sin datos personales; origen Functions conserva clave de host; /v1 conserva JWT y suscripcion", "SELECT 1 pool existente con query_timeout 5000ms y limites previos de conexion y statement", "Sonda estandar 300s, 3 ubicaciones, timeout 30s, TLS/200/contenido sin redirecciones", "Alerta 2 ubicaciones fallidas PT1M/PT5M con recuperacion automatica y correo configurable", "Activacion ligada a politicas finales; sin dependencias ni migraciones nuevas", "Se documenta posible coste y riesgo de abuso de salud publica, sin prometer coste cero"],
+  "validacion": {
+    "tests": "BD_PRUEBAS_URL=postgres://postgres:postgres@localhost:55432/postgres npm test: 80 cliente y 204 API aprobados, integracion real PostgreSQL",
+    "typecheck": "npm run typecheck aprobado",
+    "lint": "npm run lint aprobado",
+    "openapi": "node api/scripts/verificar-openapi.mjs aprobado, 66 operaciones",
+    "bicep": "Bicep v0.48.1 descargado solo al temporal local, main.bicep compila; 9 tests de plantilla aprobados; sin despliegue",
+    "buildPendiente": "Fallo previo conocido de alias /C:/ en Windows, configuracion de esbuild no modificada"
+  },
+  "limites": ["T001-156 abierta: no hay despliegue, ensayo de caida/recuperacion ni correo real", "Revisar coste regional, receptor y proteccion de red de sondas antes de operacion", "No se modifica constitucion; commit autorizado por el usuario", "Cambios previos de acceso y asistencia se conservan sin revertir"],
+  "fuentes": ["https://learn.microsoft.com/en-us/azure/templates/microsoft.insights/2022-06-15/webtests", "https://learn.microsoft.com/en-us/azure/templates/microsoft.insights/2018-03-01/metricalerts"]
+}

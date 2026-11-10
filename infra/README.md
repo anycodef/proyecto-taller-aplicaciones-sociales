@@ -60,6 +60,60 @@ como artefactos de CI.
 - SWA Free mínima; publicación frontend separada, condicionada a artefacto
   aprobado. No ejecuta EAS ni cambia pantallas/configuración Expo.
 
+## Disponibilidad y alerta (RNF-106, T001-154–156)
+
+`modulos/disponibilidad.bicep` declara una prueba **standard** de Application
+Insights contra la salida `urlEstado` (`https://<gateway>/estado/`), cada 300 s
+con timeout 30 s y reintentos desde Virginia, Texas y California. Valida TLS,
+HTTP 200 y `{"estado":"disponible"}`; no sigue redirecciones ni envía secretos.
+La API técnica de APIM solo publica GET `/`, reescrito a `/api/estado` del origen,
+sin suscripción ni JWT. Hereda la clave de host desde Key Vault; `/v1` mantiene
+sus controles. Functions ejecuta SELECT 1 en el pool existente, con timeout de
+consulta 5 s y límites de conexión/ejecución ya configurados; no lee datos de
+negocio. Respuesta mínima 200/503 no-store. La política normaliza fallos HTTP
+del origen y de transporte a 503 sin detalles; nunca simula éxito ni usa caché.
+
+La alerta se evalúa cada minuto sobre cinco minutos y dispara con dos ubicaciones
+fallidas; `autoMitigate` resuelve al recuperarse. El grupo de acción usa correo
+con esquema común, sin SMS. `CORREO_ALERTAS` es una variable opcional del entorno
+GitHub `prod`; vacía usa `CORREO_PRESUPUESTO`. En Bicep corresponde a
+`correoAlertas`. Sonda y alerta solo se habilitan con `publicarPoliticas=true`,
+después de publicar API y preparar clave de host. Actualizar el correo vuelve a
+desplegar el receptor; no requiere guardar una credencial de usuario en la sonda.
+
+**Coste y alcance:** pruebas estándar, alerta, ingesta, APIM y Functions pueden
+facturarse; consultar precio regional antes de desplegar y revisar consumo.
+La cuota diaria y presupuesto no son un cortacircuito de gasto. El endpoint de
+estado es público, no está bajo los límites por suscripción de productos y cada
+llamada consume API/BD: vigilar abuso/contención; antes de exposición a tráfico
+hostil, acordar protección de red de sondas compatible con APIM Consumption
+(por ejemplo rangos de disponibilidad mantenidos). CORS no limita clientes HTTP.
+Esta sonda no certifica JWT/roles de usuarios, todos los endpoints o Blob Storage.
+
+### Ensayo externo obligatorio — T001-156 permanece abierta
+
+Coordinar Adrian y Pedro una ventana sin usuarios afectados. No provocar una
+caída en producción sin esa coordinación. Usar únicamente datos sintéticos.
+
+1. Revisar what-if, coste regional, regiones de disponibilidad y correo operativo;
+   desplegar y comprobar la prueba habilitada y tres ubicaciones exitosas.
+2. Consultar la salida `urlEstado`: esperar 200, cuerpo mínimo y no-store.
+   Verificar que `/v1/yo` sin credencial sigue rechazado y el origen Functions
+   sin clave no permite ejecutar salud. No publicar claves en capturas.
+3. En Azure Monitor → Grupos de acciones → grupo de operación → Probar, enviar
+   la notificación y confirmar recepción en el buzón (incluido spam). Esta prueba
+   solo acredita el canal, no la detección de caída.
+4. En la ventana autorizada, detener temporalmente Functions y esperar fallo de
+   al menos dos ubicaciones. Conservar hora UTC del fallo, resultados de sonda,
+   alerta activada y hora de recepción del correo. No prometer un plazo exacto:
+   frecuencia, reintentos, arranque frío e ingesta añaden latencia.
+5. Restaurar Functions **aunque falle el ensayo**, confirmar 200, ubicaciones
+   recuperadas, alerta resuelta y aviso recibido. Comprobar nuevamente `/v1`.
+6. Registrar evidencia sanitizada y tiempos reales, coste y responsables. No cerrar
+   T001-156 por compilar Bicep o por recibir solo el correo de prueba.
+
+No se ha ejecutado este ensayo ni se acredita recepción real de correo.
+
 ## Preparación externa de OIDC y entorno
 
 Antes del primer workflow, el responsable configura la suscripción y GitHub:

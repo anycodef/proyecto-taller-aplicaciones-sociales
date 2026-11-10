@@ -44,5 +44,6 @@ resource presupuesto 'Microsoft.Consumption/budgets@2023-05-01' = {
     }
   }
 }
+output telemetriaId string = telemetria.id
 output conexion string = telemetria.properties.ConnectionString
 output claveInstrumentacion string = telemetria.properties.InstrumentationKey

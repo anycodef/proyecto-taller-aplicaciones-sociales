@@ -59,6 +59,30 @@ resource politicaApi 'Microsoft.ApiManagement/service/apis/policies@2024-05-01' 
   }
   dependsOn: [politicaGlobal]
 }
+// API tecnica aislada: nunca comparte las operaciones comodin de datos.
+resource apiEstado 'Microsoft.ApiManagement/service/apis@2024-05-01' = {
+  parent: apim
+  name: 'estado'
+  properties: {
+    displayName: 'Estado tecnico SIGECAT'
+    path: 'estado'
+    protocols: ['https']
+    serviceUrl: urlFunciones
+    subscriptionRequired: false
+  }
+}
+resource operacionEstado 'Microsoft.ApiManagement/service/apis/operations@2024-05-01' = {
+  parent: apiEstado
+  name: 'consultar-estado'
+  properties: { displayName: 'Consultar estado', method: 'GET', urlTemplate: '/', responses: [] }
+}
+resource politicaEstado 'Microsoft.ApiManagement/service/apis/policies@2024-05-01' = if (publicarPoliticas) {
+  parent: apiEstado
+  name: 'policy'
+  properties: { format: 'rawxml', value: loadTextContent('../politicas/estado.xml') }
+  dependsOn: [politicaGlobal]
+}
+
 var definicionesProductos = [
   { nombre: 'app-movil', politica: replace(loadTextContent('../politicas/producto-app.xml'), '__LIMITE__', string(limiteApp)) }
   { nombre: 'web-familias', politica: replace(loadTextContent('../politicas/producto-web.xml'), '__LIMITE__', string(limiteWeb)) }
@@ -98,3 +122,4 @@ resource diagnostico 'Microsoft.ApiManagement/service/diagnostics@2024-05-01' = 
 output nombre string = apim.name
 output identidad string = apim.identity.principalId
 output url string = '${apim.properties.gatewayUrl}/v1'
+output urlEstado string = '${apim.properties.gatewayUrl}/estado/'

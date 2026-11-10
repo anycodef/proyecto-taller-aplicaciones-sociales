@@ -128,3 +128,76 @@ test('RF-101: la rotacion expone clave anterior opcional sin secretos en la plan
   const ajustes = recursosDe('Microsoft.Web/sites')[0].properties.siteConfig.appSettings;
   assert.match(ajustes.find((ajuste) => ajuste.name === 'JWT_CLAVES').value, /secrets\/jwt-claves/);
 });
+
+test('RNF-106 RF-101: salud aislada sin suscripcion no abre comodines ni quita JWT de datos', () => {
+  const apis = recursosDe('Microsoft.ApiManagement/service/apis');
+  const datos = apis.find(api => api.properties.path === 'v1');
+  const estado = apis.find(api => api.properties.path === 'estado');
+  assert.equal(datos.properties.subscriptionRequired, true);
+  assert.equal(estado.properties.subscriptionRequired, false);
+  assert.deepEqual(estado.properties.protocols, ['https']);
+  const operaciones = recursosDe('Microsoft.ApiManagement/service/apis/operations');
+  const salud = operaciones.filter(operacion => operacion.name.includes("'estado'"));
+  assert.equal(salud.length, 1);
+  assert.equal(salud[0].properties.method, 'GET');
+  assert.equal(salud[0].properties.urlTemplate, '/');
+  const politica = leerPolitica('estado.xml');
+  assert.match(politica, /<base\s*\/>/);
+  assert.match(politica, /<rewrite-uri template="\/estado" copy-unmatched-params="false"/);
+  assert.match(politica, /<value>no-store<\/value>/);
+  assert.doesNotMatch(politica, /mock-response|cache-lookup|cache-store|code="200"/);
+    assert.match(politica, /context.Response.StatusCode != 200/);
+    const errores = politica.match(/<set-status code="503" reason="Service Unavailable" \/>/g);
+    assert.equal(errores.length, 2);
+    assert.match(politica, /<on-error>[\s\S]*<set-body>\{"estado":"no_disponible"\}<\/set-body>[\s\S]*<\/on-error>/);
+    assert.doesNotMatch(politica, /LastError|Response.Body/);
+  assert.match(leerPolitica('global.xml'), /name="x-functions-key" exists-action="override"/);
+  assert.doesNotMatch(leerPolitica('api.xml'), /\/estado/);
+});
+
+test('RNF-106: sonda valida HTTPS TLS status y contenido desde tres ubicaciones sin secretos', () => {
+  const sonda = recursosDe('Microsoft.Insights/webtests')[0];
+  assert.equal(sonda.kind, 'standard');
+  const propiedades = sonda.properties;
+  assert.equal(propiedades.Enabled, "[parameters('habilitada')]");
+  assert.equal(propiedades.Frequency, 300);
+  assert.equal(propiedades.Timeout, 30);
+  assert.equal(propiedades.RetryEnabled, true);
+  assert.equal(new Set(propiedades.Locations.map(ubicacion => ubicacion.Id)).size, 3);
+  assert.deepEqual(propiedades.Request, {
+    RequestUrl: "[parameters('urlEstado')]", HttpVerb: 'GET',
+    FollowRedirects: false, ParseDependentRequests: false,
+  });
+  assert.deepEqual(propiedades.ValidationRules, {
+    ExpectedHttpStatusCode: 200, IgnoreHttpStatusCode: false, SSLCheck: true,
+    ContentValidation: { ContentMatch: '{"estado":"disponible"}', IgnoreCase: false, PassIfTextFound: true },
+  });
+  const despliegue = plantilla.resources.find(recurso => recurso.name === 'disponibilidad');
+  assert.match(despliegue.properties.parameters.urlEstado.value, /outputs.urlEstado.value/);
+  assert.equal(despliegue.properties.parameters.habilitada.value, "[parameters('publicarPoliticas')]");
+  const apim = plantilla.resources.find(recurso => recurso.name === 'apim');
+  assert.match(apim.properties.template.outputs.urlEstado.value, /https|gatewayUrl/);
+  assert.match(apim.properties.template.outputs.urlEstado.value, /\/estado\//);
+});
+
+test('RNF-106: dos ubicaciones fallidas alertan por correo y resuelven automaticamente', () => {
+  const alerta = recursosDe('Microsoft.Insights/metricAlerts')[0].properties;
+  assert.equal(alerta.enabled, "[parameters('habilitada')]");
+  assert.equal(alerta.severity, 1);
+  assert.equal(alerta.autoMitigate, true);
+  assert.equal(alerta.evaluationFrequency, 'PT1M');
+  assert.equal(alerta.windowSize, 'PT5M');
+  assert.equal(alerta.criteria['odata.type'], 'Microsoft.Azure.Monitor.WebtestLocationAvailabilityCriteria');
+  assert.equal(alerta.criteria.failedLocationCount, 2);
+  assert.equal(alerta.scopes.length, 2);
+  assert.match(alerta.criteria.webTestId, /Microsoft.Insights\/webtests/);
+  assert.equal(alerta.criteria.componentId, "[parameters('telemetriaId')]");
+  assert.match(alerta.actions[0].actionGroupId, /Microsoft.Insights\/actionGroups/);
+  const receptor = recursosDe('Microsoft.Insights/actionGroups')[0].properties;
+  assert.equal(receptor.enabled, true);
+  assert.deepEqual(receptor.emailReceivers, [{
+    name: 'responsable-operacion', emailAddress: "[parameters('correo')]", useCommonAlertSchema: true,
+  }]);
+  assert.equal(receptor.smsReceivers, undefined);
+  assert.equal(plantilla.parameters.correoAlertas.defaultValue, '');
+});

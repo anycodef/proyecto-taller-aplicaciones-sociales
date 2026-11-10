@@ -9,6 +9,8 @@ param prefijo string = 'sigecat'
 @minLength(3)
 param correoPresupuesto string
 param inicioPresupuesto string
+@description('Correo operativo; vacio reutiliza el responsable del presupuesto.')
+param correoAlertas string = ''
 param jwtKid string = 'prod-1'
 param jwtKidAnterior string = ''
 param publicarPoliticas bool = true
@@ -63,6 +65,17 @@ module apim 'modulos/apim.bicep' = {
     publicarPoliticas: publicarPoliticas
   }
 }
+module disponibilidad 'modulos/disponibilidad.bicep' = {
+  name: 'disponibilidad'
+  params: {
+    nombre: '${prefijo}-disponibilidad-${entorno}'
+    ubicacion: ubicacion
+    telemetriaId: monitoreo.outputs.telemetriaId
+    urlEstado: apim.outputs.urlEstado
+    correo: empty(correoAlertas) ? correoPresupuesto : correoAlertas
+    habilitada: publicarPoliticas
+  }
+}
 module permisos 'modulos/permisos.bicep' = {
   name: 'permisos'
   params: {
@@ -79,5 +92,6 @@ output dominioPostgres string = postgres.outputs.dominio
 output nombreFunciones string = funciones.outputs.nombre
 output nombreApim string = apim.outputs.nombre
 output nombreWeb string = web.outputs.nombre
+output urlEstado string = apim.outputs.urlEstado
 output urlApi string = apim.outputs.url
 output urlWeb string = web.outputs.url

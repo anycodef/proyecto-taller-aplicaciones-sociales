@@ -89,6 +89,7 @@ def principal():
         'ubicacionWeb': os.environ.get('UBICACION_WEB') or 'eastus2',
         'prefijo': os.environ.get('PREFIJO') or 'sigecat',
         'correoPresupuesto': os.environ['CORREO_PRESUPUESTO'],
+        'correoAlertas': os.environ.get('CORREO_ALERTAS') or '',
         'inicioPresupuesto': os.environ['INICIO_PRESUPUESTO'],
         'jwtKid': os.environ.get('JWT_KID') or 'prod-1',
         'jwtKidAnterior': os.environ.get('JWT_KID_ANTERIOR') or '',

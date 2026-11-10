@@ -30,6 +30,7 @@ jobs:
       UBICACION_WEB: ${{ vars.AZURE_UBICACION_WEB }}
       PREFIJO: ${{ vars.AZURE_PREFIJO }}
       CORREO_PRESUPUESTO: ${{ vars.CORREO_PRESUPUESTO }}
+      CORREO_ALERTAS: ${{ vars.CORREO_ALERTAS }}
       INICIO_PRESUPUESTO: ${{ vars.INICIO_PRESUPUESTO }}
       JWT_KID: ${{ vars.JWT_KID }}
       JWT_KID_ANTERIOR: ${{ vars.JWT_KID_ANTERIOR }}
