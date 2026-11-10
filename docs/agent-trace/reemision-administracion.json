@@ -1,0 +1,44 @@
+{
+  "version": "1.0",
+  "fecha": "2026-10-12",
+  "agente": "OpenCode",
+  "modelo": "openai/gpt-6.1-sol",
+  "tarea": "T001-65",
+  "tareasRelacionadas": ["T001-69"],
+  "requisitos": ["RF-111", "RF-102"],
+  "solicitud": "Crear un script en la API para reemitir el enlace de administracion existente sin comandos eval en PowerShell",
+  "alcance": [
+    "api/scripts/reemitir-administracion.ts",
+    "api/package.json",
+    "api/test/integracion/base/migraciones-bd.test.ts",
+    "docs/backend-desarrollo.md",
+    "docs/agent-trace/reemision-administracion.json"
+  ],
+  "criterio": "CLI privilegiada que reutiliza emitirEnlace, selecciona solo administraciones activas y exige cuentaId si hay varias; no altera la creacion inicial idempotente. Salida del enlace exclusivamente para el operador local, errores de infraestructura sin detalles sensibles.",
+  "comprobaciones": [
+    {
+      "comando": "npm --prefix api run reemitir:administracion (sin BD_URL ni BD_MIGRACIONES_URL)",
+      "resultado": "Ejecuta el archivo en PowerShell, informa falta de configuracion y termina con codigo 1; no abre REPL"
+    },
+    {
+      "comando": "BD_PRUEBAS_URL local PostgreSQL55432; npm test",
+      "resultado": "181 tests pasan: 1 cliente y 180 API en 26 suites API, sin omitidos; PostgreSQL16 y Azurite reales. Incluye reemision, hash nuevo, revocacion anterior y seleccion por cuenta activa. Primera ejecucion agoto timeout; repeticion completa aprobada. No conectado a Azure."
+    },
+    { "comando": "npm run typecheck", "resultado": "Pasa raiz y API tras instalar dependencias existentes con npm ci" },
+    { "comando": "npm run lint", "resultado": "Pasa sin errores ni advertencias; primera ejecucion agoto timeout y se repitio completa" },
+    { "comando": "git diff --check", "resultado": "Pasa; avisos de conversion LF/CRLF de Git" }
+  ],
+  "notas": "Sin dependencias nuevas, cambios en specs, migraciones, secretos versionados ni despliegue. Docker Desktop y Compose iniciados para verificar integracion local. La solicitud original no incluia commit; posteriormente el usuario solicito actualizar main y registrar los cambios utiles.",
+    "verificacionParaCommit": {
+      "fecha": "2026-11-09",
+      "agente": "Zed",
+      "modelo": "gpt-6.1-sol",
+      "contexto": "Cambios recuperados selectivamente del stash despues de git pull --ff-only; artefactos locales de tarea3 excluidos. Dependencias reparadas por separado en T001-02.",
+      "comprobaciones": [
+        { "comando": "npm test con BD_PRUEBAS_URL local en puerto 55432", "resultado": "Pasa: 55 tests cliente en 29 suites y 180 API en 26 suites, sin omitidos; PostgreSQL16 y Azurite reales. Incluye las cuatro pruebas de migraciones y administracion." },
+        { "comando": "npm run typecheck", "resultado": "Pasa raiz y API." },
+        { "comando": "npm run lint", "resultado": "Pasa sin errores ni advertencias." },
+        { "comando": "git diff --check", "resultado": "Pasa." }
+      ]
+    }
+}

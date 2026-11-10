@@ -18,7 +18,8 @@
     "migrar": "tsx scripts/migrar.ts",
     "configurar:roles": "tsx scripts/configurar-roles.ts",
     "sembrar:demo": "tsx scripts/sembrar-demo.ts",
-    "crear:administracion": "tsx scripts/crear-administracion-inicial.ts"
+    "crear:administracion": "tsx scripts/crear-administracion-inicial.ts",
+    "reemitir:administracion": "tsx scripts/reemitir-administracion.ts"
   },
   "dependencies": {
     "@azure/functions": "^4.11.0",
