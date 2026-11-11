@@ -20,7 +20,7 @@ import { crearAlmacenLocal, type AlmacenLocalDisco } from "@/plataforma/asistenc
 import { sincronizar } from "@/plataforma/asistencia/sincronizador";
 import { useSesion } from "@/plataforma/seguridad/contexto-sesion";
 
-export type EstadoAsistencia = {
+export type EstadoProveedorAsistencia = {
   cargando: boolean;
   conConexion: boolean;
   almacen: AlmacenLocal;
@@ -32,7 +32,7 @@ export type EstadoAsistencia = {
   sincronizarAhora: () => Promise<void>;
 };
 
-const ContextoAsistencia = createContext<EstadoAsistencia | null>(null);
+const ContextoAsistencia = createContext<EstadoProveedorAsistencia | null>(null);
 
 /**
  * Estado local de la asistencia: la nomina descargada y las marcas que
@@ -132,7 +132,7 @@ export function ProveedorAsistencia({
     [guardar]
   );
 
-  const valor = useMemo<EstadoAsistencia>(
+  const valor = useMemo<EstadoProveedorAsistencia>(
     () => ({
       cargando,
       conConexion,
@@ -159,7 +159,7 @@ export function ProveedorAsistencia({
   return <ContextoAsistencia.Provider value={valor}>{children}</ContextoAsistencia.Provider>;
 }
 
-export function useAsistencia(): EstadoAsistencia {
+export function useAsistencia(): EstadoProveedorAsistencia {
   const valor = useContext(ContextoAsistencia);
   if (!valor) throw new Error("useAsistencia necesita el ProveedorAsistencia");
   return valor;

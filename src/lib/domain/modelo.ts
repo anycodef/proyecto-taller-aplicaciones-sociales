@@ -86,31 +86,6 @@ export type Consentimiento = {
   retencionHasta: string;
 };
 
-export type SesionCatequesis = {
-  id: string;
-  grupoId: string;
-  fecha: string;
-  tema?: string;
-};
-
-export type EstadoAsistencia =
-  | "presente"
-  | "tardanza"
-  | "ausente"
-  | "justificado";
-
-export type RegistroAsistencia = {
-  id: string;
-  sesionId: string;
-  catequizandoId: string;
-  estado: EstadoAsistencia;
-  /** Quien lo registro: la responsabilidad es nominal, no anonima. */
-  registradoPor: string;
-  registradoEn: string;
-  /** Marca de sincronizacion: el registro nace en el dispositivo. */
-  sincronizadoEn?: string;
-};
-
 /**
  * Justificacion enviada por la familia. La lectura por OCR corre de forma
  * asincrona y desacoplada: nunca bloquea el registro de asistencia.
