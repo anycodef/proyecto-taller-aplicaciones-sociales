@@ -3,6 +3,7 @@ module.exports = {
   roots: ["<rootDir>/src"],
   testMatch: ["**/__tests__/**/*.test.ts", "**/__tests__/**/*.test.tsx"],
   moduleNameMapper: { "^@/(.*)$": "<rootDir>/src/$1" },
+  setupFiles: ["<rootDir>/jest.setup.js"],
   // El preset no transforma `uuid`, que viene en ESM y se usa para los ids
   // deterministas de la asistencia (spec 003).
   transformIgnorePatterns: [
