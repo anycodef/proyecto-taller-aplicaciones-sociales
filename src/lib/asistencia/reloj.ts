@@ -18,3 +18,9 @@ export function compararInstantes(a: string, b: string): number {
   const fraccion = (instante: string): string => (/\.(\d+)/.exec(instante)?.[1] ?? "").padEnd(9, "0").slice(0, 9);
   return fraccion(a).localeCompare(fraccion(b));
 }
+
+/** Fecha de Lima (UTC-5 todo el ano, sin horario de verano) de un instante. */
+export function fechaEnLima(instante: number): string {
+  if (!Number.isFinite(instante)) throw new Error("Instante inválido");
+  return new Date(instante - 5 * 60 * 60 * 1000).toISOString().slice(0, 10);
+}
