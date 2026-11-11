@@ -40,3 +40,20 @@ export const AVISO_PRIMERA_VEZ: Record<VariantePlataforma, string | null> = {
   app: "La primera vez necesitas internet. Si falla, conéctate a datos o wifi y vuelve a abrir el enlace: sigue funcionando.",
   web: null,
 };
+
+/**
+ * Aviso de registros rechazados. La web de familia no deja registros en cola
+ * (la asistencia es de la app del equipo), asi que no lo muestra.
+ */
+export function avisoRegistrosRechazados(platform: string, cantidad: number): string | null {
+  if (varianteDe(platform) === "web") return null;
+  const registros = cantidad === 1 ? "registro" : "registros";
+  const verbo = cantidad === 1 ? "no pudo enviarse" : "no pudieron enviarse";
+  return `${cantidad} ${registros} de este celular ${verbo}. La coordinación ya fue avisada.`;
+}
+
+/** Aviso propio de la familia: un mismo enlace sirve para todos sus hijos. */
+export const AVISO_VARIOS_HIJOS: Record<VariantePlataforma, string | null> = {
+  app: null,
+  web: "Si tienes más de un hijo, el mismo enlace sirve para todos.",
+};

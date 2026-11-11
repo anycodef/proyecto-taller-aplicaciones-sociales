@@ -1,11 +1,18 @@
 import { router } from "expo-router";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { Platform, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { Aviso, Boton, Tarjeta } from "@/components/ui";
+import {
+  avisoRegistrosRechazados,
+  AVISO_VARIOS_HIJOS,
+  varianteDe,
+} from "@/lib/seguridad/variantes-plataforma";
 import { colores, espacio, tipografia } from "@/tema";
 
 export default function SinAcceso({ rechazados }: { rechazados?: string | number }) {
   const cantidad = Number(rechazados ?? 0);
+  const variante = varianteDe(Platform.OS);
+  const avisoRegistros = cantidad > 0 ? avisoRegistrosRechazados(Platform.OS, cantidad) : null;
 
   return (
     <ScrollView contentContainerStyle={estilos.contenido}>
@@ -18,11 +25,10 @@ export default function SinAcceso({ rechazados }: { rechazados?: string | number
           Este enlace ya no es válido. Pide uno nuevo a la coordinación.
         </Text>
 
-        {cantidad > 0 ? (
-          <Aviso
-            tono="advertencia"
-            mensaje={`${cantidad} ${cantidad === 1 ? "registro de este celular no pudo enviarse" : "registros de este celular no pudieron enviarse"}. La coordinación ya fue avisada.`}
-          />
+        {avisoRegistros ? <Aviso tono="advertencia" mensaje={avisoRegistros} /> : null}
+
+        {AVISO_VARIOS_HIJOS[variante] ? (
+          <Aviso tono="informativo" mensaje={AVISO_VARIOS_HIJOS[variante]!} />
         ) : null}
 
         <Tarjeta>
