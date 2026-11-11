@@ -72,7 +72,7 @@ proposito, pero se anota aqui para que no se confunda con una pantalla nueva.
 | ID | Pantalla | Antes | Cambio | Nota |
 | --- | --- | --- | --- | --- |
 | APP-20 | Misa en curso (escáner) | p-20 | = | |
-| APP-21 | Menú | p-21 | mod (Oraciones y doctrina, Aptitud, Riesgo) | `(equipo)/asistencia/index.tsx` |
+| APP-21 | Menú | p-21 | mod (Oraciones y doctrina, Aptitud, Riesgo) | `(equipo)/asistencia/index.tsx` · estado con sesión en curso (sin sesión es APP-37) |
 | APP-22 | Coordinación (hub) | — | nueva (acceso a 004 a 008) | |
 | APP-23 a APP-26 | Resultados de escaneo (4 estados) | p-22 a p-25 | = | |
 | APP-27 | Registro manual | p-26 | = | |
@@ -82,7 +82,7 @@ proposito, pero se anota aqui para que no se confunda con una pantalla nueva.
 | APP-32 | Por enviar | p-31 | = | `(equipo)/asistencia/pendientes.tsx` |
 | APP-33 | Corregir asistencia | p-32 | mod (aviso de justificación) | |
 | APP-34, APP-35, APP-36 | Domingos del ciclo · Avisos · Reporte de misa | p-33 a p-35 | = | |
-| APP-37 | Inicio entre semana | p-37 | mod | |
+| APP-37 | Inicio entre semana | p-37 | mod | Estado de `(equipo)/asistencia/index.tsx` sin sesión en curso (no es APP-01, que es `src/app/index.tsx`) |
 | WEB-10 | Asistencia de mi hijo (solo lectura) | p-36 | mod (estado y "Justificar") | |
 
 ## Spec 004 — Justificaciones

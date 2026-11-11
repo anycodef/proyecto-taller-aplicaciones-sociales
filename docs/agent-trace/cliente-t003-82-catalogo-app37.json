@@ -1,0 +1,20 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-11",
+  "agente": "OpenCode",
+  "modelo": "minimax-m3.1-flash-free",
+  "tarea": "T003-82",
+  "solicitud": "El usuario aclara que APP-37 es un estado de asistencia/index.tsx sin sesion en curso y pide actualizar el catalogo",
+  "commitPrevisto": "docs(catalogo): ubicar APP-37 como estado de la pantalla de asistencia",
+  "alcance": [
+    "docs/mockups/catalogo-pantallas.md"
+  ],
+  "criterio": "Catalogo: APP-37 deja de ser una pantalla aparte y queda como estado sin sesion en curso de (equipo)/asistencia/index.tsx. APP-01 sigue siendo src/app/index.tsx.",
+  "comprobaciones": ["npm test", "npm run typecheck", "npm run lint"],
+  "resultados": {
+    "tests": "Cliente: 37 suites y 121 tests en verde",
+    "typecheck": "Pasa raiz y API",
+    "lint": "Pasa sin errores ni advertencias"
+  },
+  "notas": "Solo se toca docs/mockups: no se edita specs/ ni tasks.md. En APP-21 se anota que su estado es el de sesion en curso, para que APP-21 y APP-37 no se confundan."
+}
