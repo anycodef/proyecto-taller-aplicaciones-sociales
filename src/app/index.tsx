@@ -5,6 +5,11 @@ import { Platform, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { Boton, Tarjeta } from "@/components/ui";
 import { extraerTokenDeUrl } from "@/lib/seguridad/enlaces";
+import {
+  muestraPegarEnlace,
+  TARJETA_INICIO,
+  varianteDe,
+} from "@/lib/seguridad/variantes-plataforma";
 import { useSesion } from "@/plataforma/seguridad/contexto-sesion";
 import { guardarTokenPendiente } from "@/plataforma/seguridad/sesion";
 import { colores, espacio, radio, tipografia } from "@/tema";
@@ -20,6 +25,7 @@ export function inicioDelRol(tipo: string, roles: string[]): Href {
 export default function Inicio() {
   const { cargando, tipo, rolesEfectivos, desbloqueada } = useSesion();
   const [aviso, setAviso] = useState<string | null>(null);
+  const variante = varianteDe(Platform.OS);
 
   useEffect(() => {
     if (cargando || tipo === "ninguna") return;
@@ -56,14 +62,12 @@ export default function Inicio() {
       <Tarjeta>
         <Text style={estilos.glifo}>🔗</Text>
         <Text style={[tipografia.encabezado, estilos.tituloTarjeta]}>Abre tu enlace personal</Text>
-        <Text style={[tipografia.cuerpo, estilos.textoSuave]}>
-          La coordinación te lo envía por WhatsApp. Tócalo y la app se abre sola.
-        </Text>
+        <Text style={[tipografia.cuerpo, estilos.textoSuave]}>{TARJETA_INICIO[variante]}</Text>
       </Tarjeta>
 
       {aviso ? <Text style={[tipografia.nota, estilos.aviso]}>{aviso}</Text> : null}
 
-      {Platform.OS === "android" ? (
+      {muestraPegarEnlace(Platform.OS) ? (
         <Boton etiqueta="Pegar enlace" variante="secundario" alPresionar={() => void pegarEnlace()} />
       ) : null}
 
