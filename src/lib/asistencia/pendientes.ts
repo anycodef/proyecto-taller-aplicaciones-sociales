@@ -159,20 +159,29 @@ export function resumenPendientes(pendientes: Pendientes): ResumenPendientes {
 
 /**
  * Lote para el push. Cada marca y cada lista viajan una sola vez, con las
- * columnas del servidor y sin la metadata local (_status, _changed).
+ * columnas del servidor y sin la metadata local (_status, _changed). El
+ * servidor espera las horas en milisegundos y las tablas en plural, asi que
+ * aqui se convierte el formato del dispositivo al del transporte.
  */
 export function prepararLote(pendientes: Pendientes): {
   marcas_asistencia: { created: Record<string, unknown>[]; updated: Record<string, unknown>[]; deleted: string[] };
-  lista_asistencia: { created: Record<string, unknown>[]; updated: Record<string, unknown>[]; deleted: string[] };
+  listas_asistencia: { created: Record<string, unknown>[]; updated: Record<string, unknown>[]; deleted: string[] };
 } {
   return {
     marcas_asistencia: {
-      created: pendientes.marcas.map((marca) => ({ ...marca.fila })),
+      created: pendientes.marcas.map((marca) => ({
+        ...marca.fila,
+        hora_dispositivo: Date.parse(marca.fila.hora_dispositivo),
+      })),
       updated: [],
       deleted: [],
     },
-    lista_asistencia: {
-      created: pendientes.listas.map((lista) => ({ ...lista.fila })),
+    listas_asistencia: {
+      created: pendientes.listas.map((lista) => ({
+        ...lista.fila,
+        abierta_en: Date.parse(lista.fila.abierta_en),
+        confirmada_en: Date.parse(lista.fila.confirmada_en),
+      })),
       updated: [],
       deleted: [],
     },

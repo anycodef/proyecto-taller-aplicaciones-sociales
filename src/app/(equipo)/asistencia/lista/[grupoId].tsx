@@ -4,7 +4,8 @@ import { ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { FilaNino } from "@/components/asistencia/fila-nino";
 import { Aviso, Boton, Insignia } from "@/components/ui";
-import { crearMarca } from "@/lib/asistencia/pendientes";
+import { confirmarListaEnLocal } from "@/lib/asistencia/confirmar-lista";
+import { abrirLista } from "@/lib/asistencia/lista";
 import { fechaEnLima } from "@/lib/asistencia/reloj";
 import { aSesion, elegirSesion } from "@/lib/asistencia/sesiones";
 import type { ValorAsistencia } from "@/lib/asistencia/tipos";
@@ -38,9 +39,10 @@ export default function ListaCatequesis({
   ahora?: number;
 }) {
   const { contexto } = useSesion();
-  const { almacen, conConexion, registrarMarca, sincronizarAhora, sincronizando } = useAsistencia();
+  const { almacen, conConexion, repositorio, sincronizarAhora, sincronizando } = useAsistencia();
   const [valores, setValores] = useState<Record<string, ValorAsistencia>>({});
   const [confirmado, setConfirmado] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const reloj = useInstante();
   const instante = ahora ?? reloj;
 
@@ -88,29 +90,36 @@ export default function ListaCatequesis({
     }));
   };
 
+  // El borrador son todos los ninos del grupo: los que nadie toco van
+  // presentes.
+  const borrador = useMemo(() => {
+    const inicial = abrirLista(ninos.map((nino) => ({ id: nino.id })));
+    return Object.entries(valores).reduce(
+      (actual, [ninoId, valor]) => (ninoId in actual ? { ...actual, [ninoId]: valor } : actual),
+      inicial
+    );
+  }, [ninos, valores]);
+
   const confirmar = async () => {
     if (!sesion || !contexto) return;
-
-    for (const nino of ninos) {
-      registrarMarca(
-        crearMarca({
-          sesionId: sesion.id,
-          cicloId: sesion.cicloId,
-          catequizandoId: nino.id,
-          valor: valorDe(nino.id),
-          tipoRegistro: "lista",
-          listaId: null,
-          registradoPor: contexto.cuentaId,
-          cuentaId: contexto.cuentaId,
-          credencialId: contexto.credencialId,
-          dispositivoId: contexto.dispositivoId ?? "",
-          horaDispositivo: new Date(instante).toISOString(),
-          desfaseRelojMs: 0,
-        })
-      );
+    setError(null);
+    const hora = new Date(instante).toISOString();
+    try {
+      confirmarListaEnLocal({
+        repositorio,
+        cuenta: contexto,
+        sesion,
+        grupoId,
+        borrador,
+        abiertaEn: hora,
+        hora,
+        desfaseRelojMs: 0,
+      });
+      setConfirmado(true);
+      if (conConexion) await sincronizarAhora();
+    } catch (fallo) {
+      setError(fallo instanceof Error ? fallo.message : "No pudimos guardar la lista.");
     }
-    setConfirmado(true);
-    if (conConexion) await sincronizarAhora();
   };
 
   return (
@@ -142,6 +151,8 @@ export default function ListaCatequesis({
       {confirmado ? (
         <Aviso tono="informativo" mensaje="Lista guardada en el celular." />
       ) : null}
+
+      {error ? <Aviso tono="error" mensaje={error} /> : null}
 
       <View style={estilos.lista}>
         {ninos.map((nino) => (

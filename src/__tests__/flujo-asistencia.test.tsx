@@ -92,6 +92,7 @@ function montar(disco: AlmacenLocalDisco, cliente: { solicitar: unknown }) {
         contexto: {
           cuentaId: "cuenta-1",
           credencialId: "credencial-1",
+          dispositivoId: "dispositivo-1",
           rolesPropios: ["catequista"],
           gruposAsignados: ["grupo-1"],
           catequizandosApoderados: [],
@@ -179,6 +180,54 @@ test("RF-307: al confirmar sin conexion la marca queda en el celular", async () 
   expect(guardado.pendientes.marcas[0].fila.valor).toBe("presente");
   expect(guardado.pendientes.marcas[0].fila.catequizando_id).toBe(ninoId);
   expect(guardado.pendientes.marcas[0].fila.sesion_id).toBe(sesionCatequesisId);
+});
+
+test("RF-306: confirmar crea la lista y sus marcas en el celular", async () => {
+  const disco = discoFalso(nominaConDosNinos());
+  montar(disco, { solicitar: jest.fn(async () => { throw new Error("Network request failed"); }) });
+
+  await screen.findByText("Mateo Vargas");
+  fireEvent.press(screen.getByText("Confirmar lista"));
+
+  await waitFor(() => expect(disco.leer().pendientes.listas).toHaveLength(1));
+
+  const guardado = disco.leer();
+  const lista = guardado.pendientes.listas[0];
+  expect(lista.fila.sesion_id).toBe(sesionCatequesisId);
+  expect(lista.fila.grupo_id).toBe("grupo-1");
+  expect(lista.fila.total_presentes).toBe(1);
+  expect(lista.fila.total_ausentes).toBe(0);
+  expect(guardado.pendientes.marcas).toHaveLength(1);
+  expect(guardado.pendientes.marcas[0].fila.lista_id).toBe(lista.id);
+  expect(guardado.pendientes.marcas[0].fila.hora_dispositivo).toBe(lista.fila.confirmada_en);
+});
+
+test("RF-307: confirmar la lista dispara la sincronizacion", async () => {
+  const disco = discoFalso(nominaConDosNinos());
+  const envios: { changes: Record<string, { created: Record<string, unknown>[] }> }[] = [];
+  const cliente = {
+    solicitar: jest.fn(async (metodo: string, ruta: string, cuerpo?: unknown) => {
+      if (metodo === "GET") return { changes: {}, timestamp: 1, huellaAlcance: "h" };
+      envios.push(cuerpo as { changes: Record<string, { created: Record<string, unknown>[] }> });
+      return { aceptados: 2, rechazados: 0, descartadosCierre: 0 };
+    }),
+  };
+
+  montar(disco, cliente);
+
+  await screen.findByText("Mateo Vargas");
+  fireEvent.press(screen.getByText("Confirmar lista"));
+
+  await waitFor(() => expect(envios).toHaveLength(1));
+
+  const cambios = envios[0].changes;
+  expect(cambios.listas_asistencia.created).toHaveLength(1);
+  expect(cambios.marcas_asistencia.created).toHaveLength(1);
+  expect(cambios.listas_asistencia.created[0].confirmada_en).toBe(
+    cambios.marcas_asistencia.created[0].hora_dispositivo
+  );
+  expect(disco.leer().pendientes.marcas).toHaveLength(0);
+  expect(disco.leer().pendientes.listas).toHaveLength(0);
 });
 
 test("RF-307: al volver la conexion se envia una sola vez y no quedan pendientes", async () => {

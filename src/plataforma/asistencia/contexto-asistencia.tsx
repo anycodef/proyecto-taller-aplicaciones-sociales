@@ -6,6 +6,7 @@ import {
   useMemo,
   useRef,
   useState,
+  useSyncExternalStore,
   type ReactNode,
 } from "react";
 
@@ -15,8 +16,10 @@ import {
   type MarcaPendiente,
   type ResumenPendientes,
 } from "@/lib/asistencia/pendientes";
-import { almacenVacio, type AlmacenLocal } from "@/lib/sincronizacion/almacen-local";
+import type { RepositorioAsistencia } from "@/lib/asistencia/repositorio-asistencia";
+import type { AlmacenLocal } from "@/lib/sincronizacion/almacen-local";
 import { crearAlmacenLocal, type AlmacenLocalDisco } from "@/plataforma/asistencia/almacen-local";
+import { crearRepositorioLocal } from "@/plataforma/asistencia/repositorio-local";
 import { sincronizar } from "@/plataforma/asistencia/sincronizador";
 import { useSesion } from "@/plataforma/seguridad/contexto-sesion";
 
@@ -28,6 +31,8 @@ export type EstadoProveedorAsistencia = {
   ultimaSincronizacion: number | null;
   sincronizando: boolean;
   error: string | null;
+  /** Repositorio de la asistencia en el dispositivo. */
+  repositorio: RepositorioAsistencia;
   registrarMarca: (marca: MarcaPendiente) => void;
   sincronizarAhora: () => Promise<void>;
 };
@@ -37,6 +42,10 @@ const ContextoAsistencia = createContext<EstadoProveedorAsistencia | null>(null)
 /**
  * Estado local de la asistencia: la nomina descargada y las marcas que
  * faltan por enviar. Al volver la red se sincroniza solo (RF-307, RF-312).
+ *
+ * El almacen local es un almacen externo: el proveedor se suscribe a el y
+ * redibuja cuando cambia. Asi el dominio no depende de como se guardan las
+ * filas y la base local puede cambiar sin tocar las reglas.
  */
 export function ProveedorAsistencia({
   children,
@@ -47,29 +56,21 @@ export function ProveedorAsistencia({
 }) {
   const { cliente } = useSesion();
   const { conConexion } = useConectividad();
-  const [almacen, setAlmacen] = useState<AlmacenLocal>(almacenVacio);
-  const [cargando, setCargando] = useState(true);
   const [sincronizando, setSincronizando] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [ultimaSincronizacion, setUltimaSincronizacion] = useState<number | null>(null);
-  const disco = useRef<AlmacenLocalDisco>(discoExterno ?? crearAlmacenLocal());
   const antesSinRed = useRef(conConexion);
-  const almacenRef = useRef(almacen);
   const sincronizandoRef = useRef(false);
 
-  useEffect(() => {
-    const leido = disco.current.leer();
-    almacenRef.current = leido;
-    setAlmacen(leido);
-    setUltimaSincronizacion(leido.ultimoPulso);
-    setCargando(false);
-  }, []);
-
-  const guardar = useCallback((estado: AlmacenLocal) => {
-    almacenRef.current = estado;
-    setAlmacen(estado);
-    disco.current.guardar(estado);
-  }, []);
+  const disco = useMemo<AlmacenLocalDisco>(
+    () => discoExterno ?? crearAlmacenLocal(),
+    [discoExterno]
+  );
+  const repositorio = useMemo(() => crearRepositorioLocal(disco), [disco]);
+  const almacen = useSyncExternalStore(
+    repositorio.suscribir,
+    repositorio.estado,
+    repositorio.estado
+  );
 
   const sincronizarAhora = useCallback(async () => {
     if (sincronizandoRef.current) return;
@@ -77,17 +78,17 @@ export function ProveedorAsistencia({
     setSincronizando(true);
     setError(null);
 
-    const snapshot = almacenRef.current;
+    const snapshot = repositorio.estado();
     try {
       const { estado, resultado } = await sincronizar({ almacen: snapshot, cliente });
       // Se aplica sobre el estado mas reciente: una marca registrada durante el
       // push no se pierde.
-      const actuales = almacenRef.current;
+      const actuales = repositorio.estado();
       const actualesIds = new Set(actuales.pendientes.marcas.map((marca) => marca.id));
       const conserva = snapshot.pendientes.marcas.filter(
         (marca) => !actualesIds.has(marca.id) && !resultado.idsEnviados.includes(marca.id)
       );
-      guardar({
+      repositorio.escribir({
         ...estado,
         pendientes: {
           ...estado.pendientes,
@@ -95,7 +96,6 @@ export function ProveedorAsistencia({
         },
       });
 
-      if (resultado.nominaActualizada) setUltimaSincronizacion(Date.now());
       if (resultado.rechazados > 0) {
         setError("El servidor rechazó algunas marcas. Se reintentarán al reconectar.");
       }
@@ -105,7 +105,7 @@ export function ProveedorAsistencia({
       sincronizandoRef.current = false;
       setSincronizando(false);
     }
-  }, [cliente, guardar]);
+  }, [cliente, repositorio]);
 
   // Al volver la conexion se envia lo pendiente antes de nada mas.
   useEffect(() => {
@@ -119,38 +119,30 @@ export function ProveedorAsistencia({
 
   const registrarMarca = useCallback(
     (marca: MarcaPendiente) => {
-      const actuales = almacenRef.current;
-      const pendientes = {
-        ...actuales.pendientes,
-        marcas: [
-          ...actuales.pendientes.marcas.filter((existente) => existente.id !== marca.id),
-          { id: marca.id, fila: { ...marca.fila, id: marca.id } },
-        ],
-      };
-      guardar({ ...actuales, pendientes });
+      repositorio.registrarMarca({ ...marca.fila, id: marca.id });
     },
-    [guardar]
+    [repositorio]
   );
 
   const valor = useMemo<EstadoProveedorAsistencia>(
     () => ({
-      cargando,
+      cargando: false,
       conConexion,
       almacen,
       pendientes: resumenPendientes(almacen.pendientes),
-      ultimaSincronizacion,
+      ultimaSincronizacion: almacen.ultimoPulso,
       sincronizando,
       error,
+      repositorio,
       registrarMarca,
       sincronizarAhora,
     }),
     [
-      cargando,
       conConexion,
       almacen,
-      ultimaSincronizacion,
       sincronizando,
       error,
+      repositorio,
       registrarMarca,
       sincronizarAhora,
     ]

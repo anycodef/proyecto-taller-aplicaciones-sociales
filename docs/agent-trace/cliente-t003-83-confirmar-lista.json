@@ -1,0 +1,29 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-11",
+  "agente": "OpenCode",
+  "modelo": "minimax-m3.1-flash-free",
+  "tarea": "T003-83",
+  "solicitud": "Confirmar la lista en una transaccion local, programando contra la interfaz del repositorio actual y sin atarse al JSON en disco",
+  "commitPrevisto": "feat(asistencia): confirmar la lista en una transaccion local",
+  "alcance": [
+    "src/lib/asistencia/repositorio-asistencia.ts",
+    "src/lib/asistencia/confirmar-lista.ts",
+    "src/lib/asistencia/lista.ts",
+    "src/lib/asistencia/pendientes.ts",
+    "src/lib/asistencia/__tests__/confirmar-lista.test.ts",
+    "src/lib/asistencia/__tests__/pendientes.test.ts",
+    "src/plataforma/asistencia/repositorio-local.ts",
+    "src/plataforma/asistencia/contexto-asistencia.tsx",
+    "src/app/(equipo)/asistencia/lista/[grupoId].tsx",
+    "src/__tests__/flujo-asistencia.test.tsx"
+  ],
+  "criterio": "T003-83: confirmar crea la lista y las marcas y borra el borrador en una sola transaccion; un catequista confirma desde la app la lista de un grupo que no es suyo; confirmar la lista dispara la sincronizacion.",
+  "comprobaciones": ["npm test", "npm run typecheck", "npm run lint"],
+  "resultados": {
+    "tests": "Cliente: 38 suites y 132 tests en verde. API: 210 de 211 en verde; el unico fallo es el test de Azurite, que necesita el contenedor y el motor de Docker no arranca en esta maquina (mismo estado que antes del cambio).",
+    "typecheck": "Pasa raiz y API",
+    "lint": "Pasa sin errores ni advertencias"
+  },
+  "notas": "El dominio habla con la interfaz RepositorioAsistencia; el adaptador actual guarda en el archivo y el almacen local queda como almacen externo (suscribir/estado), el mismo contrato que dara WatermelonDB cuando se apruebe la dependencia. Las marcas de la lista llevan id determinista (idMarcaAsistencia), asi que confirmar dos veces la misma lista no crea marcas nuevas. Se corrigen dos errores de transporte del cliente que impedian que la lista llegara al servidor: el lote enviaba la tabla en singular (lista_asistencia) y el servidor espera listas_asistencia, y las horas iban como texto ISO cuando el servidor las valida en milisegundos. El servidor exige ademas que la marca tenga la misma hora y el mismo desfase que la lista, y la autorizacion de la cuenta, incluido el dispositivo: por eso la lista se confirma solo con el dispositivo identificado."
+}

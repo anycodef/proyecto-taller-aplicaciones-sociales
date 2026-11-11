@@ -2,6 +2,7 @@ import {
   alternarMarca,
   aplicarResultadoPush,
   crearMarca,
+  guardarLista,
   guardarMarca,
   idListaAsistencia,
   idMarcaAsistencia,
@@ -90,11 +91,46 @@ test("RF-307: el lote de push lleva cada marca y cada lista una sola vez", () =>
   const lote = prepararLote(pendientes);
 
   expect(lote.marcas_asistencia.created).toHaveLength(2);
-  expect(lote.lista_asistencia.created).toHaveLength(1);
+  expect(lote.listas_asistencia.created).toHaveLength(1);
   expect(lote.marcas_asistencia.created.every((fila) => typeof fila.id === "string")).toBe(true);
   expect(lote.marcas_asistencia.created.some((fila) => "_status" in fila)).toBe(false);
   expect(lote.marcas_asistencia.created.some((fila) => "estado" in fila)).toBe(false);
   expect(resumenPendientes(pendientes)).toEqual({ marcas: 2, listas: 1, total: 3 });
+});
+
+test("RF-307: el lote viaja con los nombres de tabla y las horas del servidor", () => {
+  const idLista = idListaAsistencia(sesionId, "grupo-1");
+  const pendientes = guardarLista(
+    { marcas: [crearMarca(datosMarca())], listas: [] },
+    {
+      id: idLista,
+      fila: {
+        id: idLista,
+        ciclo_id: "33333333-3333-4333-8333-333333333333",
+        sesion_id: sesionId,
+        grupo_id: "grupo-1",
+        confirmada_por: "44444444-4444-4444-8444-444444444444",
+        cuenta_id: "44444444-4444-4444-8444-444444444444",
+        credencial_id: "55555555-5555-4555-8555-555555555555",
+        dispositivo_id: "66666666-6666-4666-8666-666666666666",
+        abierta_en: "2026-10-19T08:55:00.000Z",
+        confirmada_en: "2026-10-19T09:00:00.000Z",
+        desfase_reloj_ms: 0,
+        total_presentes: 1,
+        total_ausentes: 0,
+      },
+    }
+  );
+
+  const lote = prepararLote(pendientes) as unknown as Record<string, unknown>;
+
+  expect(lote.listas_asistencia).toBeDefined();
+  expect(lote.lista_asistencia).toBeUndefined();
+  const marca = (lote.marcas_asistencia as { created: Record<string, unknown>[] }).created[0];
+  expect(marca.hora_dispositivo).toBe(Date.parse("2026-10-19T09:00:00.000Z"));
+  const lista = (lote.listas_asistencia as { created: Record<string, unknown>[] }).created[0];
+  expect(lista.abierta_en).toBe(Date.parse("2026-10-19T08:55:00.000Z"));
+  expect(lista.confirmada_en).toBe(Date.parse("2026-10-19T09:00:00.000Z"));
 });
 
 test("RF-307: tras el push se retiran del local solo las marcas aceptadas", () => {
