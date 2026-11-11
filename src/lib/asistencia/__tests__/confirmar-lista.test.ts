@@ -46,6 +46,7 @@ function repositorioFalso(): RepositorioFalso {
   const borradores = new Map<string, BorradorLista>();
   const repositorio: RepositorioAsistencia = {
     ninosActivos: () => [],
+    ninosDeGrupos: () => [],
     sesiones: () => [sesion],
     leerBorrador: (borradorId) => borradores.get(borradorId) ?? null,
     guardarBorrador: (borradorId, borrador) => {

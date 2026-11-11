@@ -27,6 +27,7 @@ export default function LayoutEquipo() {
         <Stack.Protected guard={equipo && rolesEfectivos.some((rol) => rol !== "familia")}>
           <Stack.Screen name="asistencia" options={{ title: "Pasar lista" }} />
           <Stack.Screen name="asistencia/lista/[grupoId]" options={{ title: "Lista de catequesis" }} />
+          <Stack.Screen name="asistencia/manual" options={{ title: "Registro manual" }} />
           <Stack.Screen name="asistencia/pendientes" options={{ title: "Por enviar" }} />
         </Stack.Protected>
         <Stack.Protected guard={administracion || coordinacion}>

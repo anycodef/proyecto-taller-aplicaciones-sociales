@@ -1,7 +1,7 @@
 import { v5 } from "uuid";
 
 import { NAMESPACE_ASISTENCIA } from "./sesiones";
-import type { TipoRegistro, ValorAsistencia } from "./tipos";
+import type { TipoRegistro, ValorAsistencia, ListaAsistencia, MarcaAsistencia } from "./tipos";
 
 /**
  * Id determinista de la marca: la misma sesion, el mismo nino y el mismo tipo
@@ -60,6 +60,44 @@ export type MarcaPendiente = {
   id: string;
   fila: FilaMarca;
 };
+
+/** Traduce una marca del dominio a la fila que queda pendiente de enviar. */
+export function marcaALocal(marca: MarcaAsistencia): FilaMarca {
+  return {
+    id: marca.id,
+    ciclo_id: marca.cicloId,
+    sesion_id: marca.sesionId,
+    catequizando_id: marca.catequizandoId,
+    valor: marca.valor,
+    tipo_registro: marca.tipoRegistro,
+    lista_id: marca.listaId ?? null,
+    registrado_por: marca.registradoPor,
+    cuenta_id: marca.registradoPor,
+    credencial_id: marca.credencialId,
+    dispositivo_id: marca.dispositivoId,
+    hora_dispositivo: marca.horaDispositivo,
+    desfase_reloj_ms: marca.desfaseRelojMs,
+  };
+}
+
+/** Traduce una lista del dominio a la fila que queda pendiente de enviar. */
+export function listaALocal(lista: ListaAsistencia): FilaLista {
+  return {
+    id: lista.id,
+    ciclo_id: lista.cicloId,
+    sesion_id: lista.sesionId,
+    grupo_id: lista.grupoId,
+    confirmada_por: lista.confirmadaPor,
+    cuenta_id: lista.confirmadaPor,
+    credencial_id: lista.credencialId,
+    dispositivo_id: lista.dispositivoId,
+    abierta_en: lista.abiertaEn,
+    confirmada_en: lista.confirmadaEn,
+    desfase_reloj_ms: lista.desfaseRelojMs,
+    total_presentes: lista.totalPresentes,
+    total_ausentes: lista.totalAusentes,
+  };
+}
 
 export type ListaPendiente = {
   id: string;
@@ -150,7 +188,6 @@ export type ResumenPendientes = {
   listas: number;
   total: number;
 };
-
 export function resumenPendientes(pendientes: Pendientes): ResumenPendientes {
   const marcas = pendientes.marcas.length;
   const listas = pendientes.listas.length;

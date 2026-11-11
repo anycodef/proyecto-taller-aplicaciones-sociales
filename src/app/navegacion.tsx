@@ -102,6 +102,24 @@ const SECCIONES: {
         ruta: "/asistencia",
         movil: true,
       },
+      {
+        titulo: "Lista de catequesis",
+        subtitulo: "Todos presentes y un toque marca ausente",
+        ruta: "/asistencia/lista/grupo-1",
+        movil: true,
+      },
+      {
+        titulo: "Registro manual",
+        subtitulo: "Respaldo cuando el carné no se puede leer",
+        ruta: "/asistencia/manual",
+        movil: true,
+      },
+      {
+        titulo: "Por enviar",
+        subtitulo: "Registros que esperan la conexión",
+        ruta: "/asistencia/pendientes",
+        movil: true,
+      },
     ],
   },
   {

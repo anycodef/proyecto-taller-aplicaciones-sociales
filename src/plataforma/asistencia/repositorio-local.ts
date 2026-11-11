@@ -44,6 +44,20 @@ export function crearRepositorioLocal(disco: AlmacenLocalDisco): RepositorioLoca
     oyentes.forEach((notificar) => notificar());
   };
 
+  const ninosDeGrupos = (grupoIds: string[]): NinoNomina[] => {
+    const grupos = new Set(grupoIds);
+    return filasDe(leer(), "catequizandos")
+      .filter((fila) => grupos.has(String(fila.grupo_id)) && fila.activo !== false)
+      .map((fila) => ({
+        id: String(fila.id),
+        nombres: String(fila.nombres),
+        apellidos: String(fila.apellidos),
+        grupoId: String(fila.grupo_id),
+        codigoCarne: fila.codigo_carne ? String(fila.codigo_carne) : null,
+        activo: fila.activo !== false,
+      }));
+  };
+
   return {
     estado: leer,
 
@@ -57,17 +71,10 @@ export function crearRepositorioLocal(disco: AlmacenLocalDisco): RepositorioLoca
     escribir,
 
     ninosActivos(grupoId: string): NinoNomina[] {
-      return filasDe(leer(), "catequizandos")
-        .filter((fila) => fila.grupo_id === grupoId && fila.activo !== false)
-        .map((fila) => ({
-          id: String(fila.id),
-          nombres: String(fila.nombres),
-          apellidos: String(fila.apellidos),
-          grupoId: String(fila.grupo_id),
-          codigoCarne: fila.codigo_carne ? String(fila.codigo_carne) : null,
-          activo: fila.activo !== false,
-        }));
+      return ninosDeGrupos([grupoId]);
     },
+
+    ninosDeGrupos,
 
     sesiones() {
       return filasDe(leer(), "sesiones").map((fila) => aSesion(fila));

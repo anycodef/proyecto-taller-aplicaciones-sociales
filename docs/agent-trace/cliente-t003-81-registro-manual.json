@@ -1,0 +1,29 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-11",
+  "agente": "OpenCode",
+  "modelo": "minimax-m3.1-flash-free",
+  "tarea": "T003-81",
+  "solicitud": "Construir la pantalla APP-27, una por commit, despues de APP-23 a APP-26",
+  "commitPrevisto": "feat(asistencia): pantalla de registro manual",
+  "alcance": [
+    "src/lib/asistencia/manual.ts",
+    "src/lib/asistencia/pendientes.ts",
+    "src/lib/asistencia/repositorio-asistencia.ts",
+    "src/lib/asistencia/confirmar-lista.ts",
+    "src/lib/asistencia/__tests__/confirmar-lista.test.ts",
+    "src/plataforma/asistencia/repositorio-local.ts",
+    "src/app/(equipo)/asistencia/manual.tsx",
+    "src/app/(equipo)/_layout.tsx",
+    "src/app/navegacion.tsx",
+    "src/__tests__/manual.test.tsx"
+  ],
+  "criterio": "T003-81: la busqueda manual solo ofrece ninos de los grupos propios y el registro manual de un nino inscrito ese dia queda marcado como manual.",
+  "comprobaciones": ["npm test", "npm run typecheck", "npm run lint"],
+  "resultados": {
+    "tests": "Cliente: 40 suites y 138 tests en verde",
+    "typecheck": "Pasa raiz y API",
+    "lint": "Pasa sin errores ni advertencias"
+  },
+  "notas": "El dominio nueva procesarRegistroManual: solo ninos de los grupos del catequista, dentro de la ventana de misa, con id determinista para no duplicar. Los textos se comparan sin tildes ni mayusculas para que el nombre se encuentre como se escribe. El boton vuelve al menu porque el escaner (APP-20) sigue pendiente de la aprobacion de expo-camera; cuando exista, el boton vuelve al escaner como en el mockup."
+}

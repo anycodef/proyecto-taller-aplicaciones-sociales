@@ -23,6 +23,8 @@ export type ConfirmarListaLocal = {
 export interface RepositorioAsistencia {
   /** Ninos activos del grupo, de la nomina ya descargada. */
   ninosActivos(grupoId: string): NinoNomina[];
+  /** Ninos activos de varios grupos, de la nomina ya descargada. */
+  ninosDeGrupos(grupoIds: string[]): NinoNomina[];
   /** Sesiones que el dispositivo conoce. */
   sesiones(): Sesion[];
   /** Borrador guardado de la lista, si todavia no se confirmo. */
