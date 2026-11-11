@@ -13,6 +13,10 @@ Tabla maestra de las pantallas de SIGECAT. La imagen de cada pantalla está en
 - **Antes**: número `p-NN` del PDF original (`legacy/`). Sirve para entender
   tareas y commits anteriores.
 - **Cambio**: `=` igual que antes · `mod` modificada · `nueva` no existía.
+- **Imagen**: la tabla indica el archivo real de cada pantalla. En el tramo
+  APP-20 a APP-37 los archivos van un número por encima del identificador
+  (APP-20 → `app/app-21.png`), porque en ese tramo se insertó una pantalla
+  nueva. Cada fila dice el suyo.
 - Si una tarea de `tasks.md` indica otra ruta, manda la tarea.
 - Si el mockup contradice la spec, manda la spec. Repórtalo.
 - Abre solo las imágenes que cita la tarea, no todo el catálogo.
@@ -71,19 +75,19 @@ proposito, pero se anota aqui para que no se confunda con una pantalla nueva.
 
 | ID | Pantalla | Antes | Cambio | Nota |
 | --- | --- | --- | --- | --- |
-| APP-20 | Misa en curso (escáner) | p-20 | = | |
-| APP-21 | Menú | p-21 | mod (Oraciones y doctrina, Aptitud, Riesgo) | `(equipo)/asistencia/index.tsx` · estado con sesión en curso (sin sesión es APP-37) |
-| APP-22 | Coordinación (hub) | — | nueva (acceso a 004 a 008) | |
-| APP-23 a APP-26 | Resultados de escaneo (4 estados) | p-22 a p-25 | = | |
-| APP-27 | Registro manual | p-26 | = | |
-| APP-28 | Lista de catequesis | p-27 | mod (chip de justificación) | `(equipo)/asistencia/lista/[grupoId].tsx` |
-| APP-29 | Lista confirmada | p-28 | = | |
-| APP-30, APP-31 | Elegir grupo · Lista de otro grupo | p-29, p-30 | = | |
-| APP-32 | Por enviar | p-31 | = | `(equipo)/asistencia/pendientes.tsx` |
-| APP-33 | Corregir asistencia | p-32 | mod (aviso de justificación) | |
-| APP-34, APP-35, APP-36 | Domingos del ciclo · Avisos · Reporte de misa | p-33 a p-35 | = | |
-| APP-37 | Inicio entre semana | p-37 | mod | Estado de `(equipo)/asistencia/index.tsx` sin sesión en curso (no es APP-01, que es `src/app/index.tsx`) |
-| WEB-10 | Asistencia de mi hijo (solo lectura) | p-36 | mod (estado y "Justificar") | |
+| APP-20 | Misa en curso (escáner) | p-20 | = | `app/app-21.png` · `asistencia/escanear.tsx` (pendiente de aprobar `expo-camera`) |
+| APP-21 | Menú | p-21 | mod (Oraciones y doctrina, Aptitud, Riesgo) | `app/app-22.png` · `(equipo)/asistencia/index.tsx` · estado con sesión en curso (sin sesión es APP-37) |
+| APP-22 | Coordinación (hub) | — | nueva (acceso a 004 a 008) | `app/app-23.png` |
+| APP-23 a APP-26 | Resultados de escaneo (4 estados) | p-22 a p-25 | = | `app/app-24.png` a `app/app-27.png` · `components/asistencia/confirmacion-escaneo.tsx` |
+| APP-27 | Registro manual | p-26 | = | `app/app-28.png` · `(equipo)/asistencia/manual.tsx` |
+| APP-28 | Lista de catequesis | p-27 | mod (chip de justificación) | `app/app-29.png` · `(equipo)/asistencia/lista/[grupoId].tsx` |
+| APP-29 | Lista confirmada | p-28 | = | `app/app-30.png` |
+| APP-30, APP-31 | Elegir grupo · Lista de otro grupo | p-29, p-30 | = | `app/app-31.png`, `app/app-32.png` |
+| APP-32 | Por enviar | p-31 | = | `app/app-33.png` · `(equipo)/asistencia/pendientes.tsx` |
+| APP-33 | Corregir asistencia | p-32 | mod (aviso de justificación) | `app/app-34.png` · `(equipo)/asistencia/correccion/[sesionId]/[catequizandoId].tsx` |
+| APP-34, APP-35, APP-36 | Domingos del ciclo · Avisos · Reporte de misa | p-33 a p-35 | = | `app/app-35.png` a `app/app-37.png` |
+| APP-37 | Inicio entre semana | p-37 | mod | `app/app-38.png` · estado de `(equipo)/asistencia/index.tsx` sin sesión en curso (no es APP-01, que es `src/app/index.tsx`) |
+| WEB-10 | Asistencia de mi hijo (solo lectura) | p-36 | mod (estado y "Justificar") | `web/web-10.png` · `(familia)/familia/asistencia/[catequizandoId].tsx` (T003-111) |
 
 ## Spec 004 — Justificaciones
 
