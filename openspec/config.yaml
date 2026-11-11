@@ -1,0 +1,24 @@
+schema: spec-driven
+
+context: |
+  SIGECAT, app de catequesis para niños de 8 a 13 años. Escribe los artefactos en español.
+  La constitución en docs/constitution.md prevalece sobre estas specs.
+  Salud, neurodivergencia y documentos de identidad nunca van al dispositivo ni a logs.
+  La identidad real de un catequista menor no sale en vistas, reportes ni exportaciones: usa identidadOperativa.
+  Cada requisito conserva su identificador (RF-601, RNF-601) en el nombre.
+  Un comportamiento por requisito. No copies plan.md: nada de SQL, paquetes ni tareas.
+  Una duda marcada [NECESITA ACLARACIÓN] en specs/ no se convierte en requisito.
+  La spec 009 (GraphQL, gRPC y MCP) no forma parte de openspec/specs/.
+
+rules:
+  specs:
+    - Encabezados Requirement y Scenario en inglés; el texto del requisito en español
+    - Usa SHALL como verbo normativo
+    - Cada requisito tiene al menos un escenario con WHEN y THEN
+    - La descripción de cada requisito queda bajo 500 caracteres
+  proposal:
+    - Indica qué queda fuera de alcance
+  tasks:
+    - Cada tarea cabe en 20 a 30 minutos y cita el RF que cubre
+  design:
+    - Las decisiones de modelo, SQL y paquetes van aquí, no en la spec

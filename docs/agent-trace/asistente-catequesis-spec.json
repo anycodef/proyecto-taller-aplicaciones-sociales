@@ -1,0 +1,54 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-10",
+  "agente": "OpenCode",
+  "modelo": "opencode/big-pickle",
+  "rama": "main",
+  "tarea": "asistente-catequesis",
+  "tipo": "spec",
+  "solicitud": "Crear un cambio OpenSpec para un asistente generativo gratuito que reciba una pregunta, consulte material público y genere una respuesta citada, sin implementarlo todavía.",
+  "alcance": [
+    "openspec/changes/asistente-catequesis/.openspec.yaml",
+    "openspec/changes/asistente-catequesis/proposal.md",
+    "openspec/changes/asistente-catequesis/design.md",
+    "openspec/changes/asistente-catequesis/tasks.md",
+    "openspec/changes/asistente-catequesis/specs/asistente-catequesis/spec.md",
+    "docs/agent-trace/asistente-catequesis-spec.json"
+  ],
+  "criterio": "Propuesta, diseño, delta spec y tareas listas para implementar; RF-1001 a RF-1007 y RNF-1001 a RNF-1005 con escenarios WHEN/THEN; sin código de producto ni tareas marcadas como completadas.",
+  "decisiones": [
+    "Proveedor externo de capa gratuita (Gemini o Groq) u Ollama local detrás de un puerto, sin claves en el cliente.",
+    "RAG con BM25 en TypeScript puro y corpus público versionado; abstención cuando no hay sustento.",
+    "Solo la pregunta y los fragmentos públicos salen al proveedor; nunca datos de menores, salud, documentos, familia o riesgo.",
+    "Citas validadas contra los fragmentos usados, fallback extractivo y cuota por cuenta.",
+    "La implementación queda fuera de esta entrega: todas las tareas de tasks.md permanecen sin marcar."
+  ],
+  "comprobaciones": [
+    {
+      "comando": "revisión manual contra openspec/config.yaml y el esquema spec-driven",
+      "resultado": "Pasa: proposal, design, delta spec y tasks son coherentes; las tareas citan RF/RNF y criterios de cierre."
+    },
+    {
+      "comando": "npm test",
+      "resultado": "Pasa en el árbol de trabajo: 30 suites y 95 tests del cliente; 30 suites y 211 tests de API."
+    },
+    {
+      "comando": "npm run typecheck",
+      "resultado": "Pasa en raíz y API."
+    },
+    {
+      "comando": "npm run lint",
+      "resultado": "Pasa sin errores ni advertencias."
+    },
+    {
+      "comando": "git diff --check",
+      "resultado": "Pasa antes del commit."
+    }
+  ],
+  "limites": [
+    "No se implementaron corpus, recuperación BM25, adaptadores LLM, filtro PLN, endpoint, cuota, pantalla ni pruebas del asistente.",
+    "No se añadieron dependencias ni se modificaron specs principales, constitución o migraciones.",
+    "No se pudo ejecutar el CLI de OpenSpec porque no está disponible; los artefactos se crearon conforme al esquema del repositorio."
+  ],
+  "notas": "El cambio deja explícito que el asistente es una funcionalidad modelada. La implementación requiere autorización posterior y debe respetar privacidad, citas, abstención y capa gratuita."
+}

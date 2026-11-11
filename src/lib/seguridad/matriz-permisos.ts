@@ -34,6 +34,7 @@ export const MATRIZ_PERMISOS = {
   "asistencia:corregir": { escritura: true, roles: { ...coordinacion, catequista: "grupos" } },
   "asistencia:leer": { escritura: false, roles: consultaOperativa },
   "reporte:leer": { escritura: false, roles: { ...coordinacion, supervision: "ciclo" } },
+  "riesgo:leer": { escritura: false, roles: { ...coordinacion, catequista: "grupos" } },
   "asistencia:avisos": { escritura: true, roles: coordinacion },
   "actividad:gestionar": { escritura: true, roles: coordinacion },
   "ciclo:gestionar": { escritura: true, roles: { administracion: "ciclo" } },

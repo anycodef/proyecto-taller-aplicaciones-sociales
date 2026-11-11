@@ -1,0 +1,13 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-09",
+  "agente": "Zed",
+  "modelo": "GPT-6.1-Sol",
+  "tarea": "T001-154",
+  "solicitud": "Ampliar spec 001 e implementar salud tecnica; commit autorizado por el usuario",
+  "requisitos": ["RNF-106", "RF-101", "RNF-101", "RNF-103"],
+  "alcance": ["specs/001-acceso-y-roles/spec.md", "specs/001-acceso-y-roles/plan.md", "specs/001-acceso-y-roles/tasks.md", "openspec/specs/acceso-y-roles/spec.md", "api/src/compartido/http/estado.ts", "api/src/index.ts", "api/test/unit/base/estado.test.ts", "api/test/http/inventario.test.ts", "api/openapi.json"],
+  "decisiones": ["GET estado exige clave de host, SELECT 1 con timeout y pool existente", "Solo 200 disponible o 503 no_disponible no-store, sin logs ni detalles internos", "Sin dependencias ni cambios de modelo", "APIM y sonda se entregan por separado en T001-155"],
+  "validacion": {"tests": "npm test con BD_PRUEBAS_URL local: 80 cliente y 204 API aprobados", "typecheck": "npm run typecheck aprobado", "lint": "npm run lint aprobado", "openapi": "66 operaciones verificadas", "buildPendiente": "Fallo previo de alias /C:/ en Windows; configuracion no modificada"},
+  "limites": ["No hay despliegue Azure ni ensayo de caida o correo real", "No se marcan tareas completas por esta entrega local"]
+}

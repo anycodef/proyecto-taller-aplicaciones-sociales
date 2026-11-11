@@ -1,0 +1,44 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-09",
+  "agente": "Zed",
+  "modelo": "gpt-6.1-sol",
+  "tarea": "T001-02",
+  "solicitud": "Resolver las dependencias que bloquean las verificaciones y el commit pendiente en main",
+  "alcance": [
+    "package.json",
+    "package-lock.json",
+    "docs/agent-trace/dependencias-t001-02.json"
+  ],
+  "criterio": "Fijar react-test-renderer en 19.2.3 para mantenerlo alineado con React; regenerar las entradas transitivas ausentes de @emnapi y los metadatos del lockfile mediante npm, sin force, legacy-peer-deps ni nuevas dependencias directas. Mantener fuera los cambios locales de tarea3.",
+  "comprobaciones": [
+    {
+      "comando": "npm install --package-lock-only --no-audit --no-fund",
+      "resultado": "Pasa; repara el lockfile tras fijar el renderer."
+    },
+    {
+      "comando": "npm ci --no-audit --no-fund",
+      "resultado": "Bloqueado por EPERM de Windows al intentar borrar resolver.win32-x64-msvc.node en uso; no por inconsistencias de dependencias."
+    },
+    {
+      "comando": "npm install --no-audit --no-fund",
+      "resultado": "Pasa; instala las dependencias. Advierte sobre paquetes transitivos obsoletos y la limpieza de un modulo nativo bloqueado por Windows."
+    },
+    {
+      "comando": "npm ci --dry-run --ignore-scripts --no-audit --no-fund",
+      "resultado": "Pasa; verifica la consistencia del manifiesto y lockfile sin afirmar que se completo una instalacion limpia."
+    },
+    {
+      "comando": "BD_PRUEBAS_URL=postgresql://postgres:postgres@localhost:55432/sigecat npm test",
+      "resultado": "Pasa: 55 tests del cliente en 29 suites y 180 de API en 26 suites, con PostgreSQL16 y Azurite reales. Primera ejecucion alcanzo el timeout de 240 segundos; repeticion completa con limite de 600 segundos aprobada. El cliente emite advertencias de act; no se modifican ni debilitan tests."
+    },
+    { "comando": "npm run typecheck", "resultado": "Pasa en raiz y API." },
+    { "comando": "npm run lint", "resultado": "Pasa sin errores ni advertencias." },
+    { "comando": "git diff --check", "resultado": "Pasa." },
+    {
+      "comando": "npm --prefix api run build",
+      "resultado": "Falla adicional fuera del alcance: esbuild recibe alias con prefijo /C:/ en Windows y no resuelve @/lib. No se modifica su configuracion en esta tarea."
+    }
+  ],
+  "notas": "Sin cambios de specs, migraciones ni dependencias directas nuevas. Sin despliegue ni push. Los cambios de administracion se registran por separado y los artefactos locales de tarea3 permanecen en stash."
+}

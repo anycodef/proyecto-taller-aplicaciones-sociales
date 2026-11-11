@@ -11,8 +11,9 @@
     { "url": "https://sigecat.example/v1", "description": "Dominio ilustrativo APIM; sustituir por el entorno desplegado" }
   ],
   "security": [{ "sesion": [], "suscripcion": [] }],
-  "tags": [{ "name": "acceso" }, { "name": "seguridad" }, { "name": "inscripciones" }, { "name": "catequizandos" }, { "name": "asistencia" }, { "name": "sincronizacion" }, { "name": "transversal" }],
+  "tags": [{ "name": "acceso" }, { "name": "seguridad" }, { "name": "inscripciones" }, { "name": "catequizandos" }, { "name": "asistencia" }, { "name": "riesgo" }, { "name": "sincronizacion" }, { "name": "transversal" }],
   "x-fuentes": [
+      "api/src/compartido/http/estado.ts",
     "api/src/modulos/seguridad/http/index.ts",
     "api/src/modulos/avisos/http/index.ts",
     "api/src/modulos/catequizandos/http/index.ts",
@@ -26,6 +27,9 @@
     "api/src/modulos/ciclos/aplicacion/gestionar-ciclo.ts",
     "api/src/modulos/actividades/http/index.ts",
     "api/src/modulos/actividades/dominio/validacion.ts",
+    "api/src/modulos/riesgo/http/index.ts",
+    "api/src/modulos/riesgo/aplicacion/consultar-lista-riesgo.ts",
+    "src/lib/riesgo/index.ts",
     "src/lib/actividades/tablas-sincronizadas.ts",
     "api/migraciones/0506_actividades_trazabilidad.sql",
     "api/migraciones/0309_lapidas_sincronizacion.sql",
@@ -40,6 +44,57 @@
     "limites": { "sincronizacionPorMinuto": 30, "validacionCarnePorMinuto": 120, "asistenciaPorOperacionMinuto": 30, "ciclosPorMinuto": 30, "actividadesPorMinuto": 30, "busquedaApoderadosPorMinuto": 10, "pushMaximoBytes": 524288 }
   },
   "paths": {
+    "/riesgo": {
+      "get": {
+        "operationId": "listarRiesgo",
+        "tags": ["riesgo"],
+        "summary": "COORD y CAT: lista de niños en riesgo de sus grupos",
+        "description": "RF-707. Solo lectura. Coordinación ve todos los grupos; catequista, solo los suyos. Excluye sin riesgo y retirados; ordena alerta de retiro, citación, contacto y seguimiento. No expone datos de salud ni documentos.",
+        "responses": {
+          "200": {
+            "description": "Lista de riesgo ordenada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "maxItems": 200,
+                  "items": { "$ref": "#/components/schemas/RiesgoEntrada" }
+                }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/NoAutorizado" },
+          "403": { "$ref": "#/components/responses/FueraDeAlcance" },
+          "429": { "$ref": "#/components/responses/Limite" },
+          "500": { "$ref": "#/components/responses/ErrorInterno" }
+        }
+      }
+    },
+    "/estado": {
+      "get": {
+        "operationId": "estado",
+        "tags": ["transversal"],
+        "summary": "Comprobar disponibilidad técnica sin datos personales",
+        "description": "RNF-106. SELECT 1 en el pool existente con query_timeout de 5000 ms; conexión limitada a 5000 ms y statement_timeout de 15000 ms por el pool. Origen Functions exige clave de host. APIM publica exclusivamente GET /estado/ en una API técnica separada, sin JWT ni suscripción, e inyecta la clave de host sin exponerla. No modifica los controles de /v1.",
+        "servers": [
+          { "url": "http://localhost:7071/api", "description": "Origen Functions local; requiere clave de host fuera de desarrollo" },
+          { "url": "https://sigecat.example", "description": "APIM ilustrativo: URL pública /estado/ con barra final" }
+        ],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Disponible",
+            "headers": { "Cache-Control": { "schema": { "type": "string", "const": "no-store" } } },
+            "content": { "application/json": { "schema": { "type": "object", "additionalProperties": false, "required": ["estado"], "properties": { "estado": { "type": "string", "const": "disponible" } } }, "example": { "estado": "disponible" } } }
+          },
+          "503": {
+            "description": "No disponible, sin detalles internos",
+            "headers": { "Cache-Control": { "schema": { "type": "string", "const": "no-store" } } },
+            "content": { "application/json": { "schema": { "type": "object", "additionalProperties": false, "required": ["estado"], "properties": { "estado": { "type": "string", "const": "no_disponible" } } }, "example": { "estado": "no_disponible" } } }
+          }
+        }
+      }
+    },
     "/acceso/equipo/activar": { "post": { "operationId": "activarEquipo", "tags": ["acceso"], "summary": "Activar enlace del equipo en dispositivo", "security": [{ "suscripcion": [] }], "requestBody": { "$ref": "#/components/requestBodies/ActivarEquipo" }, "responses": { "200": { "$ref": "#/components/responses/SesionEquipo" }, "401": { "$ref": "#/components/responses/NoAutorizado" }, "422": { "$ref": "#/components/responses/EntradaInvalida" }, "500": { "$ref": "#/components/responses/ErrorInterno" } } } },
     "/acceso/familia/entrar": { "post": { "operationId": "entrarFamilia", "tags": ["acceso"], "summary": "Canjear enlace familiar sin PIN", "security": [{ "suscripcion": [] }], "requestBody": { "$ref": "#/components/requestBodies/EntrarFamilia" }, "responses": { "200": { "$ref": "#/components/responses/SesionFamilia" }, "401": { "$ref": "#/components/responses/NoAutorizado" }, "422": { "$ref": "#/components/responses/EntradaInvalida" }, "500": { "$ref": "#/components/responses/ErrorInterno" } } } },
     "/acceso/renovar": { "post": { "operationId": "renovarSesion", "tags": ["acceso"], "summary": "Rotar renovación antes de enviar pendientes", "description": "401 acceso_denegado para token/dispositivo inválido; credencial_terminada para cuenta/credencial terminada o fuera de ventana de reconexión. El conteo crea aviso, no contiene registros pendientes.", "security": [{ "suscripcion": [] }], "requestBody": { "$ref": "#/components/requestBodies/Renovar" }, "responses": { "200": { "$ref": "#/components/responses/SesionEquipo" }, "401": { "$ref": "#/components/responses/RenovacionDenegada" }, "422": { "$ref": "#/components/responses/EntradaInvalida" }, "500": { "$ref": "#/components/responses/ErrorInterno" } } } },
@@ -197,6 +252,35 @@
       "ErrorInterno": { "description": "500 error_interno, sin detalles personales ni secretos", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" }, "example": { "codigo": "error_interno" } } } }
     },
     "schemas": {
+      "RiesgoFalta": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["catequizandoId", "fecha", "origen", "estado", "sesionIds"],
+        "properties": {
+          "catequizandoId": { "$ref": "#/components/schemas/Uuid" },
+          "fecha": { "$ref": "#/components/schemas/Fecha" },
+          "origen": { "type": "string", "enum": ["domingo", "jornada", "papel"] },
+          "estado": { "type": "string", "enum": ["pendiente_justificar", "en_revision", "justificada", "suma"] },
+          "sesionIds": { "type": "array", "maxItems": 2, "items": { "$ref": "#/components/schemas/Uuid" } },
+          "cantidad": { "type": "integer", "minimum": 1, "maximum": 60 }
+        }
+      },
+      "RiesgoEntrada": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["catequizandoId", "nombre", "grupoId", "grupoNombre", "paso", "conteo", "sinFicha", "pendientesJustificar", "faltasOrigen"],
+        "properties": {
+          "catequizandoId": { "$ref": "#/components/schemas/Uuid" },
+          "nombre": { "type": "string", "minLength": 1, "maxLength": 200 },
+          "grupoId": { "$ref": "#/components/schemas/Uuid" },
+          "grupoNombre": { "type": "string", "minLength": 1, "maxLength": 100 },
+          "paso": { "type": "string", "enum": ["contacto", "citacion", "seguimiento", "alerta_retiro"] },
+          "conteo": { "type": "integer", "minimum": 2, "maximum": 100 },
+          "sinFicha": { "type": "boolean" },
+          "pendientesJustificar": { "type": "integer", "minimum": 0, "maximum": 100 },
+          "faltasOrigen": { "type": "array", "maxItems": 100, "items": { "$ref": "#/components/schemas/RiesgoFalta" } }
+        }
+      },
       "Uuid": { "type": "string", "format": "uuid", "examples": ["11111111-1111-4111-8111-111111111111"] },
       "UuidNulo": { "type": ["string", "null"], "format": "uuid" },
       "Fecha": { "type": "string", "format": "date", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$", "examples": ["2026-10-11"] },

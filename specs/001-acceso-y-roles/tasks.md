@@ -812,6 +812,20 @@
 
 ---
 
+## Disponibilidad aprobada 2026-11-09
+
+- [ ] **T001-154** Implementar salud técnica mínima por APIM y Functions.
+  - RF: RNF-106, RF-101, RNF-101, RNF-103.
+  - Hecho cuando: GET `/estado/` comprueba PostgreSQL sin datos personales y devuelve 200/503 no-store; origen exige clave de host; API técnica no abre las rutas `/v1`; tests con RNF-106, tipos y lint pasan.
+- [ ] **T001-155** Declarar sonda, alerta y receptor en Bicep.
+  - RF: RNF-106, RNF-104.
+  - Depende de: T001-154, T001-20.
+  - Hecho cuando: compilan sonda estándar cada 300 s desde tres ubicaciones y alerta de dos fallos con correo operativo, validando TLS/200/contenido; no contiene secretos; se activa con políticas finales; tests de plantilla y checks integrales pasan. Coste pendiente de revisar antes de despliegue.
+- [ ] **T001-156** Verificar aviso de caída y recuperación en Azure **[Requiere cuenta externa]**.
+  - RF: RNF-106.
+  - Depende de: T001-155 y despliegue de Pedro.
+  - Hecho cuando: en ventana acordada se prueba correo del grupo de acción y fallo controlado del backend, se conserva detección, aviso recibido y recuperación sin datos personales/secretos; se revisan coste, ubicaciones y tiempos reales. No se marca con evidencia local.
+
 ## Cobertura
 
 ### Coordinación backend completa
@@ -850,4 +864,5 @@ Publicación solicitada tras la implementación: T001-DOC, T001-152 y T001-153 s
 | RNF-102 Celular compartido | T001-75, T001-117, T001-118, T001-119, T001-120, T001-149, T001-150 |
 | RNF-103 Canal cifrado | T001-13, T001-17, T001-18, T001-19, T001-20, T001-21, T001-23, T001-25, T001-26, T001-76, T001-92, T001-149, T001-150 |
 | RNF-104 Costo cero | T001-16, T001-22, T001-25, T001-26, T001-30, T001-65, T001-89, T001-144, T001-148, T001-149, T001-150 |
+| RNF-106 Disponibilidad y alerta | T001-154, T001-155, T001-156 |
 | RNF-105 Administración mínima | T001-61, T001-87, T001-88, T001-89, T001-91, T001-107, T001-149, T001-150 |

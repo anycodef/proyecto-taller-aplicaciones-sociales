@@ -5,6 +5,8 @@ import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { aplicarMigraciones } from "../../../scripts/migrar";
 import { crearAdministracionInicial } from "../../../scripts/crear-administracion-inicial";
+import { reemitirAdministracion } from "../../../scripts/reemitir-administracion";
+import { hashToken } from "../../../src/modulos/seguridad/dominio/tokens";
 
 test("infra: runner detecta checksum alterado, acepta migración menor tardía y deshace SQL fallido", async () => {
   const esquema = `runner_${randomUUID().replaceAll("-", "")}`;
@@ -39,5 +41,49 @@ test("RF-111 RF-102: administración inicial se crea una vez y no reemite el enl
     expect(primera?.url).toMatch(/^https:\/\/sigecat\.example\/acceso\/equipo#t=[A-Za-z0-9_-]{43}$/);
     expect(await crearAdministracionInicial(cliente, "Otro intento")).toBeNull();
     expect((await cliente.query("SELECT count(*)::integer AS cantidad FROM credencial WHERE cuenta_id=$1", [primera!.cuentaId])).rows[0].cantidad).toBe(1);
+  } finally { await cliente.query("ROLLBACK"); cliente.release(); await pool.end(); if (anterior === undefined) delete process.env.URL_WEB; else process.env.URL_WEB = anterior; }
+});
+
+test("RF-111: recuperar administración reemite el enlace y termina su credencial anterior", async () => {
+  const pool = new Pool({ connectionString: process.env.BD_PRUEBAS_URL, max: 1 });
+  const cliente = await pool.connect();
+  const anterior = process.env.URL_WEB;
+  process.env.URL_WEB = "https://sigecat.example";
+  try {
+    await cliente.query("BEGIN");
+    const primera = (await crearAdministracionInicial(cliente, "Administración recuperable"))!;
+    const recuperada = await reemitirAdministracion(cliente);
+    expect(recuperada.cuentaId).toBe(primera.cuentaId);
+    expect(recuperada.url).not.toBe(primera.url);
+    const token = new URLSearchParams(new URL(recuperada.url).hash.slice(1)).get("t")!;
+    const credenciales = (await cliente.query("SELECT token_hash,estado,motivo_fin FROM credencial WHERE cuenta_id=$1", [primera.cuentaId])).rows;
+    expect(credenciales).toHaveLength(2);
+    expect(credenciales.find(c => c.estado === "terminada").motivo_fin).toBe("reemision");
+    expect(credenciales.find(c => c.estado === "emitida").token_hash).toEqual(hashToken(token));
+    expect(await crearAdministracionInicial(cliente, "Otro intento")).toBeNull();
+  } finally { await cliente.query("ROLLBACK"); cliente.release(); await pool.end(); if (anterior === undefined) delete process.env.URL_WEB; else process.env.URL_WEB = anterior; }
+});
+
+test("RF-102 RF-111: recuperación exige administración activa y selección explícita si hay varias", async () => {
+  const pool = new Pool({ connectionString: process.env.BD_PRUEBAS_URL, max: 1 });
+  const cliente = await pool.connect();
+  const anterior = process.env.URL_WEB;
+  process.env.URL_WEB = "https://sigecat.example";
+  try {
+    await cliente.query("BEGIN");
+    await expect(reemitirAdministracion(cliente)).rejects.toThrow("No hay administración activa");
+    const primera = (await crearAdministracionInicial(cliente, "Administración principal"))!;
+    const segundaId = randomUUID();
+    const otraId = randomUUID();
+    await cliente.query("INSERT INTO cuenta(id,identidad_operativa,es_menor) VALUES($1,'Administración secundaria',false),($2,'Cuenta sin administración',false)", [segundaId, otraId]);
+    await cliente.query("INSERT INTO rol_cuenta(cuenta_id,rol) VALUES($1,'administracion')", [segundaId]);
+    await expect(reemitirAdministracion(cliente)).rejects.toThrow("Hay varias administraciones activas");
+    await expect(reemitirAdministracion(cliente, otraId)).rejects.toThrow("no es una administración activa");
+    await expect(reemitirAdministracion(cliente, "invalido")).rejects.toThrow("UUID válido");
+    expect((await cliente.query("SELECT count(*)::integer AS cantidad FROM credencial")).rows[0].cantidad).toBe(1);
+    expect((await reemitirAdministracion(cliente, segundaId)).cuentaId).toBe(segundaId);
+    expect((await cliente.query("SELECT estado FROM credencial WHERE cuenta_id=$1", [primera.cuentaId])).rows).toEqual([{ estado: "emitida" }]);
+    await cliente.query("UPDATE cuenta SET activa=false WHERE id=$1", [segundaId]);
+    await expect(reemitirAdministracion(cliente, segundaId)).rejects.toThrow("no es una administración activa");
   } finally { await cliente.query("ROLLBACK"); cliente.release(); await pool.end(); if (anterior === undefined) delete process.env.URL_WEB; else process.env.URL_WEB = anterior; }
 });

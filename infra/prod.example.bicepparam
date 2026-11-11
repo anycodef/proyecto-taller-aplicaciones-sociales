@@ -5,6 +5,8 @@ param ubicacionWeb = 'eastus2'
 param entorno = 'prod'
 param prefijo = 'sigecat'
 param correoPresupuesto = 'responsable@example.org'
+// Vacio usa correoPresupuesto. Configurar CORREO_ALERTAS en el workflow si difiere.
+param correoAlertas = ''
 param inicioPresupuesto = '2026-10-01T00:00:00Z'
 param jwtKid = 'prod-1'
 param jwtKidAnterior = ''

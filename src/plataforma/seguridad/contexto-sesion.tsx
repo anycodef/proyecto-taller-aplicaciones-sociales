@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
 import { rolesEfectivos, type ContextoAcceso, type Rol } from "@/lib/seguridad/contexto-acceso";
 import { crearApiSeguridad, type ApiSeguridad, type ClienteHttp } from "@/lib/seguridad/api";
@@ -12,6 +12,7 @@ import {
   guardarSesionViva,
   type ActivacionPendiente,
   type GestorSesion,
+  type ResultadoDesbloqueo,
 } from "./sesion";
 
 export type TipoSesion = "ninguna" | "equipo" | "familia";
@@ -24,6 +25,8 @@ export type EstadoSesionApp = {
   jwt: string | null;
   ultimaRenovacion: number | null;
   bloqueada: boolean;
+  desbloqueada: boolean;
+  modoConsulta: boolean;
   intentosFallidos: number;
 };
 
@@ -43,6 +46,7 @@ export type ContextoSesionValor = EstadoSesionApp & {
   activacion: ActivacionPendiente | null;
   guardarActivacion(activacion: ActivacionPendiente | null): void;
   iniciarSesion(tipo: TipoSesion, contexto: ContextoAcceso, jwt?: string | null): void;
+  desbloquearSesion(pin: string): Promise<ResultadoDesbloqueo>;
   cerrarSesion(): void;
 };
 
@@ -56,6 +60,8 @@ const ESTADO_VACIO: EstadoSesionApp = {
   jwt: null,
   ultimaRenovacion: null,
   bloqueada: false,
+  desbloqueada: false,
+  modoConsulta: false,
   intentosFallidos: 0,
 };
 
@@ -80,7 +86,7 @@ export async function cargarSesionGuardada(): Promise<SesionCargada | null> {
   const almacen = obtenerAlmacenSesion();
   for (const cuentaId of await almacen.listarCuentas()) {
     const sesion = await almacen.leerSesion(cuentaId);
-    if (!sesion) continue;
+    if (!sesion || sesion.tipo !== "equipo") continue;
     return {
       tipo: sesion.tipo,
       contexto: contextoDeSesion(sesion),
@@ -105,6 +111,7 @@ export function ProveedorSesion({
 }) {
   const [estado, setEstado] = useState<EstadoSesionApp>({ ...ESTADO_VACIO, cargando: true });
   const [activacion, setActivacion] = useState<ActivacionPendiente | null>(null);
+  const revision = useRef(0);
 
   /** Estado vivo de la sesion: JWT y cuenta, ambos solo en memoria. */
   const [gestor] = useState<GestorSesion>(() => gestorExterno ?? crearGestorSesionPorDefecto());
@@ -114,6 +121,7 @@ export function ProveedorSesion({
 
   useEffect(() => {
     let vigente = true;
+    const revisionInicial = revision.current;
     void (async () => {
       let cargada: SesionCargada | null = null;
       try {
@@ -121,9 +129,9 @@ export function ProveedorSesion({
       } catch {
         cargada = null;
       }
-      if (!vigente) return;
+      if (!vigente || revision.current !== revisionInicial) return;
       setEstado(
-        cargada
+        cargada?.tipo === "equipo"
           ? {
               cargando: false,
               tipo: cargada.tipo,
@@ -132,6 +140,8 @@ export function ProveedorSesion({
               jwt: null,
               ultimaRenovacion: cargada.ultimaRenovacion ?? null,
               bloqueada: cargada.bloqueada ?? false,
+              desbloqueada: false,
+              modoConsulta: false,
               intentosFallidos: cargada.intentosFallidos ?? 0,
             }
           : ESTADO_VACIO
@@ -152,6 +162,7 @@ export function ProveedorSesion({
       activacion,
       guardarActivacion: setActivacion,
       iniciarSesion: (tipo, contexto, jwt = null) => {
+        revision.current += 1;
         guardarSesionViva(contexto, jwt);
         setEstado({
           cargando: false,
@@ -161,10 +172,43 @@ export function ProveedorSesion({
           jwt,
           ultimaRenovacion: null,
           bloqueada: false,
+          desbloqueada: true,
+          modoConsulta: false,
           intentosFallidos: 0,
         });
       },
+      desbloquearSesion: async (pin) => {
+        const cuentaId = estado.contexto?.cuentaId;
+        if (estado.tipo !== "equipo" || !cuentaId) {
+          throw new Error("sesion_equipo_requerida");
+        }
+        const revisionInicial = revision.current;
+        const resultado = await gestor.desbloquear(cuentaId, pin);
+        if (revision.current !== revisionInicial) return resultado;
+        const sesion = resultado.sesion;
+        const desbloqueada = Boolean(
+          sesion && sesion.tipo === "equipo" && sesion.cuentaId === cuentaId &&
+          !sesion.bloqueada && resultado.intentosFallidos === 0 &&
+          (resultado.estado === "operativa" || resultado.estado === "requiere-conexion")
+        );
+        const contexto = desbloqueada && sesion ? contextoDeSesion(sesion) : estado.contexto;
+        if (desbloqueada && contexto) guardarSesionViva(contexto, null);
+        else cerrarSesionViva();
+        setEstado({
+          ...estado,
+          contexto,
+          rolesEfectivos: contexto ? rolesEfectivos(contexto) : [],
+          jwt: null,
+          ultimaRenovacion: sesion?.ultimaRenovacionServidor ?? estado.ultimaRenovacion,
+          bloqueada: resultado.estado === "bloqueada",
+          desbloqueada,
+          modoConsulta: desbloqueada && resultado.estado === "requiere-conexion",
+          intentosFallidos: resultado.intentosFallidos,
+        });
+        return resultado;
+      },
       cerrarSesion: () => {
+        revision.current += 1;
         cerrarSesionViva();
         setEstado(ESTADO_VACIO);
       },

@@ -108,10 +108,25 @@ npm run verificar:cobertura
 ```
 
 - `crear:administracion` ejecuta `crear-administracion-inicial.ts` y prioriza `BD_MIGRACIONES_URL` sobre `BD_URL`. Creación privilegiada de la primera ADM, una vez; reintento devuelve aviso de existente, sin reemitir enlace. Identidad operativa opcional como argumento (default “Administración inicial”). El principal verificó idempotencia con PostgreSQL real.
+- `reemitir:administracion` recupera el acceso de una administración activa mediante un enlace nuevo (RF-111, T001-65), usando la conexión privilegiada como el bootstrap T001-69. Invalida las credenciales anteriores de equipo de esa cuenta. Selecciona automáticamente solo cuando existe una única administración activa; si hay varias exige su UUID como argumento. No crea cuentas ni recupera tokens originales, que solo se guardan como hash. Muestra el enlace al operador local una sola vez por ejecución; no enviarlo a logs de servidor.
 - `sembrar:demo` ejecuta `sembrar-demo.ts` con **`BD_URL` de rol API**: cuentas por rol y mixta, catequista menor con seudónimo, grupo y dos niños/apoderado ficticios. Imprime solo `enlacesNuevos`; el principal verificó repetir sin enlaces nuevos. No usar en producción ni introducir datos reales. Enlaces son credenciales: salida para el operador local, nunca logs de servidor.
 - `verificar:migraciones` ejecuta `api/scripts/verificar-migraciones.mjs`, base `origin/main` por defecto. Para otra referencia existente: `npm run verificar:migraciones -- <referencia>`. Rechaza modificar/borrar migraciones de base, números duplicados o nombres inválidos; no sustituye checksum de la BD aplicada.
 - `verificar:cobertura` ejecuta `scripts/verificar-cobertura-rf.mjs`; informe por spec. Modo bloqueante: `npm run verificar:cobertura -- --bloquear 001` (análogamente 002/003). Citar un RF en el nombre no prueba todos sus criterios UI/campo.
 - `npm run adr:build` genera el sitio ADR con Log4brains1.1.0. Status de sustitución usa slug sin `.md`, no enlace Markdown. Esta corrección se verificó con build real de 16 ADRs.
+
+### Recuperar administración para Swagger desde PowerShell
+
+Desde la raíz del proyecto, con la IP del operador permitida temporalmente en el firewall PostgreSQL:
+
+```powershell
+$env:BD_MIGRACIONES_URL = "<conexion del rol sigecat_migrador; secreto bd-url-migrador de Key Vault>"
+$env:URL_WEB = "https://<dominio del frontend>"
+npm --prefix api run reemitir:administracion
+# Si hay varias administraciones activas:
+npm --prefix api run reemitir:administracion -- <cuentaId>
+```
+
+Cerrar la regla temporal después. El comando devuelve `{ cuentaId, url }`. Copiar solo el token después de `#t=` y enviarlo a `POST /acceso/equipo/activar` junto con un `dispositivoId` UUID estable. En Swagger configurar la clave APIM en `suscripcion`; después pegar el `jwt` devuelto en `sesion`, sin prefijo `Bearer`, y probar `GET /yo`. `URL_WEB` es la base HTTPS del frontend, no la URL de la API; no hace falta abrir ese enlace para canjearlo desde Swagger. El comando npm ejecuta un archivo y evita las diferencias de comillas y `--eval` de PowerShell.
 
 Validación de configuración actual: `api/src/compartido/config.ts` comprueba la URL PostgreSQL al llamar `configuracionBaseDatos()`; pool y claves se obtienen **al necesitar conexión/firma/renovación**, sin exigir secretos Azure al importar módulos de tests/registrar Functions. Errores nombran variable sin valor secreto; la última pasada de tests la registra el principal. Cron de purga es temporizador, no endpoint OpenAPI.
 

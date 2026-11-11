@@ -130,6 +130,15 @@ Una misma cuenta puede tener varios roles a la vez (por ejemplo, catequista y fa
 - **RNF-104 Costo cero.** La gestión de cuentas y enlaces no deberá generar costo por usuario ni por mensaje enviado (R23).
 - **RNF-105 Administración mínima.** Crear cuentas, asignar grupos, generar enlaces y delegar deberán poder hacerse desde el celular, sin intervención técnica (R24).
 
+### RNF-106 Disponibilidad y alerta operativa (aprobado 2026-11-09)
+
+- El sistema deberá sondear activamente el recorrido HTTPS público APIM → Functions → PostgreSQL, incluso sin usuarios conectados. Una operación técnica separada `GET /estado/` no exige credencial personal ni suscripción y solo devuelve `{"estado":"disponible"}` con 200 o `{"estado":"no_disponible"}` con 503 y `Cache-Control: no-store`. No consulta datos personales ni revela errores, dependencias, versiones o secretos. Las rutas `/v1` mantienen sus controles; el origen Functions sigue requiriendo clave de host.
+- La comprobación PostgreSQL será de solo lectura (`SELECT 1`), con tiempos acotados y el pool existente, sin cambios de modelo ni dependencias nuevas.
+- Una prueba estándar de Application Insights consultará cada 5 minutos desde tres ubicaciones, con timeout de 30 segundos, sin seguir redirecciones y validando TLS, HTTP 200 y el contenido esperado. Un 401/403 no significa disponibilidad.
+- Azure Monitor deberá alertar al fallar al menos dos ubicaciones, evaluar cada minuto sobre una ventana de 5 minutos y resolver automáticamente al recuperarse. Enviará aviso al correo operativo configurable, por defecto el responsable del presupuesto, sin SMS ni datos de usuarios.
+- La sonda y alerta se activan únicamente con las políticas finales del despliegue. Los tests estándar y alertas pueden generar coste Azure; revisar el precio regional y consumo antes de desplegar, sin prometer coste cero ni exceder crédito deliberadamente.
+- La entrega local no acredita notificación real: se requiere ensayo controlado de fallo, recepción del aviso y recuperación en Azure, con ventana acordada y evidencia sanitizada. La sonda no certifica todos los flujos autenticados ni Blob Storage.
+
 ## Casos límite
 
 - Catequista asignado a dos grupos: ve ambos y nada más.
@@ -166,6 +175,7 @@ Una misma cuenta puede tener varios roles a la vez (por ejemplo, catequista y fa
 - Tras cerrar sesión, solo quedan en el celular los registros pendientes de envío, y no son visibles desde otra cuenta.
 - Un catequista entra con enlace y PIN sin tener correo, desbloquea sin señal dentro de los 14 días y queda bloqueado después.
 - Un enlace revocado deja de funcionar, y los registros pendientes de ese celular se rechazan con aviso a la coordinación.
+- RNF-106: el ensayo acordado de caída y recuperación en Azure conserva evidencia de detección y recepción real del aviso, sin datos personales ni secretos.
 
 ## Dudas abiertas
 

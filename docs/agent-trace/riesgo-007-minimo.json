@@ -1,0 +1,73 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-10",
+  "agente": "OpenCode",
+  "modelo": "opencode/big-pickle",
+  "rama": "main",
+  "tareas": ["T007-05", "T007-06", "T007-07", "T007-09", "T007-15", "T007-17"],
+  "solicitud": "Implementar el alcance mínimo de la spec 007: usar asistencia y justificaciones para mostrar quién está en riesgo, explicar las faltas de origen y exponer una lista de solo lectura para la demo.",
+  "requisitos": ["RF-701", "RF-702", "RF-707", "RF-708", "RNF-702"],
+  "alcance": [
+    "src/lib/riesgo/tipos.ts",
+    "src/lib/riesgo/clasificar-falta.ts",
+    "src/lib/riesgo/conteo.ts",
+    "src/lib/riesgo/pasos.ts",
+    "src/lib/riesgo/evaluar-riesgo.ts",
+    "src/lib/riesgo/lista-riesgo.ts",
+    "src/lib/riesgo/index.ts",
+    "src/lib/riesgo/__tests__/riesgo.test.ts",
+    "src/lib/seguridad/matriz-permisos.ts",
+    "api/src/modulos/riesgo/aplicacion/consultar-lista-riesgo.ts",
+    "api/src/modulos/riesgo/http/index.ts",
+    "api/src/modulos/riesgo/index.ts",
+    "api/src/index.ts",
+    "api/test/unit/riesgo/http.test.ts",
+    "api/test/unit/riesgo/lista.test.ts",
+    "api/test/http/inventario.test.ts",
+    "api/openapi.json",
+    "api/scripts/sembrar-riesgo-demo.ts",
+    "api/package.json",
+    "api/package-lock.json",
+    "docs/agent-trace/riesgo-007-minimo.json"
+  ],
+  "decisiones": [
+    "D-704: se aprueba una desviación de solo lectura con GET /riesgo para la demo, además del pull previsto en el plan.",
+    "Solo las faltas de origen domingo suman al riesgo; las jornadas no cuentan en esta entrega.",
+    "La justificación aprobada o pendiente se respeta; mientras 004 no esté implementada, una falta sin plazo conocido suma para no subestimar el riesgo.",
+    "Coordinación ve todos los grupos; catequista queda filtrado por grupos asignados; familia y supervisión no acceden.",
+    "El seed retrasa la inscripción y la asignación al inicio del ciclo para que las faltas de domingos pasados sean visibles."
+  ],
+  "comprobaciones": [
+    {
+      "comando": "npm test con BD_PRUEBAS_URL=postgresql://postgres:postgres@127.0.0.1:55432/sigecat y Azurite local",
+      "resultado": "Pasa: 30 suites y 95 tests del cliente; 30 suites y 211 tests de API, incluida integración PostgreSQL/Azurite."
+    },
+    {
+      "comando": "npm run typecheck",
+      "resultado": "Pasa en raíz y API."
+    },
+    {
+      "comando": "npm run lint",
+      "resultado": "Pasa sin errores ni advertencias."
+    },
+    {
+      "comando": "node api/scripts/verificar-openapi.mjs",
+      "resultado": "Pasa: 67 operaciones, 188 schemas y 33 migraciones inventariadas."
+    },
+    {
+      "comando": "npm --prefix api run sembrar:riesgo y consulta directa de consultarListaRiesgo",
+      "resultado": "Pasa: Niño 2 queda en alerta_retiro con 4 faltas, Niño 3 en citación con 3 y Niño 1 en contacto con 2."
+    },
+    {
+      "comando": "git diff --check",
+      "resultado": "Pasa antes del commit."
+    }
+  ],
+  "limites": [
+    "No se implementaron fichas, contactos, retiros, saldo inicial, posible abandono ni temporizadores de la spec 007 completa.",
+    "No se implementó la pantalla de riesgo; el reparto del equipo deja la conexión de interfaz a Pedro.",
+    "La spec 004 no está implementada: el adaptador trata una falta no justificada como suma, sin plazo real.",
+    "No se modificaron specs, constitución ni migraciones; no se añadieron dependencias nuevas."
+  ],
+  "notas": "La respuesta de GET /riesgo incluye paso, conteo y faltasOrigen para que la interfaz pueda explicar por qué un niño está en riesgo. El endpoint usa no-store, cuota por cuenta y el permiso riesgo:leer. La lista local se verificó con PostgreSQL y el seed demo, sin desplegar Azure."
+}

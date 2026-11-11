@@ -165,3 +165,14 @@ test("RF-112: el PIN desbloquea sin conexión si no pasaron 14 días desde la ú
   const diaQuince = await kit.gestor.desbloquear("cuenta-1", "1234");
   expect(diaQuince.estado).toBe("requiere-conexion");
 });
+
+test("RF-112: atrasar el reloj no restablece los 14 días al desbloquear", async () => {
+  const kit = preparar({ sinRed: true });
+  await conSesionFijada(kit);
+  const renovacion = kit.reloj.ahora;
+  kit.reloj.ahora = renovacion + 15 * DIA;
+  expect((await kit.gestor.desbloquear("cuenta-1", "1234")).estado).toBe("requiere-conexion");
+  kit.reloj.ahora = renovacion + 2 * DIA;
+  expect((await kit.gestor.desbloquear("cuenta-1", "1234")).estado).toBe("requiere-conexion");
+  expect((await kit.almacen.leerSesion("cuenta-1"))?.instanteMaximoVisto).toBe(renovacion + 15 * DIA);
+});

@@ -52,6 +52,28 @@ npm run adr:preview   # sitio navegable en local
 npm run adr:new       # crear un ADR
 ```
 
+## Especificaciones
+
+El comportamiento acordado de las specs 001 a 008 está en
+[`openspec/specs`](openspec/specs). La spec 009 evaluó GraphQL, gRPC y MCP
+para el taller: no forman parte del producto. El transporte sigue siendo REST,
+con sincronización WatermelonDB.
+
+`specs/` conserva el plan, las tareas y las dudas abiertas. Mientras
+`docs/constitution.md` no cambie, esa carpeta sigue siendo la fuente. El
+trabajo nuevo no se escribe ahí: se abre como un cambio.
+
+Quien usa OpenCode (plan Go incluido) trabaja con los comandos de
+[`.opencode/commands`](.opencode/commands). Hace falta el CLI de OpenSpec en
+la máquina (`npm install -g @fission-ai/openspec@latest`, Node 22.12 o mayor).
+
+```text
+/opsx-explore     pensar el cambio, sin implementar
+/opsx-propose     proposal, delta, design y tasks; se detiene antes del código
+/opsx-apply       implementar las tareas del cambio
+/opsx-archive     fusionar los requisitos en openspec/specs y archivar
+```
+
 ## Estructura
 
 ```
@@ -71,6 +93,8 @@ app.json             Configuracion de Expo (nombre, esquema, iconos, plugins)
 docs/
   adr/               Registros de decisiones de arquitectura (Log4brains)
   diagrams/          Modelo C4 en Structurizr DSL (C1 a C3)
+openspec/            Comportamiento vigente (specs 001–008) y cambios en curso
+.opencode/           Comandos y skills de OpenSpec para OpenCode
 ```
 
 ## Stack
@@ -96,7 +120,9 @@ npm run lint
 
 ## Estado
 
-El backend de las specs 001–003 está implementado en `backend/001-003`, con soporte mínimo transversal de ciclos y actividades. La guía de ejecución y roles está en [docs/backend-desarrollo.md](docs/backend-desarrollo.md); el contrato para integrar frontend, en [docs/backend-contratos.md](docs/backend-contratos.md). Las comprobaciones locales y los pendientes de despliegue, interfaz y specs posteriores se registran en [docs/backend-implementacion.md](docs/backend-implementacion.md).
+El comportamiento de 001–008 está publicado en `openspec/specs`. GraphQL, gRPC y MCP quedaron como evaluación del taller (spec 009) y no se implementan en el producto.
+
+El backend de las specs 001–003 está implementado en `backend/001-003`, con soporte mínimo transversal de ciclos y actividades. La guía de ejecución y roles está en [docs/backend-desarrollo.md](docs/backend-desarrollo.md); el contrato para integrar frontend, en [docs/backend-contratos.md](docs/backend-contratos.md). Las comprobaciones locales y los pendientes de despliegue, interfaz y specs posteriores se registran en [docs/backend-implementacion.md](docs/backend-implementacion.md). El siguiente corte de producto es la lista de asistencia en el celular (spec 003), no un protocolo nuevo.
 
 Fase 2 cerrada: modelo de dominio, control de acceso por cuatro roles, cola de
 sincronizacion y aplicacion Expo con una pantalla de entrada por rol. Las

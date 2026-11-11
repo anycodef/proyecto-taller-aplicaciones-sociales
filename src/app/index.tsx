@@ -12,18 +12,19 @@ import { colores, espacio, radio, tipografia } from "@/tema";
 /** A donde entra cada rol cuando ya tiene sesion. */
 export function inicioDelRol(tipo: string, roles: string[]): Href {
   if (tipo === "familia") return "/familia";
+  if (roles.includes("administracion")) return "/cuentas";
   if (roles.includes("coordinacion")) return "/coordinacion";
   return "/asistencia";
 }
 
 export default function Inicio() {
-  const { cargando, tipo, rolesEfectivos } = useSesion();
+  const { cargando, tipo, rolesEfectivos, desbloqueada } = useSesion();
   const [aviso, setAviso] = useState<string | null>(null);
 
   useEffect(() => {
     if (cargando || tipo === "ninguna") return;
-    router.replace(inicioDelRol(tipo, rolesEfectivos));
-  }, [cargando, tipo, rolesEfectivos]);
+    router.replace(tipo === "equipo" && !desbloqueada ? "/acceso/desbloquear" : inicioDelRol(tipo, rolesEfectivos));
+  }, [cargando, tipo, rolesEfectivos, desbloqueada]);
 
   const pegarEnlace = async () => {
     const texto = await Clipboard.getStringAsync();
