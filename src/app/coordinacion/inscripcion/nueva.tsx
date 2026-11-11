@@ -1,18 +1,17 @@
 import { useCallback, useState } from "react";
 import { router, type Href } from "expo-router";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { ScrollView, StyleSheet, Text } from "react-native";
 import * as Crypto from "expo-crypto";
 
-import { Aviso, Boton, CampoTexto, GrupoOpciones, IndicadorPasos, Insignia, Tarjeta } from "@/components/ui";
+import { Aviso, Boton, CampoTexto, GrupoOpciones, IndicadorPasos, Tarjeta } from "@/components/ui";
 import { AvisoSinConexion } from "@/components/catequizandos/aviso-sin-conexion";
 import { FormularioInscripcion, ValoresInscripcionPaso1 } from "@/components/catequizandos/formulario-inscripcion";
 import { SelectorGrupoSugerido, GrupoSeleccionado } from "@/components/catequizandos/selector-grupo-sugerido";
 import { ComponenteConsentimiento } from "@/components/seguridad/consentimiento";
 import { useConectividad } from "@/components/catequizandos/use-conectividad";
-import { crearApiCatequizandos, prepararInscripcion } from "@/lib/catequizandos/api";
-import type { PeticionInscripcion, RespuestaInscripcion, DatosNino, DatosVinculo, Carne } from "@/lib/catequizandos/contratos";
+import { prepararInscripcion } from "@/lib/catequizandos/api";
+import type { PeticionInscripcion, RespuestaInscripcion } from "@/lib/catequizandos/contratos";
 import { validarInscripcion } from "@/lib/catequizandos/inscripcion";
-import { useCarga } from "@/plataforma/api/usar-carga";
 import { useSesion } from "@/plataforma/seguridad/contexto-sesion";
 import { colores, espacio, tipografia } from "@/tema";
 
@@ -49,23 +48,7 @@ export default function NuevaInscripcion() {
 
   const [grupoSeleccionado, setGrupoSeleccionado] = useState<GrupoSeleccionado | null>(null);
 
-  const api = crearApiCatequizandos({
-    solicitar: async (metodo, ruta, cuerpo) => {
-      const respuesta = await fetch(`http://localhost:7071/api${ruta}`, {
-        method: metodo,
-        headers: { "Content-Type": "application/json" },
-        body: cuerpo ? JSON.stringify(cuerpo) : undefined,
-      });
-      if (!respuesta.ok) {
-        const errorBody = await respuesta.json().catch(() => ({}));
-        const error: any = new Error(errorBody.codigo || `Error ${respuesta.status}`);
-        error.codigo = errorBody.codigo;
-        error.estado = respuesta.status;
-        throw error;
-      }
-      return respuesta.json();
-    },
-  });
+  const api = apiCatequizandos;
 
   const validarPaso1 = useCallback(() => {
     const resultado = validarInscripcion(
@@ -195,6 +178,13 @@ export default function NuevaInscripcion() {
     }
   };
 
+  const volverAPaso1 = () => setPaso(1);
+  const volverAPaso2 = () => setPaso(2);
+  const volverAPaso3 = () => setPaso(3);
+
+  const exitoId = exito?.catequizandoId;
+  const exitoCodigo = exito?.codigoCarne;
+
   return (
     <ScrollView contentContainerStyle={estilos.contenido}>
       {!cargando && !exito && !duplicadoReferencia && (
@@ -204,6 +194,8 @@ export default function NuevaInscripcion() {
           {!conConexion && (
             <AvisoSinConexion mensaje="Sin conexión. Los datos se guardan en memoria y se envían al reconectar." />
           )}
+
+          {error ? <Aviso tono="error" mensaje={error} /> : null}
 
           {paso === 1 && (
             <>
@@ -249,6 +241,15 @@ export default function NuevaInscripcion() {
                 etiqueta="Teléfono o contacto"
                 valor={apoderadoContacto}
                 alCambiar={setApoderadoContacto}
+              />
+              <GrupoOpciones
+                etiqueta="Tipo de contacto"
+                valor={apoderadoTipoContacto}
+                alCambiar={(v) => setApoderadoTipoContacto(v === "otro" ? "otro" : "telefono")}
+                opciones={[
+                  { valor: "telefono", etiqueta: "Teléfono" },
+                  { valor: "otro", etiqueta: "Otro" },
+                ]}
               />
               <GrupoOpciones
                 etiqueta="Relación"
@@ -312,21 +313,16 @@ export default function NuevaInscripcion() {
           {paso === 5 && (
             <>
               <Text style={[tipografia.encabezado, estilos.tituloExito]}>Inscripción completada</Text>
-              {exito && (
+              {exitoId ? (
                 <Tarjeta>
-                  <Text style={[tipografia.cuerpoFuerte, estilos.texto]}>
-                    {exito.catequizandoId}
-                  </Text>
+                  <Text style={[tipografia.cuerpoFuerte, estilos.texto]}>{exitoId}</Text>
                   <Text style={[tipografia.cuerpo, estilos.texto]}>
-                    Código del carné: {exito.codigoCarne}
+                    Código del carné: {exitoCodigo}
                   </Text>
                 </Tarjeta>
-              )}
+              ) : null}
               <Boton etiqueta="Ver carné" alPresionar={() => {
-                if (exito) {
-                  const { catequizandoId } = exito;
-                  router.push(`/catequizandos/${catequizandoId}/carne` as Href);
-                }
+                if (exitoId) router.push(`/catequizandos/${exitoId}/carne` as Href);
               }} />
               <Boton etiqueta="Inscribir otro niño" variante="secundario" alPresionar={() => setPaso(1)} />
             </>

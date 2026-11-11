@@ -1,9 +1,7 @@
-import { useState } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 
-import { Aviso, Boton, CampoTexto, GrupoOpciones } from "@/components/ui";
+import { Aviso, CampoTexto, GrupoOpciones } from "@/components/ui";
 import { estaEnRangoCatequesis, edadAlInicioDelCiclo } from "@/lib/catequizandos/edad";
-import { validarInscripcion } from "@/lib/catequizandos/inscripcion";
 import { colores, espacio, radio, tipografia } from "@/tema";
 
 type Sexo = "femenino" | "masculino";
