@@ -12,6 +12,7 @@ import { registrarProveedor } from "./modulos/sincronizacion/aplicacion/registro
 import { registrarCiclos } from "./modulos/ciclos";
 import { registrarActividades } from "./modulos/actividades";
 import { registrarRiesgo } from "./modulos/riesgo";
+import { registrarAsistente } from "./modulos/asistente";
 import { app } from "@azure/functions";
 import { depurarLapidasSincronizacion } from "./modulos/asistencia/infraestructura/lapidas-sincronizacion";
 import { enTransaccion } from "./compartido/bd/transaccion";
@@ -34,6 +35,7 @@ registrarSincronizacion();
 registrarCiclos();
 registrarActividades();
 registrarRiesgo();
+registrarAsistente();
 app.timer("depurarMetadatos", { schedule: "0 30 9 * * *", handler: async () => {
   await enTransaccion(async tx => {
     await tx.query("SET LOCAL ROLE sigecat_retencion");

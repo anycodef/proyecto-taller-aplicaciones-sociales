@@ -1,0 +1,78 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-10",
+  "agente": "OpenCode",
+  "modelo": "opencode/big-pickle",
+  "rama": "main",
+  "tarea": "asistente-catequesis-minimo",
+  "tipo": "implementacion",
+  "solicitud": "Implementar el corte mínimo del asistente de catequesis: corpus público, recuperación BM25, filtro de datos sensibles, endpoint con proveedor extractivo y pruebas, sin depender de claves externas ni implementar interfaz móvil.",
+  "requisitos": ["RF-1001", "RF-1002", "RF-1003", "RF-1004", "RF-1005", "RF-1006", "RF-1007", "RNF-1001", "RNF-1002", "RNF-1003", "RNF-1004", "RNF-1005"],
+  "alcance": [
+    "src/lib/asistente/tipos.ts",
+    "src/lib/asistente/normalizar.ts",
+    "src/lib/asistente/corpus.ts",
+    "src/lib/asistente/bm25.ts",
+    "src/lib/asistente/guardia.ts",
+    "src/lib/asistente/prompt.ts",
+    "src/lib/asistente/proveedor.ts",
+    "src/lib/asistente/validar.ts",
+    "src/lib/asistente/servicio.ts",
+    "src/lib/asistente/index.ts",
+    "src/lib/asistente/__tests__/asistente.test.ts",
+    "src/lib/seguridad/matriz-permisos.ts",
+    "api/src/modulos/asistente/aplicacion/preguntar.ts",
+    "api/src/modulos/asistente/corpus/fragmentos.ts",
+    "api/src/modulos/asistente/corpus/FUENTES.md",
+    "api/src/modulos/asistente/http/index.ts",
+    "api/src/modulos/asistente/index.ts",
+    "api/src/index.ts",
+    "api/test/unit/asistente/http.test.ts",
+    "api/test/unit/asistente/corpus.test.ts",
+    "api/test/unit/asistente/flujo.test.ts",
+    "api/test/http/inventario.test.ts",
+    "api/openapi.json",
+    "docs/tecnicas-inteligentes.md",
+    "openspec/changes/asistente-catequesis/tasks.md",
+    "docs/agent-trace/asistente-catequesis-minimo.json"
+  ],
+  "decisiones": [
+    "El corte usa un proveedor extractivo determinista y el puerto ProveedorRespuesta; Gemini, Groq y Ollama quedan para una iteración posterior.",
+    "BM25 usa K1=1.2, B=0.75, umbral 0.1 y límite de 5 fragmentos; el umbral se ajustó para que un corpus pequeño no convierta coincidencias exactas en abstenciones.",
+    "Las secciones del corpus incluyen la etiqueta temática además de la referencia bíblica para mejorar la recuperación.",
+    "El filtro previo rechaza datos de menores, familia, salud, documentos, riesgo y consejo profesional, pero permite preguntas como el Padre Nuestro.",
+    "Cada respuesta se valida contra citas reales del corpus; una cita inventada, un dato personal o una autoridad doctrinal declarada se convierten en abstención.",
+    "El endpoint usa POST /asistente/preguntar, permiso asistente:consultar para todos los roles autenticados, cuota de 20 por hora, no-store y ningún registro de la pregunta.",
+    "El corpus contiene diez fragmentos públicos de dominio público y no incluye datos de personas."
+  ],
+  "comprobaciones": [
+    {
+      "comando": "npm test con BD_PRUEBAS_URL=postgresql://postgres:postgres@localhost:55432/sigecat y Azurite local",
+      "resultado": "Pasa: 31 suites y 107 tests del cliente; 33 suites y 222 tests de API, incluida integración PostgreSQL/Azurite."
+    },
+    {
+      "comando": "npm run typecheck",
+      "resultado": "Pasa en raíz y API."
+    },
+    {
+      "comando": "npm run lint",
+      "resultado": "Pasa sin errores ni advertencias."
+    },
+    {
+      "comando": "node api/scripts/verificar-openapi.mjs",
+      "resultado": "Pasa: 68 operaciones, 191 schemas y 33 migraciones inventariadas."
+    },
+    {
+      "comando": "git diff --check",
+      "resultado": "Pasa sin errores de espacio; Git advierte normalización LF/CRLF en dos Markdown."
+    }
+  ],
+  "limites": [
+    "No se implementaron los adaptadores reales Gemini, Groq u Ollama; el endpoint funciona con extracción local.",
+    "No se implementaron métricas agregadas, caché LRU, cliente HTTP ni pantalla móvil.",
+    "Las tareas 2.2, 2.3, 3.5, 3.6 y 5.1 a 5.4 permanecen pendientes.",
+    "No se desplegó ni probó contra Azure Functions real; la verificación fue local.",
+    "No se añadieron dependencias ni se modificaron migraciones, specs principales o constitución."
+  ],
+  "notas": "El endpoint responde con texto, fuentes, proveedor, modelo y versión del corpus. La demo funciona sin API key, cita documento y sección, se abstiene sin sustento y rechaza preguntas sensibles antes de recuperar o generar."
+}

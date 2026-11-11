@@ -11,7 +11,7 @@
     { "url": "https://sigecat.example/v1", "description": "Dominio ilustrativo APIM; sustituir por el entorno desplegado" }
   ],
   "security": [{ "sesion": [], "suscripcion": [] }],
-  "tags": [{ "name": "acceso" }, { "name": "seguridad" }, { "name": "inscripciones" }, { "name": "catequizandos" }, { "name": "asistencia" }, { "name": "riesgo" }, { "name": "sincronizacion" }, { "name": "transversal" }],
+  "tags": [{ "name": "acceso" }, { "name": "seguridad" }, { "name": "inscripciones" }, { "name": "catequizandos" }, { "name": "asistencia" }, { "name": "riesgo" }, { "name": "asistente" }, { "name": "sincronizacion" }, { "name": "transversal" }],
   "x-fuentes": [
       "api/src/compartido/http/estado.ts",
     "api/src/modulos/seguridad/http/index.ts",
@@ -30,6 +30,10 @@
     "api/src/modulos/riesgo/http/index.ts",
     "api/src/modulos/riesgo/aplicacion/consultar-lista-riesgo.ts",
     "src/lib/riesgo/index.ts",
+    "api/src/modulos/asistente/http/index.ts",
+    "api/src/modulos/asistente/aplicacion/preguntar.ts",
+    "api/src/modulos/asistente/corpus/fragmentos.ts",
+    "src/lib/asistente/index.ts",
     "src/lib/actividades/tablas-sincronizadas.ts",
     "api/migraciones/0506_actividades_trazabilidad.sql",
     "api/migraciones/0309_lapidas_sincronizacion.sql",
@@ -41,9 +45,40 @@
     "concurrenciaHttp": 10, "memoriaMb": 2048, "alwaysReady": 0, "temporizadores": "UTC",
     "variables": ["BD_URL", "BD_MIGRACIONES_URL", "BD_PRUEBAS_URL", "JWT_KID", "JWT_CLAVE", "JWT_CLAVES", "RENOVACION_CLAVE", "URL_WEB", "BLOBS_CONEXION", "AzureWebJobsStorage", "FUNCTIONS_WORKER_RUNTIME", "LIMITE_BUSQUEDAS_APODERADOS"],
     "aliasCompatibles": { "WEB_URL": "URL_WEB" },
-    "limites": { "sincronizacionPorMinuto": 30, "validacionCarnePorMinuto": 120, "asistenciaPorOperacionMinuto": 30, "ciclosPorMinuto": 30, "actividadesPorMinuto": 30, "busquedaApoderadosPorMinuto": 10, "pushMaximoBytes": 524288 }
+    "limites": { "sincronizacionPorMinuto": 30, "validacionCarnePorMinuto": 120, "asistenciaPorOperacionMinuto": 30, "ciclosPorMinuto": 30, "actividadesPorMinuto": 30, "busquedaApoderadosPorMinuto": 10, "asistentePorHora": 20, "pushMaximoBytes": 524288 }
   },
   "paths": {
+    "/asistente/preguntar": {
+      "post": {
+        "operationId": "preguntarAsistente",
+        "tags": ["asistente"],
+        "summary": "Cuenta autenticada pregunta sobre catequesis con material público",
+        "description": "RF-1001, RF-1002, RF-1003, RF-1004, RF-1005, RF-1006, RF-1007, RNF-1001, RNF-1004, RNF-1005. Responde solo con fragmentos del corpus público, cita documento y sección, se abstiene sin sustento y rechaza datos de menores, salud, documentos, familia, riesgo o consejo profesional. No guarda pregunta ni respuesta en la base; la cuota es 20 por hora por cuenta. El corte actual usa el proveedor extractivo de demostración, sin claves externas.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/AsistentePregunta" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Respuesta citada, abstención o rechazo controlado",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AsistenteRespuesta" }
+              }
+            }
+          },
+          "401": { "$ref": "#/components/responses/NoAutorizado" },
+          "403": { "$ref": "#/components/responses/FueraDeAlcance" },
+          "422": { "$ref": "#/components/responses/EntradaInvalida" },
+          "429": { "$ref": "#/components/responses/Limite" },
+          "500": { "$ref": "#/components/responses/ErrorInterno" }
+        }
+      }
+    },
     "/riesgo": {
       "get": {
         "operationId": "listarRiesgo",
@@ -252,6 +287,38 @@
       "ErrorInterno": { "description": "500 error_interno, sin detalles personales ni secretos", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Error" }, "example": { "codigo": "error_interno" } } } }
     },
     "schemas": {
+      "AsistentePregunta": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["pregunta"],
+        "properties": {
+          "pregunta": { "type": "string", "minLength": 3, "maxLength": 500, "description": "Pregunta en español; se recorta." }
+        }
+      },
+      "AsistenteFuente": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "documento", "seccion", "fuente", "licencia"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1, "maxLength": 100 },
+          "documento": { "type": "string", "minLength": 1, "maxLength": 200 },
+          "seccion": { "type": "string", "minLength": 1, "maxLength": 200 },
+          "fuente": { "type": "string", "minLength": 1, "maxLength": 500 },
+          "licencia": { "type": "string", "minLength": 1, "maxLength": 100 }
+        }
+      },
+      "AsistenteRespuesta": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["respuesta", "fuentes", "proveedor", "modelo", "versionCorpus"],
+        "properties": {
+          "respuesta": { "type": "string", "minLength": 1, "maxLength": 4000 },
+          "fuentes": { "type": "array", "maxItems": 5, "items": { "$ref": "#/components/schemas/AsistenteFuente" } },
+          "proveedor": { "type": "string", "minLength": 1, "maxLength": 100 },
+          "modelo": { "type": "string", "minLength": 1, "maxLength": 100 },
+          "versionCorpus": { "type": "string", "minLength": 1, "maxLength": 100 }
+        }
+      },
       "RiesgoFalta": {
         "type": "object",
         "additionalProperties": false,
