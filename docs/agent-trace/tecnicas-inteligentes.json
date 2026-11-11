@@ -1,0 +1,48 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-10",
+  "agente": "OpenCode",
+  "modelo": "opencode/big-pickle",
+  "rama": "main",
+  "tarea": "evaluacion-tecnicas-inteligentes",
+  "solicitud": "Documentar cuáles de las seis técnicas inteligentes están funcionando en SIGECAT y cuáles solo están modeladas o descartadas para la entrega.",
+  "alcance": [
+    "docs/tecnicas-inteligentes.md",
+    "docs/agent-trace/tecnicas-inteligentes.json"
+  ],
+  "criterio": "Cada técnica tiene definición, aplicación en catequesis, datos, ventajas, límites y decisión; el documento distingue lo implementado de lo modelado y de lo descartado.",
+  "decisiones": [
+    "Sistema experto basado en reglas: implementado para riesgo de deserción en src/lib/riesgo.",
+    "RAG, LLM generativo y PLN para intención/temas sensibles: modelados para la spec 010.",
+    "Agente con herramientas MCP: funcionando solo en la demo de Tarea 3, sin acceso a producción.",
+    "Aprendizaje automático predictivo: descartado por privacidad, explicabilidad y falta de datos suficientes."
+  ],
+  "comprobaciones": [
+    {
+      "comando": "revisión cruzada con specs 007, 009 y 010 y con src/lib/riesgo",
+      "resultado": "Pasa: el estado declarado coincide con el código y con los cambios OpenSpec existentes."
+    },
+    {
+      "comando": "npm test",
+      "resultado": "Pasa en el árbol de trabajo: 30 suites y 95 tests del cliente; 30 suites y 211 tests de API."
+    },
+    {
+      "comando": "npm run typecheck",
+      "resultado": "Pasa en raíz y API."
+    },
+    {
+      "comando": "npm run lint",
+      "resultado": "Pasa sin errores ni advertencias."
+    },
+    {
+      "comando": "git diff --check",
+      "resultado": "Pasa antes del commit."
+    }
+  ],
+  "limites": [
+    "El documento no implementa las técnicas modeladas ni genera evidencia nueva de MCP.",
+    "La evaluación de ML es una decisión de alcance, no un experimento con datos reales.",
+    "No se modificaron specs, constitución ni código de producto."
+  ],
+  "notas": "El documento sirve para la exposición y responde explícitamente qué técnicas están funcionando y cuáles están siendo modeladas."
+}
