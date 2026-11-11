@@ -19,3 +19,24 @@ export const TARJETA_INICIO: Record<VariantePlataforma, string> = {
 export function muestraPegarEnlace(platform: string): boolean {
   return platform === "android";
 }
+
+export const ETIQUETA_ACTIVACION: Record<VariantePlataforma, string> = {
+  app: "ACTIVAR MI CUENTA",
+  web: "ENTRANDO",
+};
+
+export const TITULO_ACTIVACION: Record<VariantePlataforma, string> = {
+  app: "Verificando tu enlace…",
+  web: "Abriendo tu enlace…",
+};
+
+export const TEXTO_ACTIVACION: Record<VariantePlataforma, string> = {
+  app: "Esto toma unos segundos. No cierres la app.",
+  web: "Esto toma unos segundos.",
+};
+
+/** Aviso de la primera vez, que solo tiene sentido en la app del equipo. */
+export const AVISO_PRIMERA_VEZ: Record<VariantePlataforma, string | null> = {
+  app: "La primera vez necesitas internet. Si falla, conéctate a datos o wifi y vuelve a abrir el enlace: sigue funcionando.",
+  web: null,
+};

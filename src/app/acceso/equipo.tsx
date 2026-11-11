@@ -5,6 +5,13 @@ import { ActivityIndicator, Platform, ScrollView, StyleSheet, Text, View } from 
 
 import { Aviso, Boton } from "@/components/ui";
 import { extraerTokenDeUrl } from "@/lib/seguridad/enlaces";
+import {
+  AVISO_PRIMERA_VEZ,
+  ETIQUETA_ACTIVACION,
+  TEXTO_ACTIVACION,
+  TITULO_ACTIVACION,
+  varianteDe,
+} from "@/lib/seguridad/variantes-plataforma";
 import { useSesion } from "@/plataforma/seguridad/contexto-sesion";
 import { leerTokenPendiente } from "@/plataforma/seguridad/sesion";
 import { colores, espacio, tipografia } from "@/tema";
@@ -15,6 +22,7 @@ export default function ActivacionEquipo() {
   const { gestor, guardarActivacion } = useSesion();
   const url = useURL();
   const [estado, setEstado] = useState<Estado>("verificando");
+  const variante = varianteDe(Platform.OS);
 
   const activar = useCallback(async (): Promise<Estado> => {
     const token = (url ? extraerTokenDeUrl(url) : null) ?? leerTokenPendiente();
@@ -62,27 +70,22 @@ export default function ActivacionEquipo() {
 
   return (
     <Marco>
-      <Text style={[tipografia.etiqueta, estilos.etiqueta]}>ACTIVAR MI CUENTA</Text>
+      <Text style={[tipografia.etiqueta, estilos.etiqueta]}>{ETIQUETA_ACTIVACION[variante]}</Text>
       {estado === "verificando" ? (
         <>
           <ActivityIndicator size="large" color={colores.primario} style={estilos.cargador} />
-          <Text style={[tipografia.encabezado, estilos.titulo]}>Verificando tu enlace…</Text>
-          <Text style={[tipografia.cuerpo, estilos.texto]}>
-            Esto toma unos segundos. No cierres la app.
-          </Text>
+          <Text style={[tipografia.encabezado, estilos.titulo]}>{TITULO_ACTIVACION[variante]}</Text>
+          <Text style={[tipografia.cuerpo, estilos.texto]}>{TEXTO_ACTIVACION[variante]}</Text>
         </>
       ) : null}
 
       {estado === "sin_red" ? (
         <>
-          <Text style={[tipografia.encabezado, estilos.titulo]}>Verificando tu enlace…</Text>
-          <Text style={[tipografia.cuerpo, estilos.texto]}>
-            Esto toma unos segundos. No cierres la app.
-          </Text>
-          <Aviso
-            tono="advertencia"
-            mensaje="La primera vez necesitas internet. Si falla, conéctate a datos o wifi y vuelve a abrir el enlace: sigue funcionando."
-          />
+          <Text style={[tipografia.encabezado, estilos.titulo]}>{TITULO_ACTIVACION[variante]}</Text>
+          <Text style={[tipografia.cuerpo, estilos.texto]}>{TEXTO_ACTIVACION[variante]}</Text>
+          {AVISO_PRIMERA_VEZ[variante] ? (
+            <Aviso tono="advertencia" mensaje={AVISO_PRIMERA_VEZ[variante]!} />
+          ) : null}
           <Boton etiqueta="Reintentar" variante="secundario" alPresionar={reintentar} />
         </>
       ) : null}
