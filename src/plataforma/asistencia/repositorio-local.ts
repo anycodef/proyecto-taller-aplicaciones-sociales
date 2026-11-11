@@ -1,5 +1,11 @@
 import type { BorradorLista } from "@/lib/asistencia/lista";
-import { guardarLista, guardarMarca, type FilaMarca } from "@/lib/asistencia/pendientes";
+import {
+  guardarCorreccion,
+  guardarLista,
+  guardarMarca,
+  type FilaCorreccion,
+  type FilaMarca,
+} from "@/lib/asistencia/pendientes";
 import type { ConfirmarListaLocal, RepositorioAsistencia } from "@/lib/asistencia/repositorio-asistencia";
 import { aSesion } from "@/lib/asistencia/sesiones";
 import type { NinoNomina } from "@/lib/asistencia/tipos";
@@ -107,6 +113,14 @@ export function crearRepositorioLocal(disco: AlmacenLocalDisco): RepositorioLoca
       escribir({
         ...estado,
         pendientes: guardarMarca(estado.pendientes, { id: marca.id, fila: marca }),
+      });
+    },
+
+    registrarCorreccion(correccion: FilaCorreccion): void {
+      const estado = leer();
+      escribir({
+        ...estado,
+        pendientes: guardarCorreccion(estado.pendientes, { id: correccion.id, fila: correccion }),
       });
     },
 

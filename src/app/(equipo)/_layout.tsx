@@ -29,6 +29,10 @@ export default function LayoutEquipo() {
           <Stack.Screen name="asistencia/lista/[grupoId]" options={{ title: "Lista de catequesis" }} />
           <Stack.Screen name="asistencia/manual" options={{ title: "Registro manual" }} />
           <Stack.Screen name="asistencia/pendientes" options={{ title: "Por enviar" }} />
+          <Stack.Screen
+            name="asistencia/correccion/[sesionId]/[catequizandoId]"
+            options={{ title: "Corregir asistencia" }}
+          />
         </Stack.Protected>
         <Stack.Protected guard={administracion || coordinacion}>
           <Stack.Screen name="cuentas/index" options={{ title: "Cuentas" }} />

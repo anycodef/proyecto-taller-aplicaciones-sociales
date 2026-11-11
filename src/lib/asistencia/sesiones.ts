@@ -10,6 +10,18 @@ export const idAsistencia = (sesionId: string, catequizandoId: string): string =
   v5(JSON.stringify(["asistencia", sesionId, catequizandoId]), NAMESPACE_ASISTENCIA);
 export const idAviso = (tipo: string, sesionId: string, referencia: string): string =>
   v5(JSON.stringify(["aviso", tipo, sesionId, referencia]), NAMESPACE_ASISTENCIA);
+/**
+ * Id determinista de una correccion. El instante entra en el id: corregir dos
+ * veces lo mismo con la misma hora es la misma correccion, pero una segunda
+ * correccion mas tarde es otra fila.
+ */
+export const idCorreccion = (
+  sesionId: string,
+  catequizandoId: string,
+  valorNuevo: string,
+  horaDispositivo: string
+): string =>
+  v5(JSON.stringify(["correccion", sesionId, catequizandoId, valorNuevo, horaDispositivo]), NAMESPACE_ASISTENCIA);
 export function fechaValida(fecha: string): boolean {
   return /^\d{4}-\d{2}-\d{2}$/.test(fecha) && Number.isFinite(Date.parse(fecha)) && new Date(fecha).toISOString().slice(0, 10) === fecha;
 }

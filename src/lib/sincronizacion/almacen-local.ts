@@ -69,7 +69,7 @@ export function deserializarAlmacen(texto: string | null): AlmacenLocal {
     const leido = JSON.parse(texto) as Partial<AlmacenLocal>;
     return {
       colecciones: leido.colecciones ?? {},
-      pendientes: leido.pendientes ?? PENDIENTES_VACIOS,
+      pendientes: { ...PENDIENTES_VACIOS, ...(leido.pendientes ?? {}) },
       ultimoPulso: leido.ultimoPulso ?? null,
       huellaAlcance: leido.huellaAlcance ?? null,
     };

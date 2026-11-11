@@ -86,6 +86,7 @@ test("RF-307: el lote de push lleva cada marca y cada lista una sola vez", () =>
         },
       },
     ],
+    correcciones: [],
   };
 
   const lote = prepararLote(pendientes);
@@ -95,13 +96,18 @@ test("RF-307: el lote de push lleva cada marca y cada lista una sola vez", () =>
   expect(lote.marcas_asistencia.created.every((fila) => typeof fila.id === "string")).toBe(true);
   expect(lote.marcas_asistencia.created.some((fila) => "_status" in fila)).toBe(false);
   expect(lote.marcas_asistencia.created.some((fila) => "estado" in fila)).toBe(false);
-  expect(resumenPendientes(pendientes)).toEqual({ marcas: 2, listas: 1, total: 3 });
+  expect(resumenPendientes(pendientes)).toEqual({
+    marcas: 2,
+    listas: 1,
+    correcciones: 0,
+    total: 3,
+  });
 });
 
 test("RF-307: el lote viaja con los nombres de tabla y las horas del servidor", () => {
   const idLista = idListaAsistencia(sesionId, "grupo-1");
   const pendientes = guardarLista(
-    { marcas: [crearMarca(datosMarca())], listas: [] },
+    { marcas: [crearMarca(datosMarca())], listas: [], correcciones: [] },
     {
       id: idLista,
       fila: {

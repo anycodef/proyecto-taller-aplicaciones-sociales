@@ -1,7 +1,14 @@
 import { v5 } from "uuid";
 
 import { NAMESPACE_ASISTENCIA } from "./sesiones";
-import type { TipoRegistro, ValorAsistencia, ListaAsistencia, MarcaAsistencia } from "./tipos";
+import type {
+  TipoRegistro,
+  ValorAnteriorAsistencia,
+  ValorAsistencia,
+  Correccion,
+  ListaAsistencia,
+  MarcaAsistencia,
+} from "./tipos";
 
 /**
  * Id determinista de la marca: la misma sesion, el mismo nino y el mismo tipo
@@ -104,12 +111,34 @@ export type ListaPendiente = {
   fila: FilaLista;
 };
 
+export type FilaCorreccion = {
+  id: string;
+  ciclo_id: string;
+  sesion_id: string;
+  catequizando_id: string;
+  valor_anterior: ValorAnteriorAsistencia;
+  valor_nuevo: ValorAsistencia;
+  motivo: string | null;
+  corregido_por: string;
+  cuenta_id: string;
+  credencial_id: string;
+  dispositivo_id: string;
+  hora_dispositivo: string;
+  desfase_reloj_ms: number;
+};
+
+export type CorreccionPendiente = {
+  id: string;
+  fila: FilaCorreccion;
+};
+
 export type Pendientes = {
   marcas: MarcaPendiente[];
   listas: ListaPendiente[];
+  correcciones: CorreccionPendiente[];
 };
 
-export const PENDIENTES_VACIOS: Pendientes = { marcas: [], listas: [] };
+export const PENDIENTES_VACIOS: Pendientes = { marcas: [], listas: [], correcciones: [] };
 
 export type DatosMarca = {
   sesionId: string;
@@ -183,15 +212,49 @@ export function guardarLista(
   return { ...pendientes, listas: [...listas, { id: lista.id, fila }] };
 }
 
+/** Traduce una correccion del dominio a la fila que queda pendiente de enviar. */
+export function correccionALocal(correccion: Correccion, dispositivoId: string): FilaCorreccion {
+  return {
+    id: correccion.id,
+    ciclo_id: correccion.cicloId,
+    sesion_id: correccion.sesionId,
+    catequizando_id: correccion.catequizandoId,
+    valor_anterior: correccion.valorAnterior,
+    valor_nuevo: correccion.valorNuevo,
+    motivo: correccion.motivo ?? null,
+    corregido_por: correccion.corregidoPor,
+    cuenta_id: correccion.corregidoPor,
+    credencial_id: correccion.credencialId,
+    dispositivo_id: dispositivoId,
+    hora_dispositivo: correccion.horaDispositivo,
+    desfase_reloj_ms: correccion.desfaseRelojMs,
+  };
+}
+
+/**
+ * Agrega o reemplaza una correccion pendiente. Como el id es determinista,
+ * guardar dos veces la misma correccion no crea una segunda fila.
+ */
+export function guardarCorreccion(
+  pendientes: Pendientes,
+  correccion: CorreccionPendiente
+): Pendientes {
+  const fila = { ...correccion.fila, id: correccion.id };
+  const correcciones = pendientes.correcciones.filter((existente) => existente.id !== correccion.id);
+  return { ...pendientes, correcciones: [...correcciones, { id: correccion.id, fila }] };
+}
+
 export type ResumenPendientes = {
   marcas: number;
   listas: number;
+  correcciones: number;
   total: number;
 };
 export function resumenPendientes(pendientes: Pendientes): ResumenPendientes {
   const marcas = pendientes.marcas.length;
   const listas = pendientes.listas.length;
-  return { marcas, listas, total: marcas + listas };
+  const correcciones = pendientes.correcciones.length;
+  return { marcas, listas, correcciones, total: marcas + listas + correcciones };
 }
 
 /**
@@ -203,6 +266,7 @@ export function resumenPendientes(pendientes: Pendientes): ResumenPendientes {
 export function prepararLote(pendientes: Pendientes): {
   marcas_asistencia: { created: Record<string, unknown>[]; updated: Record<string, unknown>[]; deleted: string[] };
   listas_asistencia: { created: Record<string, unknown>[]; updated: Record<string, unknown>[]; deleted: string[] };
+  correcciones_asistencia: { created: Record<string, unknown>[]; updated: Record<string, unknown>[]; deleted: string[] };
 } {
   return {
     marcas_asistencia: {
@@ -218,6 +282,14 @@ export function prepararLote(pendientes: Pendientes): {
         ...lista.fila,
         abierta_en: Date.parse(lista.fila.abierta_en),
         confirmada_en: Date.parse(lista.fila.confirmada_en),
+      })),
+      updated: [],
+      deleted: [],
+    },
+    correcciones_asistencia: {
+      created: pendientes.correcciones.map((correccion) => ({
+        ...correccion.fila,
+        hora_dispositivo: Date.parse(correccion.fila.hora_dispositivo),
       })),
       updated: [],
       deleted: [],
@@ -243,5 +315,6 @@ export function aplicarResultadoPush(
   return {
     marcas: pendientes.marcas.filter((marca) => !aceptadas.has(marca.id)),
     listas: pendientes.listas.filter((lista) => !aceptadas.has(lista.id)),
+    correcciones: pendientes.correcciones.filter((correccion) => !aceptadas.has(correccion.id)),
   };
 }

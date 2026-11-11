@@ -78,6 +78,7 @@ export async function sincronizar(
   const idsEnviados = [
     ...estado.pendientes.marcas.map((marca) => marca.id),
     ...estado.pendientes.listas.map((lista) => lista.id),
+    ...estado.pendientes.correcciones.map((correccion) => correccion.id),
   ];
 
   let resumen: ResultadoPush = { aceptados: 0, rechazados: 0, descartadosCierre: 0 };

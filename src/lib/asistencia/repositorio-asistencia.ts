@@ -1,5 +1,5 @@
 import type { BorradorLista } from "./lista";
-import type { FilaLista, FilaMarca } from "./pendientes";
+import type { FilaCorreccion, FilaLista, FilaMarca } from "./pendientes";
 import type { NinoNomina, Sesion } from "./tipos";
 
 /** Identificador del borrador de una lista: la sesion y el grupo. */
@@ -33,6 +33,8 @@ export interface RepositorioAsistencia {
   guardarBorrador(borradorId: string, borrador: BorradorLista): void;
   /** Guarda una marca suelta, de escaneo o de registro manual, para enviarla. */
   registrarMarca(marca: FilaMarca): void;
+  /** Guarda una correccion para enviarla. */
+  registrarCorreccion(correccion: FilaCorreccion): void;
   /**
    * Crea la lista y sus marcas y borra el borrador en una sola transaccion:
    * si algo falla, el dispositivo queda como estaba.

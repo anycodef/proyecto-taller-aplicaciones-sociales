@@ -120,6 +120,12 @@ const SECCIONES: {
         ruta: "/asistencia/pendientes",
         movil: true,
       },
+      {
+        titulo: "Corregir asistencia",
+        subtitulo: "Cambia el valor anterior y conserva la hora",
+        ruta: "/asistencia/correccion/sesion-1/nino-1",
+        movil: true,
+      },
     ],
   },
   {
