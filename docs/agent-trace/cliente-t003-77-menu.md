@@ -17,5 +17,5 @@
     "typecheck": "Pasa raiz y API",
     "lint": "Pasa sin errores ni advertencias"
   },
-  "notas": "El menu muestra solo los grupos ya descargados: sin conexion sigue sirviendo para pasar lista. El estado de conexion se avisa con la insignia y con el aviso de que los registros quedan en el celular. La URL sigue siendo /asistencia."
+  "notas": "El menu muestra solo los grupos ya descargados: sin conexion sigue sirviendo para pasar lista. El estado de conexion se avisa con la insignia y con el aviso de que los registros quedan en el celular. La URL sigue siendo /asistencia. El archivo asistencia.tsx se borro y lo sustituye asistencia/index.tsx, pero ese borrado quedo en el commit anterior (0f8bae9), que ya estaba preparado: se anota aqui para que el rastro sea honesto."
 }
