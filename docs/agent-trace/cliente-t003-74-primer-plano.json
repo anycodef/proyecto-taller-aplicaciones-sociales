@@ -1,0 +1,23 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-12",
+  "agente": "OpenCode",
+  "modelo": "minimax-m3.1-flash-free",
+  "tarea": "T003-74",
+  "solicitud": "Paso 3 de la demo: Por enviar cuenta bien en modo avion y baja a 0 al reconectar; si falta el disparo al recuperar la red o al volver a primer plano, implementarlo en su version minima",
+  "commitPrevisto": "feat(asistencia): sincronizar al volver a primer plano y contar por enviar",
+  "alcance": [
+    "src/plataforma/asistencia/contexto-asistencia.tsx",
+    "src/app/(equipo)/asistencia/pendientes.tsx",
+    "src/plataforma/asistencia/__tests__/contexto-asistencia.test.tsx",
+    "src/__tests__/ruta-demo.test.tsx"
+  ],
+  "criterio": "T003-74: al reconectar sincroniza sin accion del usuario (ya estaba) y ahora tambien al volver a primer plano; Por enviar muestra cuantos registros esperan.",
+  "comprobaciones": ["npm run test:app", "npm run typecheck", "npm run lint"],
+  "resultados": {
+    "tests": "Cliente: 43 suites y 147 tests en verde",
+    "typecheck": "Pasa raiz y API",
+    "lint": "Pasa sin errores ni advertencias"
+  },
+  "notas": "El disparo al reconectar ya existia (NetInfo); se anade el de primer plano con AppState, que es la version minima de T003-74: solo sincroniza si hay pendientes. La pantalla Por enviar dice cuantos registros esperan y que se envian solos al volver la conexion. El desfase de reloj con x-hora-servidor y los reintentos con esperaReintento siguen pendientes de T003-74 y no se tocaron. AppState es modulo de React Native, no necesita codigo nativo: funciona en Expo Go."
+}

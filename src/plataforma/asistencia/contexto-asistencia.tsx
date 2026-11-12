@@ -9,6 +9,7 @@ import {
   useSyncExternalStore,
   type ReactNode,
 } from "react";
+import { AppState } from "react-native";
 
 import { useConectividad } from "@/components/catequizandos/use-conectividad";
 import {
@@ -116,6 +117,20 @@ export function ProveedorAsistencia({
     antesSinRed.current = conConexion;
     void sincronizarAhora();
   }, [conConexion, sincronizarAhora]);
+
+  // Al volver a primer plano se envia lo que quedo pendiente: el cellular
+  // pudo haber pasado la lista sin conexion mientras la app estaba en segundo
+  // plano (T003-74).
+  const pendientesActuales = almacen.pendientes;
+  useEffect(() => {
+    const hayPendientes =
+      pendientesActuales.marcas.length + pendientesActuales.listas.length + pendientesActuales.correcciones.length > 0;
+    if (!hayPendientes) return;
+    const suscripcion = AppState.addEventListener("change", estado => {
+      if (estado === "active") void sincronizarAhora();
+    });
+    return () => suscripcion.remove();
+  }, [pendientesActuales, sincronizarAhora]);
 
   const registrarMarca = useCallback(
     (marca: MarcaPendiente) => {

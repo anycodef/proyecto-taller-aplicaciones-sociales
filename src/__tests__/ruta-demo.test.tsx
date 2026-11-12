@@ -140,6 +140,6 @@ test("RF-307: el menú cuenta lo que falta por enviar y la pantalla los lista", 
   await waitFor(() => expect(menu.getByText("9 registros por enviar")).toBeTruthy());
 
   const vista = montar(disco, <Pendientes />);
-  await waitFor(() => expect(vista.getByText("Niño 1 Demo")).toBeTruthy());
+  await waitFor(() => expect(vista.getByText("9 registros esperando señal")).toBeTruthy());
   expect(vista.queryByText("Pendiente de prototipado")).toBeNull();
 });

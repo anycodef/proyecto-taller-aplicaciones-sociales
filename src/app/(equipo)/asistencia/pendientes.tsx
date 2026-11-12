@@ -43,6 +43,17 @@ export default function Pendientes() {
 
       {error ? <Aviso tono="error" mensaje={error} /> : null}
 
+      <View style={estilos.bloque}>
+        <Text style={[tipografia.encabezado, estilos.tituloSeccion]}>
+          {pendientes.total === 0
+            ? "No hay registros esperando"
+            : `${pendientes.total} ${pendientes.total === 1 ? "registro esperando" : "registros esperando"} señal`}
+        </Text>
+        <Text style={[tipografia.nota, estilos.nota]}>
+          Se envían solos cuando vuelve la conexión.
+        </Text>
+      </View>
+
       {pendientes.total === 0 ? (
         <Aviso tono="informativo" mensaje="No hay registros por enviar." />
       ) : null}
@@ -79,6 +90,8 @@ const estilos = StyleSheet.create({
   contenido: { flexGrow: 1, backgroundColor: colores.fondo, padding: espacio.xl, gap: espacio.m },
   header: { gap: espacio.s },
   titulo: { color: colores.texto },
+  bloque: { gap: espacio.s },
+  tituloSeccion: { color: colores.primario },
   nota: { color: colores.textoTenue, textAlign: "center" },
   lista: { gap: espacio.s },
 });
