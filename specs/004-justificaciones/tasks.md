@@ -333,7 +333,7 @@
 
     En web, la foto se toma con un `input` con captura. `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T004-47** Crear la confirmación `familia/enviada.tsx`
+- [x] **T004-47** Crear la confirmación `familia/enviada.tsx`
   - RF: RF-402
   - Depende de: T004-46
   - Hecho cuando: pasa `RF-402: confirma la recepción con la lista de ausencias justificadas`. `npm test`, `npm run typecheck` y `npm run lint` pasan.
