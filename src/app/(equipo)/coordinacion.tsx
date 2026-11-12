@@ -10,6 +10,7 @@ const OPCIONES: { titulo: string; subtitulo: string; ruta: Href }[] = [
   { titulo: "Delegaciones", subtitulo: "Continuidad del equipo dominical", ruta: "/delegaciones" },
   { titulo: "Auditoría", subtitulo: "Quién consultó qué", ruta: "/auditoria" },
   { titulo: "Avisos del sistema", subtitulo: "Alertas para la coordinación", ruta: "/avisos-sistema" },
+  { titulo: "Justificaciones", subtitulo: "Bandeja con evidencia, plazo y registro en nombre de", ruta: "/coordinacion/justificaciones" },
   { titulo: "Pasar lista", subtitulo: "Vista del catequista", ruta: "/asistencia" },
 ];
 
@@ -36,7 +37,6 @@ export default function Coordinacion() {
       <Pendiente
         items={[
           "Asistencia consolidada por grupo contra el mínimo del ciclo",
-          "Bandeja de justificaciones con su evidencia",
           "Catequizandos con señal de riesgo de deserción",
           "Alta de grupos, catequistas e inscripciones con consentimiento",
         ]}

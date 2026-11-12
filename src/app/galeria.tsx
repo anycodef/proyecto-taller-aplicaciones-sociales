@@ -16,6 +16,7 @@ import { TarjetaCarne } from '@/components/catequizandos/tarjeta-carne';
 import { FormularioJustificacion } from '@/components/justificaciones/formulario-justificacion';
 import { SelectorAusencias } from '@/components/justificaciones/selector-ausencias';
 import { SelectorCausa } from '@/components/justificaciones/selector-causa';
+import { VisorEvidencia } from '@/components/justificaciones/visor-evidencia';
 import { CAUSAS, ETIQUETAS_CAUSA } from '@/lib/justificaciones/causas';
 import { colores, espacio, tipografia } from '@/tema';
 import { useState } from 'react';
@@ -157,6 +158,10 @@ export default function Galeria() {
           anticipada={false}
           textoFoto="Foto del certificado o comprobante"
         />
+      </Seccion>
+
+      <Seccion titulo="Visor de evidencia">
+        <VisorEvidencia justificacionId="ejemplo" obtener={async () => Promise.reject(Object.assign(new Error('sin_evidencia'), { codigo: 'sin_evidencia' }))} />
       </Seccion>
 
       <Seccion titulo="Carné">

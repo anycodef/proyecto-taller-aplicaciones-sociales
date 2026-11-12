@@ -361,7 +361,7 @@
 
     `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T004-51** Crear la pantalla `coordinacion/justificaciones/plazo.tsx`
+- [x] **T004-51** Crear la pantalla `coordinacion/justificaciones/plazo.tsx`
   - RF: RF-405
   - Depende de: T004-50
   - Hecho cuando: pasan `RF-405: la pantalla muestra el plazo vigente y guarda uno nuevo` y `RF-405: sin conexión avisa y no guarda nada`. `npm test`, `npm run typecheck` y `npm run lint` pasan.
@@ -417,22 +417,22 @@
 
     `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T004-57** Crear el componente `visor-evidencia.tsx` con `expo-image` sin caché
+- [x] **T004-57** Crear el componente `visor-evidencia.tsx` con `expo-image` sin caché
   - RF: RF-410, RNF-403, RNF-405
   - Depende de: T004-39, T004-54
   - Hecho cuando: pasan `RNF-403: el visor usa cachePolicy none y pide una SAS nueva al abrir` y `RNF-405: sin conexión muestra un aviso y no pide la evidencia`. `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T004-58** Crear la bandeja `coordinacion/justificaciones/index.tsx` con selección múltiple
+- [x] **T004-58** Crear la bandeja `coordinacion/justificaciones/index.tsx` con selección múltiple
   - RF: RF-408, RF-403, RNF-405
   - Depende de: T004-52, T004-53
   - Hecho cuando: pasan `RF-408: la bandeja lista las pendientes por lote`, `RF-403: aprobar varias seleccionadas envía todos los ids en una revisión` y `RNF-405: sin conexión muestra un aviso y no lista nada guardado`. `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T004-59** Crear el detalle `coordinacion/justificaciones/[loteId].tsx`
+- [x] **T004-59** Crear el detalle `coordinacion/justificaciones/[loteId].tsx`
   - RF: RF-408, RF-403, RF-410
   - Depende de: T004-57, T004-58
   - Hecho cuando: pasan `RF-408: rechazar exige escribir un motivo de hasta 280 caracteres`, `RF-403: se puede aprobar solo una ausencia del lote` y `RF-410: muestra la evidencia del lote`. `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T004-60** Crear `coordinacion/justificaciones/registrar.tsx`
+- [x] **T004-60** Crear `coordinacion/justificaciones/registrar.tsx`
   - RF: RF-406
   - Depende de: T004-56, T004-43, T004-44
   - Hecho cuando: pasa `RF-406: registra con niño, apoderado, ausencias, causa y foto recibida por otro medio`. La pantalla reutiliza `enviar-justificacion.ts` con canal coordinación y aplica la misma limpieza de temporales (RNF-404). `npm test`, `npm run typecheck` y `npm run lint` pasan.

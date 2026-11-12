@@ -50,7 +50,8 @@ export type DependenciasEnvio = {
   archivos?: ArchivosTemporales;
   generarId?: () => string;
 };
-export type EntradaEnvio = { borrador: Borrador; causa: Causa; ausencias: (AusenciaRef & { anticipada?: boolean })[]; fotos: ImagenLocal[] };
+/** apoderadoId solo cuando la coordinación registra en nombre de un apoderado (RF-406). */
+export type EntradaEnvio = { borrador: Borrador; causa: Causa; ausencias: (AusenciaRef & { anticipada?: boolean })[]; fotos: ImagenLocal[]; apoderadoId?: string };
 export type ResultadoEnvio = { borrador: Borrador; lote: RespuestaLote };
 
 const hayConexion = async () => (await NetInfo.fetch()).isConnected !== false;
@@ -84,6 +85,7 @@ export async function enviarJustificacion(entrada: EntradaEnvio, dependencias: D
       loteId: borrador.loteId,
       evidenciaId: borrador.evidenciaId,
       causa: entrada.causa,
+      ...(entrada.apoderadoId ? { apoderadoId: entrada.apoderadoId } : {}),
       ausencias: entrada.ausencias.map(a => ({ justificacionId: borrador.justificaciones[clave(a)], catequizandoId: a.catequizandoId, sesionId: a.sesionId, anticipada: a.anticipada ?? false })),
     });
     return { borrador, lote };

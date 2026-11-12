@@ -30,10 +30,14 @@ export type PropiedadesFormularioJustificacion = {
   causas: readonly Causa[];
   anticipada: boolean;
   textoFoto: string;
+  /** La coordinación registra en nombre de este apoderado; sin él, envía la familia. */
+  apoderadoId?: string;
+  /** Ruta de confirmación; por defecto la de la familia. */
+  rutaEnviada?: "/familia/enviada" | "/coordinacion/justificaciones";
 };
 
 /** Una sola pantalla: ausencias, causa, foto y Enviar (RNF-401). La foto nunca se guarda (RNF-404). */
-export function FormularioJustificacion({ titulo, filas, nombres, marcadasAlInicio, causas, anticipada, textoFoto }: PropiedadesFormularioJustificacion) {
+export function FormularioJustificacion({ titulo, filas, nombres, marcadasAlInicio, causas, anticipada, textoFoto, apoderadoId, rutaEnviada = "/familia/enviada" }: PropiedadesFormularioJustificacion) {
   const { cliente } = useSesion();
   const api = useMemo(() => crearClienteJustificaciones(cliente), [cliente]);
   const conectado = useConexion();
@@ -67,9 +71,10 @@ export function FormularioJustificacion({ titulo, filas, nombres, marcadasAlInic
     setAviso(null);
     borrador.current ??= crearBorrador();
     try {
-      const { lote } = await enviarJustificacion({ borrador: borrador.current, causa, ausencias: elegidas.map((a) => ({ ...a, anticipada })), fotos }, { cliente: api });
+      const { lote } = await enviarJustificacion({ borrador: borrador.current, causa, ausencias: elegidas.map((a) => ({ ...a, anticipada })), fotos, ...(apoderadoId ? { apoderadoId } : {}) }, { cliente: api });
       const resumen = lote.justificaciones.map((j) => `${nombres.get(j.catequizandoId) ?? "Su hijo"} · ${etiquetaFecha(j.fecha)} · ${etiquetaSesiones([j])}`);
-      router.replace({ pathname: "/familia/enviada", params: { resumen: JSON.stringify(resumen) } });
+      if (rutaEnviada === "/familia/enviada") router.replace({ pathname: "/familia/enviada", params: { resumen: JSON.stringify(resumen) } });
+      else router.replace(rutaEnviada);
     } catch (fallo) {
       if (fallo instanceof ErrorEnvio) {
         borrador.current = (fallo as ErrorEnvio & { borrador?: Borrador }).borrador ?? borrador.current;

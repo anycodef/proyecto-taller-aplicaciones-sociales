@@ -1,0 +1,52 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-11",
+  "agente": "Claude Code",
+  "modelo": "claude-opus-5-5",
+  "rama": "feat/004-justificaciones",
+  "tarea": "T004-51-60",
+  "solicitud": "Crear las pantallas de coordinación de la fase 6.",
+  "alcance": [
+    "src/app/(equipo)/coordinacion/justificaciones/index.tsx",
+    "src/app/(equipo)/coordinacion/justificaciones/[loteId].tsx",
+    "src/app/(equipo)/coordinacion/justificaciones/plazo.tsx",
+    "src/app/(equipo)/coordinacion/justificaciones/registrar.tsx",
+    "src/app/(equipo)/coordinacion.tsx",
+    "src/app/galeria.tsx",
+    "src/components/justificaciones/visor-evidencia.tsx",
+    "src/components/justificaciones/formulario-justificacion.tsx",
+    "src/lib/justificaciones/cliente-justificaciones.ts",
+    "src/plataforma/justificaciones/enviar-justificacion.ts",
+    "src/plataforma/justificaciones/usar-api.ts",
+    "src/__tests__/soporte/coordinacion.tsx",
+    "src/__tests__/coordinacion-plazo-bandeja.test.tsx",
+    "src/__tests__/coordinacion-detalle.test.tsx",
+    "src/__tests__/coordinacion-registrar.test.tsx",
+    "specs/004-justificaciones/tasks.md",
+    "docs/agent-trace/justificaciones-t004-51-60.json"
+  ],
+  "criterio": "Pasan los 12 tests de las pantallas (plazo, bandeja, visor, detalle y registro) con los nombres de T004-51 y T004-57 a T004-60.",
+  "decisiones": [
+    "El registro en nombre de reutiliza FormularioJustificacion y enviar-justificacion.ts con apoderadoId, así aplica la misma limpieza de temporales.",
+    "Supervisión ve la bandeja sin acciones de revisión.",
+    "El niño se elige por grupo con la lista de carnés del grupo; no hay buscador de catequizandos en la API."
+  ],
+  "comprobaciones": [
+    {
+      "comando": "npm test (cliente 196; API 315 de 316: falla intermitente RF-307 de asistencia-bd por desfase de reloj Docker/host, pasa al repetir); npm run typecheck; npm run lint",
+      "resultado": "Pasa: 12 tests de pantallas."
+    },
+    {
+      "comando": "npm run typecheck",
+      "resultado": "Pasa en raíz y API."
+    },
+    {
+      "comando": "npm run lint",
+      "resultado": "Pasa sin errores."
+    }
+  ],
+  "limites": [
+    "Un solo commit para T004-51 y T004-57 a T004-60: comparten el cliente, el hook de API y el formulario. asistencia-bd (003) falla de forma intermitente por el desfase entre el reloj de PostgreSQL en Docker y el de Windows; no toca código de 004."
+  ],
+  "notas": "Pantallas de coordinación de la spec 004."
+}
