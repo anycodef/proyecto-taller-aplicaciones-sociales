@@ -293,7 +293,7 @@
   - Depende de: T004-32, T004-33, T004-37, T004-38, T001 (F1: `src/plataforma/api/cliente.ts`)
   - Hecho cuando: pasan los tests con `fetch` simulado `RF-401: pide las ausencias justificables con la sesión de familia` y `RF-402: envía la reserva y el lote con los cuerpos esperados`. El módulo no escribe en ningún almacenamiento. `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T004-41** Implementar el adaptador `comprimir-foto.ts` con `expo-image-manipulator`
+- [x] **T004-41** Implementar el adaptador `comprimir-foto.ts` con `expo-image-manipulator`
   - RF: RNF-402, RNF-404
   - Depende de: T004-16, T004-39
   - Hecho cuando: pasan los tests con el manipulador simulado `RNF-402: comprime de forma iterativa hasta quedar bajo 300 KB`, `RNF-402: falla con aviso tras 5 intentos` y `RNF-404: borra los archivos intermedios`. `npm test`, `npm run typecheck` y `npm run lint` pasan.
