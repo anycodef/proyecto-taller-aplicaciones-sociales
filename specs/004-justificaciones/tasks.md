@@ -65,7 +65,7 @@
   - Depende de: T004-05, T004-06
   - Hecho cuando: pasan `justificables.test.ts › RF-401: misa, catequesis y actividad obligatoria son justificables`, `RF-405: una ausencia con plazo vencido ya no es justificable`, `RF-401: no ofrece una ausencia con justificación pendiente o aprobada` y `RF-408: una rechazada con plazo vigente vuelve a ofrecerse`. `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T004-09** Implementar `agruparPorDomingo` y `sesionesAnticipables` **[Supuesto A-03, A-13]**
+- [x] **T004-09** Implementar `agruparPorDomingo` y `sesionesAnticipables` **[Supuesto A-03, A-13]**
   - RF: RF-401, RF-404
   - Depende de: T004-08
   - Hecho cuando: pasan `justificables.test.ts › RF-401: misa y catequesis del mismo domingo se muestran en una fila`, `RF-404: ofrece las sesiones futuras del ciclo que no tienen justificación` y `RF-404: no ofrece como anticipables sesiones pasadas ni de otro ciclo`. `npm test`, `npm run typecheck` y `npm run lint` pasan.
