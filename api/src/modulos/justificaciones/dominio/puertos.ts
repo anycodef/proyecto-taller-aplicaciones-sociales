@@ -1,3 +1,4 @@
+import type { Justificacion } from "@/lib/justificaciones/tipos";
 import type { Tx } from "../../../compartido/bd/transaccion";
 
 export type EstadoEvidencia = "reservada" | "confirmada" | "eliminada";
@@ -35,4 +36,9 @@ export interface AlmacenEvidencias {
   urlLectura(blobNombre: string, ahora: Date): Promise<{ url: string; expiraEn: string }>;
   inspeccionar(blobNombre: string): Promise<{ bytes: number; contentType: string } | undefined>;
   borrar(blobNombre: string): Promise<void>;
+}
+
+export interface RepositorioJustificaciones {
+  /** Idempotente por id de justificación: reenviar el lote devuelve lo ya guardado (D-413). */
+  insertarLote(tx: Tx, justificaciones: readonly Justificacion[], por: string | null): Promise<Justificacion[]>;
 }

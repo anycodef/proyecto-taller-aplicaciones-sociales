@@ -161,7 +161,7 @@
   - Depende de: T004-21
   - Hecho cuando: `dominio/puertos.ts` declara `RepositorioJustificaciones`, `RepositorioEvidencias` y `AlmacenEvidencias`. Pasan los tests de contrato `RNF-403: reservar y confirmar una evidencia con sus archivos`, `RNF-403: listarHuerfanas devuelve solo las reservas no confirmadas de más de 24 h` y `RNF-403: cuenta las reservas de una cuenta en la última hora`. `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T004-23** Implementar `insertarLote` idempotente en `repositorio-justificaciones-pg.ts`
+- [x] **T004-23** Implementar `insertarLote` idempotente en `repositorio-justificaciones-pg.ts`
   - RF: RF-403, RF-406, RF-407
   - Depende de: T004-22, T004-12
   - Hecho cuando: pasan `contrato-justificaciones.test.ts › RF-403: reinsertar el mismo lote es idempotente`, `RF-403: si falla una inserción del lote no queda ninguna` y `RF-407: cada justificación insertada tiene su evento creada`. `npm test`, `npm run typecheck` y `npm run lint` pasan.
