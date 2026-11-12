@@ -140,7 +140,7 @@
   - Depende de: T004-18
   - Hecho cuando: pasan `contrato-evidencias.test.ts › RNF-402: evidencia_archivos rechaza bytes mayores de 307200`, `RF-402: orden fuera de 1 a 3 es rechazado` y `RNF-403: una evidencia nace en estado reservada`. `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T004-20** Crear la migración `NNNN_justificaciones_base.sql` (`justificaciones` y `justificacion_eventos`)
+- [x] **T004-20** Crear la migración `NNNN_justificaciones_base.sql` (`justificaciones` y `justificacion_eventos`)
   - RF: RF-403, RF-406, RF-407, RF-408
   - Depende de: T004-19, T002 (Fase 1: migraciones M-201 a M-204 de catequizandos), T003 (Fase 1: migración `0302_sesiones.sql`)
   - Hecho cuando: pasan `contrato-justificaciones.test.ts › RF-406: el canal coordinación exige registrada_por`, `RF-408: rechazada exige motivo_rechazo`, `RF-408: una revisada exige revisada_por` y `RF-408: dos justificaciones de la misma ausencia se aceptan` (no hay unicidad por niño y sesión). `npm test`, `npm run typecheck` y `npm run lint` pasan.
