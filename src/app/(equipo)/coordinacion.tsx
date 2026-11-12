@@ -2,7 +2,6 @@ import { router, type Href } from "expo-router";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { FilaNavegacion } from "@/components/ui";
-import { Pendiente } from "@/components/pendiente";
 import { modulosDelPanel } from "@/lib/navegacion/modulos";
 import { useSesion } from "@/plataforma/seguridad/contexto-sesion";
 import { colores, espacio, tipografia } from "@/tema";
@@ -47,15 +46,6 @@ export default function Coordinacion() {
           />
         ))}
       </View>
-
-      <Text style={[tipografia.encabezado, estilos.titulo]}>Próximamente</Text>
-      <Pendiente
-        items={[
-          "Asistencia consolidada por grupo contra el mínimo del ciclo",
-          ...modulos.proximamente.map((modulo) => `${modulo.titulo}: ${modulo.subtitulo.toLowerCase()}`),
-          "Alta de grupos, catequistas e inscripciones con consentimiento",
-        ]}
-      />
     </ScrollView>
   );
 }
