@@ -448,6 +448,7 @@
   - RF: RF-410
   - Depende de: T003 (Fase 1: esquema local, pasos de migración y push)
   - Hecho cuando: un paso nuevo de migración local, que solo añade, crea la tabla. Pasan `RF-410: el esquema local de justificaciones no tiene causa, motivo, enviada_por ni evidencia` y `RF-410: el push rechaza cambios a justificaciones_estado`. `npm test`, `npm run typecheck` y `npm run lint` pasan.
+  - Avance (2026-11-11): definición `src/lib/justificaciones/tablas-sincronizadas.ts`, proyección local en el catálogo y rechazo en el push, con sus dos tests. Falta el paso de migración WatermelonDB: el cliente todavía no tiene almacén local (`src/datos/local/` del plan 003 §3.3 no existe).
 
 - [ ] **T004-63** Implementar `proveedor-pull.ts` en el protocolo de sincronización de 003
   - RF: RF-410, RF-409

@@ -1,0 +1,40 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-11",
+  "agente": "Claude Code",
+  "modelo": "claude-opus-5-5",
+  "rama": "feat/004-justificaciones",
+  "tarea": "T004-62",
+  "solicitud": "Implementar la fase 7 de la spec 004.",
+  "alcance": [
+    "src/lib/justificaciones/tablas-sincronizadas.ts",
+    "src/lib/sincronizacion/registro-tablas.ts",
+    "src/lib/seguridad/catalogo-datos.ts",
+    "api/test/unit/justificaciones/tablas-sincronizadas.test.ts",
+    "specs/004-justificaciones/tasks.md",
+    "docs/agent-trace/justificaciones-t004-62.json"
+  ],
+  "criterio": "Pasan RF-410 de esquema sin datos sensibles y de rechazo en el push.",
+  "decisiones": [
+    "estado se proyecta desde estado_revision; sin_efecto se calcula en el proveedor.",
+    "Tarea abierta hasta que exista el almacén local del cliente."
+  ],
+  "comprobaciones": [
+    {
+      "comando": "npx jest --runInBand --testPathPattern 'tablas-sincronizadas|catalogo|transversal/dominio'",
+      "resultado": "17 de 17 pasan, catálogo incluido."
+    },
+    {
+      "comando": "npm run typecheck",
+      "resultado": "Pasa en raíz y API."
+    },
+    {
+      "comando": "npm run lint",
+      "resultado": "Pasa sin errores."
+    }
+  ],
+  "limites": [
+    "El paso de migración WatermelonDB queda pendiente: el cliente no tiene almacén local."
+  ],
+  "notas": "Tabla de solo pull; la proyección local pasa la validación del catálogo de 001."
+}
