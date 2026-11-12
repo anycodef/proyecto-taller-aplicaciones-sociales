@@ -13,6 +13,7 @@ import { PuntosPin, TecladoPin } from '@/components/seguridad/teclado-pin';
 import { CompartirEnlace } from '@/components/seguridad/compartir-enlace';
 import { ComponenteConsentimiento } from '@/components/seguridad/consentimiento';
 import { TarjetaCarne } from '@/components/catequizandos/tarjeta-carne';
+import { FormularioJustificacion } from '@/components/justificaciones/formulario-justificacion';
 import { SelectorAusencias } from '@/components/justificaciones/selector-ausencias';
 import { SelectorCausa } from '@/components/justificaciones/selector-causa';
 import { CAUSAS, ETIQUETAS_CAUSA } from '@/lib/justificaciones/causas';
@@ -144,6 +145,18 @@ export default function Galeria() {
           alCambiar={setAusencias}
         />
         <SelectorCausa causas={CAUSAS.map((c) => ({ valor: c, etiqueta: ETIQUETAS_CAUSA[c] }))} valor={causa} alCambiar={setCausa} />
+      </Seccion>
+
+      <Seccion titulo="Formulario de justificación">
+        <FormularioJustificacion
+          titulo="Justificar ausencia"
+          filas={[{ catequizandoId: 'ana', fecha: '2026-11-08', ausencias: [{ catequizandoId: 'ana', sesionId: 'misa', tipoSesion: 'misa', fecha: '2026-11-08' }] }]}
+          nombres={new Map([['ana', 'Ana']])}
+          marcadasAlInicio={['ana|2026-11-08|misa']}
+          causas={CAUSAS}
+          anticipada={false}
+          textoFoto="Foto del certificado o comprobante"
+        />
       </Seccion>
 
       <Seccion titulo="Carné">

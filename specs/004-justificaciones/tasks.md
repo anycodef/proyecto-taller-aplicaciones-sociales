@@ -323,7 +323,7 @@
   - Depende de: T004-40, T004-44
   - Hecho cuando: pasan `RF-401: la pantalla de familia lista primero las ausencias justificables`, `RF-410: muestra el estado y, si fue rechazada, el motivo` y `RNF-404: sin conexión muestra un aviso y no guarda nada`. `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T004-46** Crear la pantalla única `familia/justificar.tsx`
+- [x] **T004-46** Crear la pantalla única `familia/justificar.tsx`
   - RF: RF-402, RF-403, RNF-401
   - Depende de: T004-43, T004-45
   - Hecho cuando: pasan los tests:
