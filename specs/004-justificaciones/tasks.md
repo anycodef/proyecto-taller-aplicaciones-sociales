@@ -33,7 +33,7 @@
   - Depende de: T004-01
   - Hecho cuando: la sección «Dependencias» de `spec.md` incluye `expo-image-picker` (cámara y galería, también en web), `expo-image-manipulator` (D-403), `expo-file-system` (borrar temporales, RNF-404) y `expo-image` con `cachePolicy="none"` (D-410). Cada una tiene su enlace a la documentación del SDK 57 y la alternativa descartada, y el equipo la aprueba en un PR revisado. `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T004-03** Registrar el ADR «Evidencias solo en línea» y corregir el C4
+- [x] **T004-03** Registrar el ADR «Evidencias solo en línea» y corregir el C4
   - RF: RNF-404, RNF-405, RNF-402
   - Depende de: T001 (F0-2: Jest y scripts)
   - Hecho cuando: hay un ADR nuevo en `docs/adr/`, creado con `npm run adr:new`, que recoge D-401 y D-403 y reemplaza lo que decía sobre fotos `20260914-estrategia-de-sincronizacion-offline-first.md` (A-08). En `docs/diagrams/arquitectura-c4.dsl` ya no aparece «Almacena justificante temporal» y la compresión figura en el cliente. `npm run adr:build` termina sin errores. `npm test`, `npm run typecheck` y `npm run lint` pasan.

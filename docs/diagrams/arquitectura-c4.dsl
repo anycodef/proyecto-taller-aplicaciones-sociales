@@ -20,7 +20,7 @@ workspace "SIGECAT" "Diagrama de Contexto, Contenedores y Componentes" {
                 cmpAsistencia = component "Registro de Asistencia" "Lógica de escaneo/marcado rápido de asistencia dominical (misa y catequesis)." "Controlador TypeScript" "ComponenteNegocio"
                 cmpCatequizandos = component "Gestión de Catequizandos" "Nómina operativa local; inscripción, condiciones y estados documentales exclusivamente ONLINE, sin copias ni persistencia local." "Controlador TypeScript" "ComponenteNegocio"
                 cmpSeguimiento = component "Seguimiento Formativo" "Registro del avance en memorización de oraciones, doctrina y jornadas." "Controlador TypeScript" "ComponenteNegocio"
-                cmpJustificaciones = component "Gestión de Justificaciones" "Recepción de justificaciones familiares y compresión de evidencias fotográficas." "Controlador TypeScript & ImagePicker" "ComponenteNegocio"
+                cmpJustificaciones = component "Gestión de Justificaciones" "Recepción de justificaciones familiares solo en línea y compresión en el cliente de evidencias fotográficas a menos de 300 KB (ADR 017)." "Controlador TypeScript & ImagePicker" "ComponenteNegocio"
                 cmpSync = component "Gestión de Sincronización" "Orquesta la resolución de conflictos y envío diferido en lotes hacia el backend." "WatermelonDB Sync Engine" "ComponenteSync"
                 cmpRepoLocal = component "Repositorio Local" "Abstracción ORM para consultas y transacciones reactivas en almacenamiento local." "WatermelonDB Database" "ComponenteDatos"
                 cmpClienteAPI = component "Cliente API" "Cliente HTTP local para comunicarse con las funciones del backend cuando hay red." "Axios / Fetch Client" "ComponenteCore"

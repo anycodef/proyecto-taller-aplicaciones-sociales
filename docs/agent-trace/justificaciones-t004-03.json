@@ -1,0 +1,32 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-11",
+  "agente": "Claude Code",
+  "modelo": "claude-opus-5-5",
+  "rama": "main",
+  "tarea": "T004-03",
+  "solicitud": "Registrar el ADR «Evidencias solo en línea» y alinear el C4 (supuesto A-08).",
+  "alcance": [
+    "docs/adr/20261111-evidencias-solo-en-linea.md",
+    "docs/adr/index.md",
+    "docs/diagrams/arquitectura-c4.dsl",
+    "specs/004-justificaciones/tasks.md",
+    "docs/agent-trace/justificaciones-t004-03.json"
+  ],
+  "criterio": "ADR nuevo recoge D-401 y D-403 y sustituye lo que ADR 002 decía sobre diferir fotos; el C4 no menciona justificante temporal y ubica la compresión en el cliente; npm run adr:build termina sin errores.",
+  "decisiones": [
+    "ADR 017 creado a mano con el formato de los ADR 013–016, porque npm run adr:new es interactivo.",
+    "ADR 002 ya figura como sustituido por ADR 013; no se cambia su estado de nuevo.",
+    "El C4 ya no contenía «Almacena justificante temporal»; solo se precisa la descripción del componente cliente."
+  ],
+  "comprobaciones": [
+    { "comando": "npm run adr:build", "resultado": "Pasa (código 0)." },
+    { "comando": "npm test (con BD_PRUEBAS_URL y Postgres/Azurite locales)", "resultado": "Pasa: cliente 31 suites y 107 tests; API 33 suites y 222 tests." },
+    { "comando": "npm run typecheck", "resultado": "Pasa en raíz y API." },
+    { "comando": "npm run lint", "resultado": "Pasa sin errores." }
+  ],
+  "limites": [
+    "No se renderizó el C4 con Structurizr."
+  ],
+  "notas": "Cambio solo documental."
+}
