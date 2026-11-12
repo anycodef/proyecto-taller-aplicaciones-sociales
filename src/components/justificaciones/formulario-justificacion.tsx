@@ -1,7 +1,7 @@
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState, type ReactNode } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { SelectorAusencias } from "@/components/justificaciones/selector-ausencias";
@@ -100,27 +100,66 @@ export function FormularioJustificacion({ titulo, filas, nombres, marcadasAlInic
   return (
     <ScrollView contentContainerStyle={estilos.contenido}>
       <Text style={tipografia.titulo}>{titulo}</Text>
-      {filas.length ? <SelectorAusencias opciones={opciones} seleccionadas={marcadas} alCambiar={setMarcadas} /> : <Text style={tipografia.cuerpo}>No hay sesiones para elegir.</Text>}
-      <SelectorCausa causas={causas.map((c) => ({ valor: c, etiqueta: ETIQUETAS_CAUSA[c] }))} valor={causa} alCambiar={(c) => setCausa(c as Causa)} />
-      <Text style={[tipografia.etiqueta, estilos.suave]}>{textoFoto}</Text>
-      <View style={estilos.fotos}>
-        {fotos.map((foto) => (
-          <Image key={foto.uri} source={{ uri: foto.uri }} cachePolicy="none" style={estilos.foto} accessibilityLabel="Foto del comprobante" />
-        ))}
-      </View>
-      {fotos.length < MAXIMO_FOTOS ? (
-        <View style={estilos.botones}>
-          <Boton etiqueta={fotos.length ? "Agregar otra foto" : "Tomar foto"} variante="secundario" alPresionar={() => void agregarFoto(true)} />
-          <Boton etiqueta="Elegir de la galería" variante="enlace" alPresionar={() => void agregarFoto(false)} />
-        </View>
-      ) : null}
+
+      <Paso numero={1} titulo={anticipada ? "¿Qué sesiones va a faltar?" : "¿Qué ausencias cubre el comprobante?"}>
+        {filas.length > 1 ? <Text style={[tipografia.nota, estilos.suave]}>Marca todas las que cubre, también las de tus otros hijos.</Text> : null}
+        {filas.length ? <SelectorAusencias opciones={opciones} seleccionadas={marcadas} alCambiar={setMarcadas} /> : <Text style={tipografia.cuerpo}>No hay sesiones para elegir.</Text>}
+      </Paso>
+
+      <Paso numero={2} titulo="¿Por qué faltó?">
+        <SelectorCausa etiqueta={null} causas={causas.map((c) => ({ valor: c, etiqueta: ETIQUETAS_CAUSA[c] }))} valor={causa} alCambiar={(c) => setCausa(c as Causa)} />
+      </Paso>
+
+      <Paso numero={3} titulo={textoFoto}>
+        <Text style={[tipografia.nota, estilos.suave]}>{`Hasta ${MAXIMO_FOTOS} fotos. No se guardan en el celular.`}</Text>
+        {fotos.length ? (
+          <View style={estilos.fotos}>
+            {fotos.map((foto) => (
+              <Image key={foto.uri} source={{ uri: foto.uri }} cachePolicy="none" style={estilos.foto} accessibilityLabel="Foto del comprobante" />
+            ))}
+          </View>
+        ) : null}
+        {fotos.length < MAXIMO_FOTOS ? (
+          <View style={estilos.botones}>
+            <Boton etiqueta={fotos.length ? "Agregar otra foto" : "Tomar foto"} variante="secundario" alPresionar={() => void agregarFoto(true)} />
+            <Boton etiqueta="Elegir de la galería" variante="enlace" alPresionar={() => void agregarFoto(false)} />
+          </View>
+        ) : null}
+      </Paso>
+
       {aviso ? <Aviso tono="error" mensaje={aviso} /> : null}
+      {elegidas.length ? (
+        <Text style={[tipografia.nota, estilos.suave, estilos.centrado]}>
+          {elegidas.length === 1 ? "Se enviará 1 justificación." : `Se enviarán ${elegidas.length} justificaciones con la misma foto.`}
+        </Text>
+      ) : null}
       <Boton etiqueta="Enviar" alPresionar={() => void enviar()} cargando={enviando} deshabilitado={!causa || !fotos.length || !elegidas.length} />
     </ScrollView>
   );
 }
 
+/** Encabezado numerado de cada paso: el orden se lee sin instrucciones (RNF-401). */
+function Paso({ numero, titulo, children }: { numero: number; titulo: string; children: ReactNode }) {
+  return (
+    <View style={estilos.paso}>
+      <View style={estilos.cabeceraPaso}>
+        <View style={estilos.numero}>
+          <Text style={[tipografia.etiqueta, estilos.numeroTexto]}>{numero}</Text>
+        </View>
+        <Text style={[tipografia.cuerpoFuerte, estilos.flex]}>{titulo}</Text>
+      </View>
+      {children}
+    </View>
+  );
+}
+
 const estilos = StyleSheet.create({
+  paso: { gap: espacio.s },
+  cabeceraPaso: { flexDirection: "row", alignItems: "center", gap: espacio.s },
+  numero: { width: espacio.xl, height: espacio.xl, borderRadius: espacio.xl / 2, backgroundColor: colores.primario, alignItems: "center", justifyContent: "center" },
+  numeroTexto: { color: colores.primarioTexto },
+  flex: { flex: 1 },
+  centrado: { textAlign: "center" },
   contenido: { padding: espacio.xl, gap: espacio.l, backgroundColor: colores.fondo },
   suave: { color: colores.textoSuave },
   fotos: { flexDirection: "row", flexWrap: "wrap", gap: espacio.s },

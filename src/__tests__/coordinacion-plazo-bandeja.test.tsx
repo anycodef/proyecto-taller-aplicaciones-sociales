@@ -41,9 +41,11 @@ test("RF-405: sin conexión avisa y no guarda nada", async () => {
 
 test("RF-408: la bandeja lista las pendientes por lote", async () => {
   montarComoCoordinacion(<BandejaJustificaciones />, { "GET /justificaciones/bandeja": { cicloId: "c-1", lotes: [loteEnBandeja] } });
-  expect(await screen.findByText("Salud del niño")).toBeTruthy();
-  expect(screen.getByText("Ana Quispe · domingo 8 de noviembre")).toBeTruthy();
-  expect(screen.getByText("Luis Quispe · domingo 8 de noviembre")).toBeTruthy();
+  expect(await screen.findByText("Ana Quispe y Luis Quispe")).toBeTruthy();
+  expect(screen.getByText("Salud del niño · 2 ausencias")).toBeTruthy();
+  expect(screen.getByText("Ana Quispe · domingo 8 de noviembre · Misa")).toBeTruthy();
+  expect(screen.getByText("Luis Quispe · domingo 8 de noviembre · Misa")).toBeTruthy();
+  expect(screen.getByText("1 lote por revisar")).toBeTruthy();
   expect(screen.getByText("Otra justificación para la misma ausencia")).toBeTruthy();
 });
 
@@ -52,9 +54,9 @@ test("RF-403: aprobar varias seleccionadas envía todos los ids en una revisión
     "GET /justificaciones/bandeja": { cicloId: "c-1", lotes: [loteEnBandeja] },
     "POST /justificaciones/revisiones": { revisadas: [{ id: "j-1", estado: "aprobada" }, { id: "j-2", estado: "aprobada" }] },
   });
-  fireEvent.press(await screen.findByText("Ana Quispe · domingo 8 de noviembre"));
-  fireEvent.press(screen.getByText("Luis Quispe · domingo 8 de noviembre"));
-  fireEvent.press(screen.getByText("Aprobar seleccionadas (2)"));
+  // Elegir el lote marca todas sus justificaciones.
+  fireEvent.press(await screen.findByLabelText("Elegir el lote de Ana Quispe y Luis Quispe"));
+  fireEvent.press(screen.getByText("Aprobar seleccionadas (1)"));
   await waitFor(() => expect(cliente.llamadas.filter((l) => l.metodo === "POST")).toHaveLength(1));
   expect(cliente.llamadas.find((l) => l.metodo === "POST")?.cuerpo).toEqual({ ids: ["j-1", "j-2"], decision: "aprobada" });
 });
@@ -63,7 +65,7 @@ test("RNF-405: sin conexión muestra un aviso y no lista nada guardado", async (
   sinConexion();
   const { cliente } = montarComoCoordinacion(<BandejaJustificaciones />, { "GET /justificaciones/bandeja": { cicloId: "c-1", lotes: [loteEnBandeja] } });
   expect(await screen.findByText(AVISO_SIN_CONEXION)).toBeTruthy();
-  expect(screen.queryByText("Ana Quispe · domingo 8 de noviembre")).toBeNull();
+  expect(screen.queryByText("Ana Quispe · domingo 8 de noviembre · Misa")).toBeNull();
   expect(cliente.llamadas).toHaveLength(0);
 });
 
@@ -73,19 +75,20 @@ test("RF-408: supervisión ve la bandeja sin acciones de revisión", async () =>
   });
   expect(await screen.findByText("Ana Quispe · domingo 8 de noviembre · Misa")).toBeTruthy();
   expect(screen.queryByText(/Aprobar seleccionadas/)).toBeNull();
-  expect(screen.queryByText("Registrar una justificación")).toBeNull();
+  expect(screen.queryByLabelText(/Elegir el lote/)).toBeNull();
+  expect(screen.queryByText("Registrar en nombre de un apoderado")).toBeNull();
 });
 
 test("RF-408: al volver del detalle tras revisar, la bandeja se recarga y ya no muestra el lote", async () => {
   const respuestas: Record<string, unknown> = { "GET /justificaciones/bandeja": { cicloId: "c-1", lotes: [loteEnBandeja] } };
   const { cliente } = montarComoCoordinacion(<BandejaJustificaciones />, respuestas);
-  expect(await screen.findByText("Ana Quispe · domingo 8 de noviembre")).toBeTruthy();
+  expect(await screen.findByText("Ana Quispe · domingo 8 de noviembre · Misa")).toBeTruthy();
 
   // El detalle revisó el lote completo y volvió con router.back(): la bandeja sigue montada.
   respuestas["GET /justificaciones/bandeja"] = { cicloId: "c-1", lotes: [] };
   act(() => marcarBandejaDesactualizada());
 
   expect(await screen.findByText("No hay justificaciones pendientes.")).toBeTruthy();
-  expect(screen.queryByText("Ana Quispe · domingo 8 de noviembre")).toBeNull();
+  expect(screen.queryByText("Ana Quispe · domingo 8 de noviembre · Misa")).toBeNull();
   expect(cliente.llamadas.filter((l) => l.ruta === "/justificaciones/bandeja")).toHaveLength(2);
 });

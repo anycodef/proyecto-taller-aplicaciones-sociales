@@ -49,19 +49,33 @@ test("RF-410: muestra la evidencia del lote", async () => {
 
 test("RF-408: rechazar exige escribir un motivo de hasta 280 caracteres", async () => {
   const { cliente } = montarComoCoordinacion(<DetalleLote />, respuestas);
+  // El motivo se pide al elegir rechazar; sin motivo no se envía nada.
+  fireEvent.press(await screen.findByRole("button", { name: "Rechazar todo" }));
   const campo = await screen.findByLabelText("Motivo del rechazo");
   expect(campo.props.maxLength).toBe(280);
-  const rechazar = screen.getByRole("button", { name: "Rechazar el lote" });
-  expect(rechazar.props.accessibilityState?.disabled).toBe(true);
-  fireEvent.press(rechazar);
+  const confirmar = screen.getByRole("button", { name: "Confirmar rechazo" });
+  expect(confirmar.props.accessibilityState?.disabled).toBe(true);
+  fireEvent.press(confirmar);
   expect(cliente.llamadas.some((l) => l.metodo === "POST")).toBe(false);
   fireEvent.changeText(campo, "  La foto no se lee  ");
-  fireEvent.press(screen.getByRole("button", { name: "Rechazar el lote" }));
+  fireEvent.press(screen.getByRole("button", { name: "Confirmar rechazo" }));
   await waitFor(() => expect(cliente.llamadas.find((l) => l.metodo === "POST")?.cuerpo).toEqual({ ids: ["j-1", "j-2"], decision: "rechazada", motivo: "La foto no se lee" }));
 });
 
 test("RF-403: se puede aprobar solo una ausencia del lote", async () => {
   const { cliente } = montarComoCoordinacion(<DetalleLote />, respuestas);
-  fireEvent.press(await screen.findByText("Aprobar solo esta (Luis Quispe)"));
+  await screen.findByText("Luis Quispe · domingo 8 de noviembre");
+  // Una tarjeta por niño y fecha, en el orden del lote: Ana y luego Luis.
+  fireEvent.press(screen.getAllByRole("button", { name: "Aprobar" })[1]);
   await waitFor(() => expect(cliente.llamadas.find((l) => l.metodo === "POST")?.cuerpo).toEqual({ ids: ["j-2"], decision: "aprobada" }));
+});
+
+test("RF-403: se puede rechazar solo una ausencia del lote, con su motivo", async () => {
+  const { cliente } = montarComoCoordinacion(<DetalleLote />, respuestas);
+  await screen.findByText("Ana Quispe · domingo 8 de noviembre");
+  fireEvent.press(screen.getAllByRole("button", { name: "Rechazar" })[0]);
+  expect(await screen.findByText("Rechazar: Ana Quispe · domingo 8 de noviembre")).toBeTruthy();
+  fireEvent.changeText(screen.getByLabelText("Motivo del rechazo"), "No corresponde a esa fecha");
+  fireEvent.press(screen.getByRole("button", { name: "Confirmar rechazo" }));
+  await waitFor(() => expect(cliente.llamadas.find((l) => l.metodo === "POST")?.cuerpo).toEqual({ ids: ["j-1"], decision: "rechazada", motivo: "No corresponde a esa fecha" }));
 });

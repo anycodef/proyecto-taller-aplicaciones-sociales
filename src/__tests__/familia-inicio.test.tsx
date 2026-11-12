@@ -43,7 +43,10 @@ const montar = (cliente = crearClienteFalso(respuestas)) =>
 test("RF-401: la pantalla de familia lista primero las ausencias justificables", async () => {
   montar();
   expect(await screen.findByText("Ana · domingo 8 de noviembre")).toBeTruthy();
-  expect(screen.getByText("Misa y catequesis · hasta el domingo 15 de noviembre")).toBeTruthy();
+  // Las sesiones se muestran como etiquetas y el plazo como días que quedan hasta la fecha límite.
+  expect(screen.getAllByText("Misa").length).toBeGreaterThan(0);
+  expect(screen.getByText("Catequesis")).toBeTruthy();
+  expect(screen.getByText(/(Quedan \d+ días|Queda 1 día|Vence hoy) · hasta el domingo 15 de noviembre/)).toBeTruthy();
   const texto = JSON.stringify(screen.toJSON());
   expect(texto.indexOf("Ausencias por justificar")).toBeLessThan(texto.indexOf("Mis justificaciones"));
   expect(texto.indexOf("domingo 8 de noviembre")).toBeLessThan(texto.indexOf("Mis justificaciones"));
@@ -54,8 +57,18 @@ test("RF-410: muestra el estado y, si fue rechazada, el motivo", async () => {
   expect(await screen.findByText("Rechazada")).toBeTruthy();
   expect(screen.getByText("Motivo: La foto no se lee")).toBeTruthy();
   expect(screen.getByText("Aceptada")).toBeTruthy();
-  expect(screen.getByText("Misa · Registrada por la coordinación")).toBeTruthy();
+  expect(screen.getByText("Registrada por la coordinación")).toBeTruthy();
   expect(screen.queryAllByText(/^Motivo:/)).toHaveLength(1);
+});
+
+test("RF-410: misa y catequesis del mismo domingo con el mismo estado se ven en una sola tarjeta", async () => {
+  const enviadas = [
+    { id: "j-3", catequizandoId: "nino-1", sesionId: "misa-15", tipoSesion: "misa", fecha: "2026-11-15", estado: "pendiente", motivoRechazo: null, enviadaEn: "2026-11-16T10:00:00Z", origen: "usted", causa: "salud_nino" },
+    { id: "j-4", catequizandoId: "nino-1", sesionId: "cat-15", tipoSesion: "catequesis", fecha: "2026-11-15", estado: "pendiente", motivoRechazo: null, enviadaEn: "2026-11-16T10:00:00Z", origen: "usted", causa: "salud_nino" },
+  ];
+  montar(crearClienteFalso({ ...respuestas, "GET /familia/justificaciones": { justificaciones: enviadas } }));
+  expect(await screen.findByText("Ana · domingo 15 de noviembre")).toBeTruthy();
+  expect(screen.getAllByText("En revisión")).toHaveLength(1);
 });
 
 test("RNF-404: sin conexión muestra un aviso y no guarda nada", async () => {

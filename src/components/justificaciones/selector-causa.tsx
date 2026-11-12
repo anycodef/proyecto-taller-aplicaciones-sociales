@@ -10,8 +10,10 @@ export interface PropiedadesSelectorCausa {
   causas: readonly OpcionCausa[];
   valor: string | null;
   alCambiar: (causa: string) => void;
+  /** null cuando la pantalla ya muestra la pregunta en su propio encabezado. */
+  etiqueta?: string | null;
 }
 
-export function SelectorCausa({ causas, valor, alCambiar }: PropiedadesSelectorCausa) {
-  return <GrupoOpciones etiqueta="¿Por qué faltó?" opciones={causas} valor={valor} alCambiar={alCambiar} />;
+export function SelectorCausa({ causas, valor, alCambiar, etiqueta = "¿Por qué faltó?" }: PropiedadesSelectorCausa) {
+  return <GrupoOpciones etiqueta={etiqueta ?? undefined} opciones={causas} valor={valor} alCambiar={alCambiar} />;
 }
