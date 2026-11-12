@@ -210,7 +210,7 @@
   - Depende de: T004-27, T004-22
   - Hecho cuando: pasan los tests de almacén contra Azurite `RNF-403: la SAS de subida no permite sobrescribir`, `RNF-403: la SAS vencida es rechazada` y `RNF-403: el blob se nombra {cicloId}/{evidenciaId}/{orden}.jpg`. `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T004-30** Separar la credencial de SAS: de usuario delegado en Azure y de cuenta solo en pruebas
+- [x] **T004-30** Separar la credencial de SAS: de usuario delegado en Azure y de cuenta solo en pruebas
   - RF: RNF-403
   - Depende de: T004-29
   - Hecho cuando: la fábrica del almacén usa `ManagedIdentityCredential` y `getUserDelegationKey` fuera del modo de pruebas. Pasa `almacen-credencial.test.ts › RNF-403: en Azure se usa SAS de usuario delegado y nunca la clave de cuenta`, y ninguna configuración de producción lee una clave de cuenta. `npm test`, `npm run typecheck` y `npm run lint` pasan.

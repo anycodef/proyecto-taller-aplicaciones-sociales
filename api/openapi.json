@@ -43,7 +43,7 @@
     "puertoPostgres": { "variable": "PUERTO_POSTGRES", "predeterminadoLocal": 55432 },
     "poolPorProceso": 3, "workers": 1, "instanciasPorGrupoFlex": 5,
     "concurrenciaHttp": 10, "memoriaMb": 2048, "alwaysReady": 0, "temporizadores": "UTC",
-    "variables": ["BD_URL", "BD_MIGRACIONES_URL", "BD_PRUEBAS_URL", "JWT_KID", "JWT_CLAVE", "JWT_CLAVES", "RENOVACION_CLAVE", "URL_WEB", "BLOBS_CONEXION", "AzureWebJobsStorage", "FUNCTIONS_WORKER_RUNTIME", "LIMITE_BUSQUEDAS_APODERADOS"],
+    "variables": ["BD_URL", "BD_MIGRACIONES_URL", "BD_PRUEBAS_URL", "JWT_KID", "JWT_CLAVE", "JWT_CLAVES", "RENOVACION_CLAVE", "URL_WEB", "BLOBS_CONEXION", "AzureWebJobsStorage", "FUNCTIONS_WORKER_RUNTIME", "LIMITE_BUSQUEDAS_APODERADOS", "EVIDENCIAS_CUENTA_URL", "EVIDENCIAS_MODO", "EVIDENCIAS_CONEXION_PRUEBAS"],
     "aliasCompatibles": { "WEB_URL": "URL_WEB" },
     "limites": { "sincronizacionPorMinuto": 30, "validacionCarnePorMinuto": 120, "asistenciaPorOperacionMinuto": 30, "ciclosPorMinuto": 30, "actividadesPorMinuto": 30, "busquedaApoderadosPorMinuto": 10, "asistentePorHora": 20, "pushMaximoBytes": 524288 }
   },

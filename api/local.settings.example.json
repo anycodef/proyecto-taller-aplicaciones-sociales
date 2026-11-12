@@ -8,6 +8,8 @@
     "JWT_KID": "v1",
     "RENOVACION_CLAVE": "reemplazar-por-otra-clave-aleatoria-de-32-bytes",
     "URL_WEB": "https://sigecat.example",
-    "BLOBS_CONEXION": "UseDevelopmentStorage=true"
+    "BLOBS_CONEXION": "UseDevelopmentStorage=true",
+    "EVIDENCIAS_MODO": "pruebas",
+    "EVIDENCIAS_CONEXION_PRUEBAS": "UseDevelopmentStorage=true"
   }
 }
