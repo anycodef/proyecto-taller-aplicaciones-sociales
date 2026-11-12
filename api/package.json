@@ -10,7 +10,7 @@
     "build": "node esbuild.config.mjs",
     "start": "npm run build && func start",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint --config ../eslint.config.js .",
+    "lint": "cd .. && eslint api",
     "verificar-migraciones": "node scripts/verificar-migraciones.mjs",
     "test": "jest --runInBand",
     "test:rapido": "jest --runInBand --selectProjects unit",

@@ -38,8 +38,9 @@ jobs:
           cache-dependency-path: |
             package-lock.json
             api/package-lock.json
-      - name: Instalar raiz y API
-        run: npm ci && npm ci --prefix api
+            tarea3/package-lock.json
+      - name: Instalar raiz, API y tarea3 (lint revisa tarea3)
+        run: npm ci && npm ci --prefix api && npm ci --prefix tarea3
       - name: Tipos
         run: npm run typecheck
       - name: Lint
