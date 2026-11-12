@@ -130,7 +130,7 @@
 
 ## Fase 2 — Migraciones y repositorios PostgreSQL
 
-- [ ] **T004-18** Crear la migración `NNNN_justificaciones_plazo_ciclo.sql`
+- [x] **T004-18** Crear la migración `NNNN_justificaciones_plazo_ciclo.sql`
   - RF: RF-405
   - Depende de: T004-05, T008 (Fase 0: M1, tabla `ciclo`), T001 (F0-3: runner de migraciones y `docker-compose.yml`), T001 (F0-6: skill `nueva-migracion`)
   - Hecho cuando: la migración crea `justificacion_plazos` y se aplica limpia sobre una base vacía en Docker. Pasa `contrato-plazo.test.ts › RF-405: dias_plazo fuera de 1 a 60 es rechazado por la restricción`. `npm test`, `npm run typecheck` y `npm run lint` pasan.

@@ -45,6 +45,7 @@ const grupos: readonly GrupoCatalogo[] = [
   ["evento_asistencia", "operativo", "operacion", ["tipo", "fecha"]],
   ["actividad_obligatoria", "operativo", "operacion", ["nombre", "tipo", "fecha", "estado"]],
   ["cambio_actividad", "operativo", "operacion", ["campo", "valor_anterior", "valor_nuevo"]],
+  ["justificacion_plazo", "operativo", "operacion", ["dias_plazo"]],
 ];
 
 export const CATALOGO: readonly EntradaCatalogo[] = Object.freeze(grupos.flatMap(([entidad, clasificacion, finalidad, campos]) => campos.map(campo => Object.freeze({ entidad, campo, clasificacion, finalidad }))));
@@ -92,6 +93,7 @@ export const COLUMNAS_TECNICAS = listasCerradas({
   evento_asistencia: ["secuencia", "ciclo_id", "catequizando_id", "creado_en", "estadistico_id"],
   actividad_obligatoria: ["id", "ciclo_id", "creado_por", "actualizado_en", "eliminado_en", "cuenta_id", "credencial_id", "dispositivo_id", "huella_creacion"],
   cambio_actividad: ["id", "ciclo_id", "actividad_id", "cambiado_por", "cambiado_en"],
+  justificacion_plazo: ["ciclo_id", "definido_por", "definido_en"],
   contador_limite: ["cuenta_id", "operacion", "ventana", "cantidad"],
   contador_busqueda_apoderado: ["cuenta_id", "ventana", "cantidad"],
   bitacora_sincronizacion: ["id", "cuenta_id", "dispositivo_id", "operacion", "recibido_en", "duracion_ms", "bytes_entrada", "bytes_salida", "aceptados", "rechazados", "descartados_cierre", "version_esquema"],
