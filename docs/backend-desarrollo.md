@@ -84,6 +84,9 @@ Crear `api/local.settings.json` local tomando las claves de `api/local.settings.
 | `URL_WEB` | Base HTTPS para enlaces; `WEB_URL` es alias compatible de fallback, preferir nombre canónico |
 | `AzureWebJobsStorage` | `UseDevelopmentStorage=true` para Azurite local |
 | `BLOBS_CONEXION` | Azurite local `UseDevelopmentStorage=true`; adaptador Blob de retención exige conexión |
+| `EVIDENCIAS_CUENTA_URL` | Azure: URL https de la cuenta Blob; la SAS de evidencias (004) se firma con identidad administrada, nunca con clave |
+| `EVIDENCIAS_MODO` | `pruebas` solo en local/CI; rechazado dentro de Azure Functions |
+| `EVIDENCIAS_CONEXION_PRUEBAS` | Azurite local `UseDevelopmentStorage=true`; solo con `EVIDENCIAS_MODO=pruebas` |
 | `FUNCTIONS_WORKER_RUNTIME` | `node` |
 | `LIMITE_BUSQUEDAS_APODERADOS` | 1–60/min/cuenta, predeterminado 10; contador PostgreSQL atómico |
 | `PUERTO_POSTGRES` | Compose, predeterminado 55432; no variable que el driver descubra automáticamente |

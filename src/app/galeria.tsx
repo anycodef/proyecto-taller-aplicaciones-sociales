@@ -13,14 +13,15 @@ import { PuntosPin, TecladoPin } from '@/components/seguridad/teclado-pin';
 import { CompartirEnlace } from '@/components/seguridad/compartir-enlace';
 import { ComponenteConsentimiento } from '@/components/seguridad/consentimiento';
 import { TarjetaCarne } from '@/components/catequizandos/tarjeta-carne';
-import { ConfirmacionEscaneo } from '@/components/asistencia/confirmacion-escaneo';
-import { BurbujaMensaje } from '@/components/asistente/burbuja-mensaje';
-import { TarjetaRiesgo } from '@/components/riesgo/tarjeta-riesgo';
+import { FormularioJustificacion } from '@/components/justificaciones/formulario-justificacion';
 import { SelectorAusencias } from '@/components/justificaciones/selector-ausencias';
 import { SelectorCausa } from '@/components/justificaciones/selector-causa';
-import { TarjetaLote } from '@/components/justificaciones/tarjeta-lote';
+import { ResumenJustificaciones } from '@/components/justificaciones/resumen-justificaciones';
 import { VisorEvidencia } from '@/components/justificaciones/visor-evidencia';
-import type { Causa } from '@/lib/justificaciones/tipos';
+import { CAUSAS, ETIQUETAS_CAUSA } from '@/lib/justificaciones/causas';
+import { BurbujaMensaje } from '@/components/asistente/burbuja-mensaje';
+import { TarjetaRiesgo } from '@/components/riesgo/tarjeta-riesgo';
+import { ConfirmacionEscaneo } from '@/components/asistencia/confirmacion-escaneo';
 import { colores, espacio, tipografia } from '@/tema';
 import { useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
@@ -30,8 +31,8 @@ export default function Galeria() {
   const [nombre, setNombre] = useState('');
   const [sexo, setSexo] = useState<string | null>(null);
   const [pin, setPin] = useState('');
-  const [seleccionAusencias, setSeleccionAusencias] = useState<ReadonlySet<string>>(new Set(['n1|s1']));
-  const [causa, setCausa] = useState<Causa | null>(null);
+  const [causa, setCausa] = useState<string | null>(null);
+  const [ausencias, setAusencias] = useState<string[]>(['ana-0108']);
 
   if (verResultado) {
     return (
@@ -139,6 +140,45 @@ export default function Galeria() {
         />
       </Seccion>
 
+      <Seccion titulo="Justificaciones">
+        <SelectorAusencias
+          opciones={[
+            { clave: 'ana-0108', titulo: 'Ana · domingo 8 de noviembre', detalle: 'Misa y catequesis', nota: 'Puedes justificar hasta el 15 de noviembre' },
+            { clave: 'luis-0108', titulo: 'Luis · domingo 8 de noviembre', detalle: 'Misa' },
+          ]}
+          seleccionadas={ausencias}
+          alCambiar={setAusencias}
+        />
+        <SelectorCausa causas={CAUSAS.map((c) => ({ valor: c, etiqueta: ETIQUETAS_CAUSA[c] }))} valor={causa} alCambiar={setCausa} />
+      </Seccion>
+
+      <Seccion titulo="Formulario de justificación">
+        <FormularioJustificacion
+          titulo="Justificar ausencia"
+          filas={[{ catequizandoId: 'ana', fecha: '2026-11-08', ausencias: [{ catequizandoId: 'ana', sesionId: 'misa', tipoSesion: 'misa', fecha: '2026-11-08' }] }]}
+          nombres={new Map([['ana', 'Ana']])}
+          marcadasAlInicio={['ana|2026-11-08|misa']}
+          causas={CAUSAS}
+          anticipada={false}
+          textoFoto="Foto del certificado o comprobante"
+        />
+      </Seccion>
+
+      <Seccion titulo="Visor de evidencia">
+        <VisorEvidencia justificacionId="ejemplo" obtener={async () => Promise.reject(Object.assign(new Error('sin_evidencia'), { codigo: 'sin_evidencia' }))} />
+      </Seccion>
+
+      <Seccion titulo="Resumen de justificaciones en el perfil">
+        <ResumenJustificaciones
+          estados={[
+            { id: 'j-1', sesionId: 'misa', tipoSesion: 'misa', fecha: '2026-11-08', estado: 'pendiente' },
+            { id: 'j-2', sesionId: 'catequesis', tipoSesion: 'catequesis', fecha: '2026-11-01', estado: 'aprobada' },
+            { id: 'j-3', sesionId: 'misa-25', tipoSesion: 'misa', fecha: '2026-10-25', estado: 'rechazada' },
+            { id: 'j-4', sesionId: 'misa-18', tipoSesion: 'misa', fecha: '2026-10-18', estado: 'sin_efecto' },
+          ]}
+        />
+      </Seccion>
+
       <Seccion titulo="Carné">
         <TarjetaCarne
           nombres="Mateo Alejandro"
@@ -154,31 +194,6 @@ export default function Galeria() {
         <ConfirmacionEscaneo estado="otro_grupo" />
         <ConfirmacionEscaneo estado="ya_registrado" />
         <ConfirmacionEscaneo estado="invalido" />
-      </Seccion>
-
-      <Seccion titulo="Justificar una ausencia">
-        <SelectorAusencias
-          ausencias={[
-            { catequizandoId: 'n1', nombre: 'Ana Demostración', sesionId: 's1', tipoSesion: 'misa', fecha: '2026-11-08', venceEn: '2026-11-15T23:59:59-05:00' },
-            { catequizandoId: 'n1', nombre: 'Ana Demostración', sesionId: 's2', tipoSesion: 'catequesis', fecha: '2026-11-08', venceEn: '2026-11-15T23:59:59-05:00' },
-          ]}
-          seleccion={seleccionAusencias}
-          alAlternar={(clave) => setSeleccionAusencias((actual) => (actual.has(clave) ? new Set([...actual].filter((c) => c !== clave)) : new Set([...actual, clave])))}
-        />
-        <SelectorCausa valor={causa} alCambiar={setCausa} />
-      </Seccion>
-
-      <Seccion titulo="Bandeja de justificaciones">
-        <TarjetaLote
-          alPresionar={() => undefined}
-          lote={{
-            loteId: 'lote-1',
-            justificaciones: [
-              { id: 'j1', catequizandoId: 'n1', nombre: 'Ana Demostración', fecha: '2026-11-08', tipoSesion: 'misa', causa: 'salud_nino', enviadaEn: '2026-11-09T14:00:00.000Z', canal: 'enlace', duplicada: true },
-              { id: 'j2', catequizandoId: 'n1', nombre: 'Ana Demostración', fecha: '2026-11-08', tipoSesion: 'catequesis', causa: 'salud_nino', enviadaEn: '2026-11-09T14:00:00.000Z', canal: 'enlace', duplicada: false },
-            ],
-          }}
-        />
       </Seccion>
 
       <Seccion titulo="Riesgo de deserción">
@@ -212,9 +227,6 @@ export default function Galeria() {
         />
       </Seccion>
 
-      <Seccion titulo="Visor de evidencia">
-        <VisorEvidencia urls={[]} />
-      </Seccion>
     </ScrollView>
   );
 }

@@ -1,0 +1,42 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-11",
+  "agente": "Claude Code",
+  "modelo": "claude-opus-5-5",
+  "rama": "feat/004-justificaciones",
+  "tarea": "T004-65",
+  "solicitud": "Implementar la fase 7 de la spec 004.",
+  "alcance": [
+    "api/src/modulos/justificaciones/aplicacion/consulta-justificaciones.ts",
+    "api/test/integracion/justificaciones/consulta-justificaciones.test.ts",
+    "api/src/modulos/justificaciones/infraestructura/repositorio-justificaciones-pg.ts",
+    "api/src/modulos/justificaciones/dominio/puertos.ts",
+    "api/src/index.ts",
+    "api/src/modulos/justificaciones/index.ts",
+    "specs/004-justificaciones/tasks.md",
+    "docs/agent-trace/justificaciones-t004-65.json"
+  ],
+  "criterio": "Pasan RF-409 de falta justificada vía consultarFaltas y de exposición de diasPlazo y estadoParaRiesgo.",
+  "decisiones": [
+    "Nuevo método listarPorCiclo en el repositorio.",
+    "Una aprobada dejada sin efecto deja de justificar la falta."
+  ],
+  "comprobaciones": [
+    {
+      "comando": "npx jest --runInBand --selectProjects integracion --testPathPattern 'consulta-justificaciones|e2e|riesgo'",
+      "resultado": "2 de 2 pasan contra PostgreSQL; e2e 001-003 e inventario siguen en verde."
+    },
+    {
+      "comando": "npm run typecheck",
+      "resultado": "Pasa en raíz y API."
+    },
+    {
+      "comando": "npm run lint",
+      "resultado": "Pasa sin errores."
+    }
+  ],
+  "limites": [
+    "La suite completa npm test (cliente y API con PostgreSQL) se ejecuta al cerrar la fase."
+  ],
+  "notas": "Reemplaza fuenteJustificacionesVacia de 003 en el arranque."
+}

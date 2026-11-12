@@ -103,6 +103,11 @@ async function listarPorCatequizando(tx: Tx, catequizandoId: string): Promise<Ju
   return filas.rows.map(aJustificacion);
 }
 
+async function listarPorCiclo(tx: Tx, cicloId: string): Promise<Justificacion[]> {
+  const filas = await tx.query<Fila>(`SELECT ${COLUMNAS_JUSTIFICACION} FROM justificacion j WHERE j.ciclo_id=$1 ${ORDEN}`, [cicloId]);
+  return filas.rows.map(aJustificacion);
+}
+
 async function listarPorApoderado(tx: Tx, apoderadoId: string): Promise<Justificacion[]> {
   const filas = await tx.query<Fila>(`SELECT ${COLUMNAS_JUSTIFICACION} FROM justificacion j
     WHERE j.catequizando_id IN (SELECT catequizando_id FROM vinculo_apoderado WHERE apoderado_id=$1 AND vigente_hasta IS NULL) ${ORDEN}`, [apoderadoId]);
@@ -135,5 +140,5 @@ async function definirPlazo(tx: Tx, cicloId: string, diasPlazo: number, por: str
 }
 
 export const repositorioJustificacionesPg: RepositorioJustificaciones = {
-  insertarLote, obtener, guardarRevision, marcarSinEfecto, restaurarEfecto, bandeja, listarPorCatequizando, listarPorApoderado, cambiosDesde, obtenerPlazo, definirPlazo,
+  insertarLote, obtener, obtenerLote: listarPorLote, guardarRevision, marcarSinEfecto, restaurarEfecto, bandeja, listarPorCatequizando, listarPorCiclo, listarPorApoderado, cambiosDesde, obtenerPlazo, definirPlazo,
 };

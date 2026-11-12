@@ -1,100 +1,50 @@
-import type { TipoSesion } from "@/lib/asistencia/tipos";
-import type { Causa, EstadoVisible } from "./tipos";
+import type { AusenciaRef, Causa, EstadoVisible } from "./tipos";
 
-/** Datos binarios de una foto ya comprimida; `Blob` en web y en React Native. */
-export type DatosBinarios = Blob | ArrayBuffer | Uint8Array;
+export type ClienteHttp = { solicitar<T>(metodo: string, ruta: string, cuerpo?: unknown): Promise<T> };
 
-/** Puerto mínimo: el cliente HTTP de la plataforma aporta `solicitar` y, para la subida de fotos, `solicitarBinario`. */
-export type ClienteHttpJustificaciones = {
-  solicitar<T>(metodo: string, ruta: string, cuerpo?: unknown): Promise<T>;
-  solicitarBinario?<T>(metodo: string, ruta: string, datos: DatosBinarios, contentType: string): Promise<T>;
+export type AusenciaJustificable = AusenciaRef & { venceEn: string };
+export type RespuestaJustificables = { cicloId: string; diasPlazo: number; ninos: { catequizandoId: string; nombres: string }[]; ausencias: AusenciaJustificable[] };
+export type RespuestaAnticipables = { cicloId: string; sesiones: AusenciaRef[] };
+export type OrigenJustificacion = "usted" | "otro_apoderado" | "coordinacion";
+export type JustificacionFamilia = AusenciaRef & {
+  id: string; estado: EstadoVisible; motivoRechazo: string | null; enviadaEn: string; origen: OrigenJustificacion; causa: Causa | null;
+};
+export type ArchivoDeclarado = { orden: number; bytes: number; contentType: string };
+export type Reserva = { evidenciaId: string; expiraEn: string; archivos: { orden: number; url: string }[] };
+export type AusenciaDelLote = { justificacionId: string; catequizandoId: string; sesionId: string; anticipada: boolean };
+export type PeticionLote = { loteId: string; evidenciaId: string; causa: Causa; ausencias: AusenciaDelLote[]; apoderadoId?: string };
+export type RespuestaLote = {
+  loteId: string; evidenciaId: string;
+  justificaciones: (AusenciaRef & { id: string; anticipada: boolean; estado: "pendiente" })[];
 };
 
-export type AusenciaJustificable = {
-  catequizandoId: string;
-  nombre: string;
-  sesionId: string;
-  tipoSesion: TipoSesion;
-  fecha: string;
-  venceEn: string;
+export type Plazo = { cicloId: string; diasPlazo: number; predeterminado: boolean; definidoPor: string | null; definidoEn: string | null };
+export type JustificacionEnBandeja = AusenciaRef & { id: string; nombre: string; anticipada: boolean; duplicada: boolean };
+export type LoteEnBandeja = { loteId: string; evidenciaId: string; causa: Causa; canal: "enlace" | "coordinacion"; enviadaEn: string; justificaciones: JustificacionEnBandeja[] };
+export type Bandeja = { cicloId: string; lotes: LoteEnBandeja[] };
+export type Evidencia = { justificacionId: string; evidenciaId: string; expiraEn: string; archivos: { orden: number; url: string }[] };
+export type JustificablesDeNino = {
+  cicloId: string; diasPlazo: number; nino: { catequizandoId: string; nombre: string };
+  apoderados: { apoderadoId: string; nombre: string; relacion: string }[]; ausencias: AusenciaJustificable[];
 };
+export type Revisada = { id: string; estado: EstadoVisible };
 
-export type JustificacionFamilia = {
-  id: string;
-  catequizandoId: string;
-  nombre: string;
-  fecha: string;
-  tipoSesion: TipoSesion;
-  causa: Causa;
-  estadoVisible: EstadoVisible;
-  motivoRechazo?: string;
-  origen: "propia" | "otro_apoderado" | "coordinacion";
-};
-
-export type EvidenciaReserva = { evidenciaId: string; archivos: { orden: number }[] };
-
-export type EntradaLote = {
-  loteId: string;
-  causa: Causa;
-  evidenciaId: string;
-  ausencias: { catequizandoId: string; sesionId: string; justificacionId: string }[];
-};
-
-export type LoteCreado = {
-  loteId: string;
-  justificaciones: { id: string; catequizandoId: string; sesionId: string; fecha: string; tipoSesion: TipoSesion; estadoVisible: EstadoVisible }[];
-};
-
-export type JustificacionBandeja = {
-  id: string;
-  catequizandoId: string;
-  nombre: string;
-  fecha: string;
-  tipoSesion: TipoSesion;
-  causa: Causa;
-  enviadaEn: string;
-  canal: "enlace" | "coordinacion";
-  duplicada: boolean;
-};
-export type LoteBandeja = { loteId: string; justificaciones: JustificacionBandeja[] };
-
-export type DecisionRevision = "aprobada" | "rechazada";
-export type ResultadoRevision = { revisadas: { id: string; estadoVisible: EstadoVisible }[] };
-export type LecturaEvidencia = { url: string; urls: string[]; expiraEn: string };
-
-/** Cliente tipado de 004. Sin React ni Expo: lo usan las pantallas y las pruebas con un doble. */
-export function crearClienteJustificaciones(cliente: ClienteHttpJustificaciones) {
+/** Solo red: nada de lo que viaja aquí se guarda en el dispositivo (RNF-404). */
+export function crearClienteJustificaciones(cliente: ClienteHttp) {
   return {
-    async ausenciasJustificables(): Promise<AusenciaJustificable[]> {
-      return (await cliente.solicitar<{ ausencias: AusenciaJustificable[] }>("GET", "/familia/ausencias-justificables")).ausencias;
-    },
-    async misJustificaciones(): Promise<JustificacionFamilia[]> {
-      return (await cliente.solicitar<{ justificaciones: JustificacionFamilia[] }>("GET", "/familia/justificaciones")).justificaciones;
-    },
-    reservarEvidencia(archivos: { bytes: number; contentType: "image/jpeg" }[]): Promise<EvidenciaReserva> {
-      return cliente.solicitar<EvidenciaReserva>("POST", "/evidencias/reservas", { archivos });
-    },
-    /** La foto nunca se guarda en el celular para reintentar después (RNF-404): solo viaja en esta llamada. */
-    subirArchivo(evidenciaId: string, orden: number, datos: DatosBinarios): Promise<{ orden: number; bytes: number }> {
-      if (!cliente.solicitarBinario) throw new Error("subida_no_disponible");
-      return cliente.solicitarBinario("PUT", `/evidencias/${evidenciaId}/archivos/${orden}`, datos, "image/jpeg");
-    },
-    crearLote(entrada: EntradaLote): Promise<LoteCreado> {
-      return cliente.solicitar<LoteCreado>("POST", "/justificaciones/lotes", entrada);
-    },
-    async bandeja(): Promise<LoteBandeja[]> {
-      return (await cliente.solicitar<{ lotes: LoteBandeja[] }>("GET", "/justificaciones/bandeja")).lotes;
-    },
-    revisar(justificacionIds: string[], decision: DecisionRevision, motivo?: string): Promise<ResultadoRevision> {
-      return cliente.solicitar<ResultadoRevision>("POST", "/justificaciones/revisiones", {
-        justificacionIds,
-        decision,
-        ...(motivo ? { motivo } : {}),
-      });
-    },
-    evidencia(justificacionId: string): Promise<LecturaEvidencia> {
-      return cliente.solicitar<LecturaEvidencia>("GET", `/justificaciones/${justificacionId}/evidencia`);
-    },
+    ausenciasJustificables: () => cliente.solicitar<RespuestaJustificables>("GET", "/familia/ausencias-justificables"),
+    sesionesAnticipables: () => cliente.solicitar<RespuestaAnticipables>("GET", "/familia/sesiones-anticipables"),
+    misJustificaciones: async () => (await cliente.solicitar<{ justificaciones: JustificacionFamilia[] }>("GET", "/familia/justificaciones")).justificaciones,
+    reservarEvidencia: (evidenciaId: string, archivos: ArchivoDeclarado[]) => cliente.solicitar<Reserva>("POST", "/evidencias/reservas", { evidenciaId, archivos }),
+    crearLote: (peticion: PeticionLote) => cliente.solicitar<RespuestaLote>("POST", "/justificaciones/lotes", peticion),
+    obtenerPlazo: (cicloId: string) => cliente.solicitar<Plazo>("GET", `/ciclos/${encodeURIComponent(cicloId)}/plazo-justificacion`),
+    definirPlazo: (cicloId: string, diasPlazo: number) => cliente.solicitar<Plazo>("PUT", `/ciclos/${encodeURIComponent(cicloId)}/plazo-justificacion`, { diasPlazo }),
+    bandeja: () => cliente.solicitar<Bandeja>("GET", "/justificaciones/bandeja"),
+    revisar: async (ids: string[], decision: "aprobada" | "rechazada", motivo?: string) =>
+      (await cliente.solicitar<{ revisadas: Revisada[] }>("POST", "/justificaciones/revisiones", { ids, decision, ...(motivo ? { motivo } : {}) })).revisadas,
+    evidencia: (justificacionId: string) => cliente.solicitar<Evidencia>("GET", `/justificaciones/${encodeURIComponent(justificacionId)}/evidencia`),
+    justificablesDeNino: (catequizandoId: string) =>
+      cliente.solicitar<JustificablesDeNino>("GET", `/coordinacion/catequizandos/${encodeURIComponent(catequizandoId)}/ausencias-justificables`),
   };
 }
 export type ClienteJustificaciones = ReturnType<typeof crearClienteJustificaciones>;

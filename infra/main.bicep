@@ -25,7 +25,7 @@ module secretos 'modulos/secretos.bicep' = {
 }
 module almacenamiento 'modulos/almacenamiento.bicep' = {
   name: 'almacenamiento'
-  params: { nombre: '${prefijo}${entorno}${take(sufijo, 8)}', ubicacion: ubicacion }
+  params: { nombre: '${prefijo}${entorno}${take(sufijo, 8)}', ubicacion: ubicacion, origenesCors: [web.outputs.url] }
 }
 module postgres 'modulos/postgres.bicep' = {
   name: 'postgres'
@@ -74,6 +74,13 @@ module disponibilidad 'modulos/disponibilidad.bicep' = {
     urlEstado: apim.outputs.urlEstado
     correo: empty(correoAlertas) ? correoPresupuesto : correoAlertas
     habilitada: publicarPoliticas
+  }
+}
+module evidencias 'modulos/evidencias.bicep' = {
+  name: 'evidencias'
+  params: {
+    nombreAlmacen: almacenamiento.outputs.nombre
+    identidadFunciones: funciones.outputs.identidad
   }
 }
 module permisos 'modulos/permisos.bicep' = {

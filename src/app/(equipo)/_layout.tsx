@@ -23,8 +23,6 @@ export default function LayoutEquipo() {
           <Stack.Screen name="coordinacion" options={{ title: "Coordinación" }} />
           <Stack.Screen name="coordinacion/grupos/[id]/carnes" options={{ title: "Carnés" }} />
           <Stack.Screen name="avisos-sistema" options={{ title: "Avisos del sistema" }} />
-          <Stack.Screen name="coordinacion/justificaciones/index" options={{ title: "Justificaciones" }} />
-          <Stack.Screen name="coordinacion/justificaciones/[loteId]" options={{ title: "Lote de justificaciones" }} />
         </Stack.Protected>
         <Stack.Protected guard={equipo && rolesEfectivos.some((rol) => rol !== "familia")}>
           <Stack.Screen name="asistencia" options={{ title: "Pasar lista" }} />
@@ -53,6 +51,11 @@ export default function LayoutEquipo() {
         <Stack.Protected guard={administracion}>
           <Stack.Screen name="auditoria" options={{ title: "Auditoría" }} />
         </Stack.Protected>
+        {/* Sin guarda propia, como antes: supervisión ve la bandeja en solo lectura (RF-408) y la API valida cada acción. */}
+        <Stack.Screen name="coordinacion/justificaciones/index" options={{ title: "Justificaciones" }} />
+        <Stack.Screen name="coordinacion/justificaciones/[loteId]" options={{ title: "Revisar lote" }} />
+        <Stack.Screen name="coordinacion/justificaciones/registrar" options={{ title: "Registrar en nombre de" }} />
+        <Stack.Screen name="coordinacion/justificaciones/plazo" options={{ title: "Plazo para justificar" }} />
       </Stack>
     </ProveedorAsistencia>
   );

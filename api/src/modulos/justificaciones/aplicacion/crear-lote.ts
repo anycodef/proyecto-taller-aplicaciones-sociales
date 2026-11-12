@@ -1,85 +1,108 @@
-import { expandirLote, validarLote, type MotivoLoteInvalido } from "@/lib/justificaciones/lote";
-import { estadoVisible } from "@/lib/justificaciones/estados";
-import { CONTENT_TYPE_EVIDENCIA, LIMITE_BYTES, MAXIMO_FOTOS } from "@/lib/justificaciones/evidencia";
-import { ErrorJustificacion, type AusenciaRef, type EstadoVisible, type ItemLote, type Justificacion } from "@/lib/justificaciones/tipos";
+import { z } from "zod";
 import type { ContextoAcceso } from "@/lib/seguridad/contexto-acceso";
+import { MAXIMO_FOTOS, validarMetadatos } from "@/lib/justificaciones/evidencia";
+import { ausenciasJustificables, sesionesAnticipables } from "@/lib/justificaciones/justificables";
+import { expandirLote, validarLote, type MotivoLoteInvalido } from "@/lib/justificaciones/lote";
+import { puedeJustificar, puedeRegistrarEnNombre } from "@/lib/justificaciones/permisos";
+import type { AusenciaRef, Canal, EntradaLote, ItemLote, Justificacion } from "@/lib/justificaciones/tipos";
 import type { Tx } from "../../../compartido/bd/transaccion";
 import { ErrorAplicacion } from "../../../compartido/http/respuestas";
+import { nombreBlob, notificarCambioJustificacion, type AlmacenEvidencias, type ArchivoGuardado } from "../dominio/puertos";
+import { repositorioEvidenciasPg as evidencias } from "../infraestructura/repositorio-evidencias-pg";
+import { repositorioJustificacionesPg as repo } from "../infraestructura/repositorio-justificaciones-pg";
 import { cicloAbierto } from "../../ciclos/aplicacion/guardia-ciclo";
-import { nombreBlob, type AlmacenEvidencias, type ArchivoGuardado } from "../dominio/puertos";
-import { repositorioEvidenciasPg } from "../infraestructura/repositorio-evidencias-pg";
-import { repositorioJustificacionesPg } from "../infraestructura/repositorio-justificaciones-pg";
-import { ausenciasJustificablesDe } from "./familia";
+import { ausenciasDeHijos, contextoFamilia, justificacionesDeHijos, sesionesFuturas, type ContextoFamilia } from "./familia";
 
-export type EntradaCrearLote = {
-  loteId: string;
-  causa: string;
-  evidenciaId: string;
-  ausencias: { catequizandoId: string; sesionId: string; justificacionId: string }[];
-};
-export type ResultadoLote = { loteId: string; justificaciones: { id: string; catequizandoId: string; sesionId: string; fecha: string; tipoSesion: Justificacion["tipoSesion"]; estadoVisible: EstadoVisible }[] };
+export const esquemaLote = z.object({
+  loteId: z.string().uuid(),
+  evidenciaId: z.string().uuid(),
+  causa: z.string().max(40),
+  /** Solo la coordinación: registra en nombre de este apoderado (RF-406). */
+  apoderadoId: z.string().uuid().optional(),
+  ausencias: z.array(z.object({ justificacionId: z.string().uuid(), catequizandoId: z.string().uuid(), sesionId: z.string().uuid(), anticipada: z.boolean() }).strict()).min(1).max(60),
+}).strict();
+export type EntradaLoteHttp = z.infer<typeof esquemaLote>;
+export type ResultadoLote = { creado: boolean; justificaciones: Justificacion[] };
 
-const resumir = (loteId: string, justificaciones: readonly Justificacion[]): ResultadoLote => ({
-  loteId,
-  // Mismo orden al crear y al reenviar, para que la respuesta idempotente sea idéntica.
-  justificaciones: [...justificaciones]
-    .sort((a, b) => a.fecha.localeCompare(b.fecha) || a.catequizandoId.localeCompare(b.catequizandoId) || a.sesionId.localeCompare(b.sesionId))
-    .map((j) => ({ id: j.id, catequizandoId: j.catequizandoId, sesionId: j.sesionId, fecha: j.fecha, tipoSesion: j.tipoSesion, estadoVisible: estadoVisible(j) })),
-});
+const ESTADO_POR_MOTIVO: Partial<Record<MotivoLoteInvalido, number>> = { nino_ajeno: 403 };
 
-const estadoDeMotivo = (motivo: MotivoLoteInvalido): number => (motivo === "nino_ajeno" ? 403 : 422);
-
-/** Una evidencia, una justificación por ausencia (RF-403); reenviar el mismo lote devuelve lo ya guardado (D-413). */
-export async function crearLote(ctx: ContextoAcceso, entrada: EntradaCrearLote, almacen: AlmacenEvidencias, ahora: Date, tx: Tx): Promise<ResultadoLote> {
-  const ids = entrada.ausencias.map((a) => a.justificacionId);
-  const previas = (await Promise.all(ids.map((id) => repositorioJustificacionesPg.obtener(tx, id)))).filter((j): j is Justificacion => j !== undefined);
-  if (previas.length) {
-    const mismoLote = previas.length === ids.length && previas.every((j) => j.loteId === entrada.loteId && j.evidenciaId === entrada.evidenciaId);
-    if (!mismoLote) throw new ErrorAplicacion(409, "lote_en_conflicto");
-    const datos = await ausenciasJustificablesDe(ctx, ahora, tx);
-    if (datos && previas.some((j) => j.enviadaPor !== datos.apoderadoId)) throw new ErrorAplicacion(403, "fuera_de_alcance");
-    return resumir(entrada.loteId, previas);
+/** Verifica cada archivo subido: existe, pesa hasta 300 KB, es JPEG por su firma y no solo por su content-type (RNF-402). */
+async function inspeccionarEvidencia(almacen: AlmacenEvidencias, cicloId: string, evidenciaId: string): Promise<ArchivoGuardado[] | undefined> {
+  const archivos: ArchivoGuardado[] = [];
+  for (let orden = 1; orden <= MAXIMO_FOTOS; orden += 1) {
+    const blobNombre = nombreBlob(cicloId, evidenciaId, orden);
+    const inspeccion = await almacen.inspeccionar(blobNombre);
+    if (!inspeccion) break;
+    if (!inspeccion.firmaJpeg) return undefined;
+    archivos.push({ orden, blobNombre, bytes: inspeccion.bytes, contentType: inspeccion.contentType });
   }
+  return validarMetadatos(archivos).valida ? archivos : undefined;
+}
 
+/** Hijos con vínculo vigente: la coordinación solo registra para niños de ese apoderado. */
+export async function hijosDelApoderado(apoderadoId: string, tx: Tx): Promise<string[]> {
+  const filas = await tx.query<{ catequizando_id: string }>(
+    "SELECT DISTINCT catequizando_id FROM vinculo_apoderado WHERE apoderado_id=$1 AND vigente_desde<=now() AND (vigente_hasta IS NULL OR vigente_hasta>now()) ORDER BY catequizando_id", [apoderadoId]);
+  return filas.rows.map(f => f.catequizando_id);
+}
+
+async function contextoDelEnvio(entrada: EntradaLoteHttp, ctx: ContextoAcceso, ahora: Date, tx: Tx): Promise<{ familia: ContextoFamilia; canal: Canal }> {
+  if (!entrada.apoderadoId) {
+    for (const a of entrada.ausencias) if (!puedeJustificar(ctx, a.catequizandoId)) throw new ErrorAplicacion(403, "fuera_de_alcance");
+    return { familia: await contextoFamilia(ctx, tx), canal: "enlace" };
+  }
+  // El mismo plazo que la familia rige también para la coordinación (supuesto A-04).
+  if (!puedeRegistrarEnNombre(ctx, ahora)) throw new ErrorAplicacion(403, "fuera_de_alcance");
   const cicloId = await cicloAbierto(tx);
   if (!cicloId) throw new ErrorAplicacion(409, "ciclo_no_abierto");
-  const datos = await ausenciasJustificablesDe(ctx, ahora, tx);
-  if (!datos) throw new ErrorAplicacion(403, "fuera_de_alcance");
+  const hijos = await hijosDelApoderado(entrada.apoderadoId, tx);
+  if (entrada.ausencias.some(a => !hijos.includes(a.catequizandoId))) throw new ErrorAplicacion(400, "apoderado_ajeno");
+  return { familia: { cicloId, apoderadoId: entrada.apoderadoId, hijos }, canal: "coordinacion" };
+}
 
-  const evidencia = await repositorioEvidenciasPg.obtener(tx, entrada.evidenciaId);
-  if (!evidencia || evidencia.subidaPor !== ctx.cuentaId) throw new ErrorAplicacion(404, "evidencia_no_encontrada");
-  if (evidencia.estado !== "reservada") throw new ErrorAplicacion(409, "evidencia_no_reservada");
-
-  const archivos: ArchivoGuardado[] = [];
-  const invalidos: string[] = [];
-  for (let orden = 1; orden <= MAXIMO_FOTOS; orden++) {
-    const blobNombre = nombreBlob(evidencia.cicloId, evidencia.id, orden);
-    const propiedades = await almacen.inspeccionar(blobNombre);
-    if (!propiedades) continue;
-    if (propiedades.contentType !== CONTENT_TYPE_EVIDENCIA || propiedades.bytes <= 0 || propiedades.bytes > LIMITE_BYTES) invalidos.push(blobNombre);
-    else archivos.push({ orden, blobNombre, bytes: propiedades.bytes, contentType: propiedades.contentType });
+/**
+ * Una evidencia, una justificación por ausencia, en una transacción (RF-403).
+ * El tipo y la fecha de cada sesión los pone el servidor, no el cliente.
+ */
+export async function crearLote(entrada: EntradaLoteHttp, ctx: ContextoAcceso, almacen: AlmacenEvidencias, ahora: Date, tx: Tx): Promise<ResultadoLote> {
+  const previo = await repo.obtenerLote(tx, entrada.loteId);
+  if (previo.length) {
+    const mismos = previo.every(j => j.evidenciaId === entrada.evidenciaId) && entrada.ausencias.every(a => previo.some(j => j.id === a.justificacionId));
+    if (!mismos) throw new ErrorAplicacion(409, "lote_en_conflicto");
+    return { creado: false, justificaciones: previo };
   }
-  if (invalidos.length) {
-    await Promise.all([...invalidos, ...archivos.map((a) => a.blobNombre)].map((nombre) => almacen.borrar(nombre)));
-    throw new ErrorAplicacion(422, "evidencia_invalida");
+  const { familia, canal } = await contextoDelEnvio(entrada, ctx, ahora, tx);
+  const evidencia = await evidencias.obtener(tx, entrada.evidenciaId);
+  if (!evidencia || evidencia.estado !== "reservada" || evidencia.subidaPor !== ctx.cuentaId || evidencia.cicloId !== familia.cicloId) throw new ErrorAplicacion(409, "evidencia_no_reservada");
+
+  const { diasPlazo } = await repo.obtenerPlazo(tx, familia.cicloId);
+  const justificaciones = await justificacionesDeHijos(familia.hijos, tx);
+  const justificables = ausenciasJustificables(await ausenciasDeHijos(familia.cicloId, familia.hijos, ahora, tx), justificaciones, diasPlazo, ahora);
+  const anticipables = sesionesAnticipables({ sesiones: await sesionesFuturas(familia.cicloId, ahora, tx), catequizandoIds: familia.hijos, justificaciones, cicloId: familia.cicloId, ahora });
+  const conocida = (a: EntradaLoteHttp["ausencias"][number]): AusenciaRef | undefined =>
+    (a.anticipada ? anticipables : justificables).find(r => r.catequizandoId === a.catequizandoId && r.sesionId === a.sesionId);
+  const items: ItemLote[] = [];
+  for (const a of entrada.ausencias) {
+    const ref = conocida(a);
+    if (!ref) throw new ErrorAplicacion(400, "no_justificable");
+    items.push({ ...ref, justificacionId: a.justificacionId, anticipada: a.anticipada });
   }
 
-  const conocidas = new Map<string, AusenciaRef>(datos.ausencias.map((a) => [`${a.catequizandoId}|${a.sesionId}`, a]));
-  const items: ItemLote[] = entrada.ausencias.map((a) => {
-    const conocida = conocidas.get(`${a.catequizandoId}|${a.sesionId}`);
-    // Un marcador que `validarLote` rechaza: nunca se persiste una ausencia que el servidor no calculó.
-    return { ...(conocida ?? { catequizandoId: a.catequizandoId, sesionId: a.sesionId, tipoSesion: "misa" as const, fecha: "1970-01-01" }), justificacionId: a.justificacionId, anticipada: false };
-  });
-  const entradaDominio = { loteId: entrada.loteId, cicloId, causa: entrada.causa, evidenciaId: evidencia.id, cantidadFotos: archivos.length, apoderadoId: datos.apoderadoId, canal: "enlace" as const, ausencias: items };
-  const validacion = validarLote(entradaDominio, { hijosDelApoderado: ctx.catequizandosApoderados, justificables: datos.ausencias, anticipables: [] });
-  if (!validacion.valido) throw new ErrorAplicacion(estadoDeMotivo(validacion.motivo), validacion.motivo);
-
-  const nuevas = expandirLote(entradaDominio, ahora.toISOString());
-  if (!(await repositorioEvidenciasPg.confirmar(tx, evidencia.id, archivos, ahora))) throw new ErrorAplicacion(409, "evidencia_no_reservada");
-  try {
-    return resumir(entrada.loteId, await repositorioJustificacionesPg.insertarLote(tx, nuevas, ctx.cuentaId));
-  } catch (error) {
-    if (error instanceof ErrorJustificacion) throw new ErrorAplicacion(409, error.codigo);
-    throw error;
+  const archivos = await inspeccionarEvidencia(almacen, familia.cicloId, entrada.evidenciaId);
+  if (!archivos) {
+    await almacen.borrarPrefijo(`${familia.cicloId}/${entrada.evidenciaId}/`);
+    throw new ErrorAplicacion(400, "evidencia_invalida");
   }
+  const lote: EntradaLote = {
+    loteId: entrada.loteId, cicloId: familia.cicloId, causa: entrada.causa, evidenciaId: entrada.evidenciaId,
+    cantidadFotos: archivos.length, apoderadoId: familia.apoderadoId, canal, ausencias: items,
+    ...(canal === "coordinacion" ? { registradaPor: ctx.cuentaId } : {}),
+  };
+  const validacion = validarLote(lote, { hijosDelApoderado: familia.hijos, justificables, anticipables });
+  if (!validacion.valido) throw new ErrorAplicacion(ESTADO_POR_MOTIVO[validacion.motivo] ?? 400, validacion.motivo);
+
+  if (!(await evidencias.confirmar(tx, entrada.evidenciaId, archivos, ahora))) throw new ErrorAplicacion(409, "evidencia_no_reservada");
+  const guardadas = await repo.insertarLote(tx, expandirLote(lote, ahora.toISOString()), ctx.cuentaId);
+  await notificarCambioJustificacion(guardadas, tx);
+  return { creado: true, justificaciones: guardadas };
 }

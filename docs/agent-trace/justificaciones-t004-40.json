@@ -1,0 +1,38 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-11",
+  "agente": "Claude Code",
+  "modelo": "claude-opus-5-5",
+  "rama": "feat/004-justificaciones",
+  "tarea": "T004-40",
+  "solicitud": "Implementar cliente-justificaciones.ts sobre el cliente HTTP de 001.",
+  "alcance": [
+    "src/lib/justificaciones/cliente-justificaciones.ts",
+    "src/plataforma/justificaciones/__tests__/cliente-justificaciones.test.ts",
+    "specs/004-justificaciones/tasks.md",
+    "docs/agent-trace/justificaciones-t004-40.json"
+  ],
+  "criterio": "Pasan con fetch simulado RF-401: pide las ausencias justificables con la sesión de familia y RF-402: envía la reserva y el lote con los cuerpos esperados.",
+  "decisiones": [
+    "El módulo es TS puro en src/lib; la prueba vive en src/plataforma porque src/lib no puede importar el cliente HTTP de plataforma.",
+    "La ausencia de almacenamiento se verifica revisando que solo importa ./tipos."
+  ],
+  "comprobaciones": [
+    {
+      "comando": "npx jest src/plataforma/justificaciones; npx tsc --noEmit; npm run lint",
+      "resultado": "Pasa: 3 tests."
+    },
+    {
+      "comando": "npm run typecheck",
+      "resultado": "Pasa en raíz y API."
+    },
+    {
+      "comando": "npm run lint",
+      "resultado": "Pasa sin errores."
+    }
+  ],
+  "limites": [
+    "La suite completa npm test se ejecuta al cerrar la fase 5."
+  ],
+  "notas": "Cliente de la familia de la spec 004."
+}

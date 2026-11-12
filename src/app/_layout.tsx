@@ -32,14 +32,15 @@ function Navegacion() {
     >
       <Stack.Screen name="index" options={{ title: "SIGECAT" }} />
       <Stack.Protected guard={equipo && tieneRolEquipo}>
-        <Stack.Screen name="(equipo)" />
+        {/* Cada grupo pinta su propia cabecera: sin esto se ven dos, una con el nombre del grupo. */}
+        <Stack.Screen name="(equipo)" options={{ headerShown: false }} />
       </Stack.Protected>
       <Stack.Protected guard={autenticada}>
         <Stack.Screen name="asistente" options={{ title: "Asistente de catequesis" }} />
         <Stack.Screen name="catequizandos/[id]/index" options={{ title: "Perfil del niño" }} />
       </Stack.Protected>
       <Stack.Protected guard={autenticada && rolesEfectivos.includes("familia") && (tipo === "familia" || equipo)}>
-        <Stack.Screen name="(familia)" />
+        <Stack.Screen name="(familia)" options={{ headerShown: false }} />
       </Stack.Protected>
     </Stack>
   );

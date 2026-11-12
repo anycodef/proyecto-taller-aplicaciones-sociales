@@ -1,67 +1,71 @@
 import { File } from "expo-file-system";
 import { ImageManipulator, SaveFormat } from "expo-image-manipulator";
+import { Platform } from "react-native";
 
-import { LIMITE_BYTES } from "@/lib/justificaciones/evidencia";
-import type { FotoComprimida } from "@/lib/justificaciones/enviar-justificacion";
+import { planInicial, siguienteIntento, type IntentoCompresion } from "@/lib/justificaciones/compresion";
 
-/** Anchos y calidades que se prueban de mayor a menor hasta quedar por debajo de 300 KB (RNF-402). */
-export const PASOS_COMPRESION: readonly { ancho: number; calidad: number }[] = [
-  { ancho: 1280, calidad: 0.7 },
-  { ancho: 1024, calidad: 0.6 },
-  { ancho: 800, calidad: 0.5 },
-  { ancho: 640, calidad: 0.4 },
-];
+export type ImagenLocal = { uri: string; ancho: number; alto: number };
+export type FotoComprimida = ImagenLocal & { bytes: number };
 
-export type DependenciasCompresion = {
-  /** Reduce la imagen y devuelve la ruta del JPEG resultante. */
-  reducir(uri: string, ancho: number, calidad: number): Promise<string>;
-  /** Lee el archivo resultante como binario. */
-  leer(uri: string): Promise<Blob>;
-  /** Borra un archivo temporal; los fallos se ignoran porque no hay nada que reintentar (RNF-404). */
-  borrar(uri: string): Promise<void>;
+export type Manipulador = {
+  dimensiones(uri: string): Promise<{ ancho: number; alto: number }>;
+  comprimir(uri: string, intento: IntentoCompresion): Promise<ImagenLocal>;
 };
+/** Archivos temporales del picker y del manipulador; nunca se conservan (RNF-404). */
+export type ArchivosTemporales = { medir(uri: string): Promise<number>; borrar(uri: string): Promise<void> };
 
 export class ErrorCompresion extends Error {
   constructor() {
-    super("foto_demasiado_grande");
+    super("foto_muy_pesada");
     this.name = "ErrorCompresion";
   }
 }
 
-const dependenciasExpo: DependenciasCompresion = {
-  async reducir(uri, ancho, calidad) {
-    const referencia = await ImageManipulator.manipulate(uri).resize({ width: ancho }).renderAsync();
-    return (await referencia.saveAsync({ format: SaveFormat.JPEG, compress: calidad })).uri;
+export const manipuladorExpo: Manipulador = {
+  async dimensiones(uri) {
+    const imagen = await ImageManipulator.manipulate(uri).renderAsync();
+    return { ancho: imagen.width, alto: imagen.height };
   },
-  async leer(uri) {
-    return (await fetch(uri)).blob();
+  async comprimir(uri, intento) {
+    const contexto = ImageManipulator.manipulate(uri);
+    contexto.resize({ width: intento.ancho, height: intento.alto });
+    const imagen = await contexto.renderAsync();
+    const guardada = await imagen.saveAsync({ format: SaveFormat.JPEG, compress: intento.calidad });
+    return { uri: guardada.uri, ancho: guardada.width, alto: guardada.height };
+  },
+};
+
+/** expo-file-system no documenta web: allí las imágenes son URL de objeto que se revocan. */
+export const archivosExpo: ArchivosTemporales = {
+  async medir(uri) {
+    if (Platform.OS === "web") return (await (await fetch(uri)).blob()).size;
+    return new File(uri).size;
   },
   async borrar(uri) {
-    // En web las rutas son blob: o data: y las libera el navegador; solo se borran archivos locales.
-    if (!uri.startsWith("file:")) return;
     try {
-      new File(uri).delete();
+      if (Platform.OS === "web") {
+        if (uri.startsWith("blob:")) URL.revokeObjectURL(uri);
+        return;
+      }
+      const archivo = new File(uri);
+      if (archivo.exists) archivo.delete();
     } catch {
-      /* el temporal ya no existe */
+      // Un temporal que ya no existe no es un fallo del envío.
     }
   },
 };
 
-/**
- * Convierte la foto elegida en un JPEG de menos de 300 KB. Borra todo temporal intermedio y también el
- * original que dejó la cámara; el resultado vive solo en memoria hasta que se envía (RNF-402, RNF-404).
- */
-export async function comprimirFoto(uriOriginal: string, deps: DependenciasCompresion = dependenciasExpo): Promise<FotoComprimida> {
-  const temporales: string[] = [uriOriginal];
-  try {
-    for (const { ancho, calidad } of PASOS_COMPRESION) {
-      const uri = await deps.reducir(uriOriginal, ancho, calidad);
-      temporales.push(uri);
-      const datos = await deps.leer(uri);
-      if (datos.size > 0 && datos.size <= LIMITE_BYTES) return { datos, bytes: datos.size };
-    }
-    throw new ErrorCompresion();
-  } finally {
-    await Promise.all(temporales.map((uri) => deps.borrar(uri)));
+/** Recomprime hasta quedar en 300 KB o falla al quinto intento; borra cada intermedio descartado. */
+export async function comprimirFoto(origen: ImagenLocal, manipulador: Manipulador = manipuladorExpo, archivos: ArchivosTemporales = archivosExpo): Promise<FotoComprimida> {
+  const medidas = origen.ancho > 0 && origen.alto > 0 ? origen : { ...origen, ...(await manipulador.dimensiones(origen.uri)) };
+  let intento = planInicial(medidas.ancho, medidas.alto);
+  for (;;) {
+    const resultado = await manipulador.comprimir(origen.uri, intento);
+    const bytes = await archivos.medir(resultado.uri);
+    const siguiente = siguienteIntento(intento, bytes);
+    if (siguiente.tipo === "listo") return { ...resultado, bytes };
+    await archivos.borrar(resultado.uri);
+    if (siguiente.tipo === "fallido") throw new ErrorCompresion();
+    intento = siguiente.intento;
   }
 }

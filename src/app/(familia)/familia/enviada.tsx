@@ -1,25 +1,40 @@
-import { router, useLocalSearchParams, type Href } from "expo-router";
-import { Text } from "react-native";
+import { router, useLocalSearchParams } from "expo-router";
+import { StyleSheet, Text, View } from "react-native";
 
 import { Boton, PantallaResultado } from "@/components/ui";
-import { colores } from "@/tema";
+import { colores, espacio, tipografia } from "@/tema";
 
-/** Confirmación tras enviar (WEB-09): no promete aprobación, solo que la coordinación la revisará. */
-export default function Enviada() {
-  const { cantidad } = useLocalSearchParams<{ cantidad?: string }>();
-  const total = Number(cantidad) || 1;
+function leerResumen(texto: string | undefined): string[] {
+  try {
+    const valor: unknown = JSON.parse(texto ?? "[]");
+    return Array.isArray(valor) ? valor.filter((v): v is string => typeof v === "string") : [];
+  } catch {
+    return [];
+  }
+}
+
+/** Confirma la recepción en pantalla (RF-402); el resumen llega por parámetro y no se guarda. */
+export default function JustificacionEnviada() {
+  const { resumen } = useLocalSearchParams<{ resumen?: string }>();
+  const lineas = leerResumen(resumen);
   return (
     <PantallaResultado
       tono="exito"
-      titulo="Recibimos tu justificación"
-      icono={<Text style={{ color: colores.primarioTexto, fontSize: 32 }}>✓</Text>}
-      mensaje={`Enviaste ${total === 1 ? "1 justificación" : `${total} justificaciones`}. La coordinación las revisará y verás aquí su estado.`}
-      acciones={
-        <>
-          <Boton etiqueta="Ver mis justificaciones" alPresionar={() => router.replace("/familia/mis-justificaciones" as Href)} />
-          <Boton etiqueta="Volver al inicio" variante="secundario" alPresionar={() => router.replace("/familia")} />
-        </>
-      }
-    />
+      titulo="Justificación recibida"
+      icono={<Text style={estilos.glifo}>✓</Text>}
+      mensaje="La coordinación la revisará. Verás si fue aceptada en «Mis justificaciones»."
+      acciones={<Boton etiqueta="Volver al inicio" alPresionar={() => router.replace("/familia")} />}
+    >
+      <View style={estilos.lista}>
+        {lineas.map((linea) => (
+          <Text key={linea} style={[tipografia.cuerpo, { color: colores.texto }]}>{`• ${linea}`}</Text>
+        ))}
+      </View>
+    </PantallaResultado>
   );
 }
+
+const estilos = StyleSheet.create({
+  glifo: { ...tipografia.titulo, color: colores.primarioTexto },
+  lista: { gap: espacio.xs },
+});

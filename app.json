@@ -56,8 +56,9 @@
       [
         "expo-image-picker",
         {
-          "cameraPermission": "SIGECAT usa la cámara solo para fotografiar el comprobante de una justificación. La foto no se guarda en el celular.",
-          "photosPermission": "SIGECAT usa tu galería solo para elegir la foto del comprobante de una justificación."
+          "cameraPermission": "SIGECAT usa la cámara para fotografiar el comprobante de una justificación. La foto no se guarda en el celular.",
+          "photosPermission": "SIGECAT abre tus fotos para elegir el comprobante de una justificación.",
+          "microphonePermission": false
         }
       ]
     ],

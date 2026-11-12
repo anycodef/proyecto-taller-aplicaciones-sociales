@@ -17,3 +17,8 @@ export function validarMetadatos(archivos: readonly ArchivoEvidencia[]): Resulta
   }
   return { valida: true };
 }
+
+/** Los JPEG empiezan con FF D8 FF; el content-type declarado no basta (RNF-402). */
+export function tieneFirmaJpeg(inicio: Uint8Array): boolean {
+  return inicio.length >= 3 && inicio[0] === 0xff && inicio[1] === 0xd8 && inicio[2] === 0xff;
+}

@@ -6,6 +6,7 @@ import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from "react-nat
 import { Boton } from "@/components/ui";
 import { extraerTokenDeUrl } from "@/lib/seguridad/enlaces";
 import { useSesion } from "@/plataforma/seguridad/contexto-sesion";
+import { leerTokenPendiente } from "@/plataforma/seguridad/sesion";
 import { colores, espacio, tipografia } from "@/tema";
 
 type Estado = "entrando" | "error";
@@ -24,7 +25,7 @@ export default function EntradaFamilia() {
   const [estado, setEstado] = useState<Estado>("entrando");
 
   const entrar = useCallback(async () => {
-    const token = url ? extraerTokenDeUrl(url) : null;
+    const token = (url ? extraerTokenDeUrl(url) : null) ?? leerTokenPendiente();
     if (!token) {
       setEstado("error");
       return;

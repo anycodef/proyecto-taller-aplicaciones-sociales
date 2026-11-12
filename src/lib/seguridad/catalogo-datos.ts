@@ -153,6 +153,7 @@ export const PROYECCIONES_LOCALES: Readonly<Record<string, ProyeccionLocal>> = O
   avisos_grupo: proyeccion("aviso_grupo", ["id", "grupo_id", "texto", "publicado_en"], { autor_visible: { entidad: "cuenta", campo: "identidad_operativa" } }),
   ciclos: proyeccion("ciclo", ["id", "nombre", "estado"], { fecha_inicio: { entidad: "ciclo", campo: "inicio" }, fecha_fin: { entidad: "ciclo", campo: "fin" } }),
   actividades_obligatorias: proyeccion("actividad_obligatoria", ["id", "ciclo_id", "nombre", "tipo", "fecha", "estado", "creado_por", ...autoria]),
+  justificaciones_estado: proyeccion("justificacion", ["id", "catequizando_id", "sesion_id", "tipo_sesion"], { fecha: { entidad: "justificacion", campo: "fecha_sesion" }, estado: { entidad: "justificacion", campo: "estado_revision" } }),
 });
 export function validarProyeccionLocal(coleccion: string, campos: readonly string[]): void {
   if (!Object.hasOwn(PROYECCIONES_LOCALES, coleccion)) throw new Error(`coleccion_local_no_permitida:${coleccion}`);

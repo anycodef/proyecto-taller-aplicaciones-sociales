@@ -1,66 +1,75 @@
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { colores, espacio, radio, tipografia } from '@/tema';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { Insignia, Tarjeta } from "@/components/ui";
-import type { AusenciaJustificable } from "@/lib/justificaciones/cliente-justificaciones";
-import { agruparPorNino, claveAusencia, etiquetaSesion, fechaCorta } from "@/lib/justificaciones/seleccion";
-import { alturaMinimaToque, colores, espacio, tipografia } from "@/tema";
-
-export interface PropiedadesSelectorAusencias {
-  ausencias: readonly AusenciaJustificable[];
-  seleccion: ReadonlySet<string>;
-  alAlternar: (clave: string) => void;
+export interface OpcionAusencia {
+  clave: string;
+  titulo: string;
+  detalle: string;
+  nota?: string;
 }
 
-/** Casillas de varias ausencias a la vez, agrupadas por hijo; cada una con la fecha en que vence el plazo (RF-401, RF-405). */
-export function SelectorAusencias({ ausencias, seleccion, alAlternar }: PropiedadesSelectorAusencias) {
+export interface PropiedadesSelectorAusencias {
+  opciones: readonly OpcionAusencia[];
+  seleccionadas: readonly string[];
+  alCambiar: (seleccionadas: string[]) => void;
+}
+
+/** Marca una o varias ausencias, de uno o varios hijos; quien la usa arma las opciones. */
+export function SelectorAusencias({ opciones, seleccionadas, alCambiar }: PropiedadesSelectorAusencias) {
+  const alternar = (clave: string) =>
+    alCambiar(seleccionadas.includes(clave) ? seleccionadas.filter((c) => c !== clave) : [...seleccionadas, clave]);
+
   return (
     <View style={estilos.lista}>
-      {agruparPorNino(ausencias).map((fila) => (
-        <Tarjeta key={fila.catequizandoId}>
-          <Text style={[tipografia.cuerpoFuerte, estilos.nombre]}>{fila.nombre}</Text>
-          {fila.ausencias.map((ausencia) => {
-            const clave = claveAusencia(ausencia);
-            const marcada = seleccion.has(clave);
-            return (
-              <Pressable
-                key={clave}
-                accessibilityRole="checkbox"
-                accessibilityState={{ checked: marcada }}
-                accessibilityLabel={`${etiquetaSesion(ausencia.tipoSesion)} del ${fechaCorta(ausencia.fecha)}`}
-                onPress={() => alAlternar(clave)}
-                style={estilos.fila}
-              >
-                <View style={[estilos.casilla, marcada ? estilos.casillaMarcada : null]}>
-                  {marcada ? <Text style={estilos.marca}>✓</Text> : null}
-                </View>
-                <Text style={[tipografia.cuerpo, estilos.texto]}>
-                  {etiquetaSesion(ausencia.tipoSesion)} · {fechaCorta(ausencia.fecha)}
-                </Text>
-                <Insignia texto={`Vence ${fechaCorta(ausencia.venceEn.slice(0, 10))}`} tono="neutro" />
-              </Pressable>
-            );
-          })}
-        </Tarjeta>
-      ))}
+      {opciones.map((opcion) => {
+        const marcada = seleccionadas.includes(opcion.clave);
+        return (
+          <Pressable
+            key={opcion.clave}
+            accessibilityRole="checkbox"
+            accessibilityState={{ checked: marcada }}
+            accessibilityLabel={`${opcion.titulo}, ${opcion.detalle}`}
+            onPress={() => alternar(opcion.clave)}
+            style={[estilos.fila, marcada ? estilos.marcada : null]}
+          >
+            <View style={[estilos.casilla, marcada ? estilos.casillaMarcada : null]}>
+              {marcada ? <Text style={estilos.check}>✓</Text> : null}
+            </View>
+            <View style={estilos.textos}>
+              <Text style={[tipografia.cuerpoFuerte, { color: colores.texto }]}>{opcion.titulo}</Text>
+              <Text style={[tipografia.nota, { color: colores.textoSuave }]}>{opcion.detalle}</Text>
+              {opcion.nota ? <Text style={[tipografia.nota, { color: colores.textoTenue }]}>{opcion.nota}</Text> : null}
+            </View>
+          </Pressable>
+        );
+      })}
     </View>
   );
 }
 
 const estilos = StyleSheet.create({
-  lista: { gap: espacio.m },
-  nombre: { color: colores.texto },
-  fila: { flexDirection: "row", alignItems: "center", gap: espacio.m, minHeight: alturaMinimaToque },
-  casilla: {
-    width: 28,
-    height: 28,
-    borderRadius: 8,
-    borderWidth: 2,
+  lista: { gap: espacio.s },
+  fila: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: espacio.m,
+    padding: espacio.l,
+    borderRadius: radio.tarjeta,
+    borderWidth: 1,
     borderColor: colores.borde,
     backgroundColor: colores.superficie,
-    alignItems: "center",
-    justifyContent: "center",
+  },
+  marcada: { borderWidth: 2, borderColor: colores.primario, backgroundColor: colores.primarioSuave },
+  casilla: {
+    width: espacio.xl,
+    height: espacio.xl,
+    borderRadius: radio.campo / 2,
+    borderWidth: 2,
+    borderColor: colores.borde,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   casillaMarcada: { backgroundColor: colores.primario, borderColor: colores.primario },
-  marca: { color: colores.primarioTexto, fontWeight: "700" },
-  texto: { flex: 1, color: colores.texto },
+  check: { color: colores.primarioTexto, ...tipografia.etiqueta },
+  textos: { flex: 1, gap: espacio.xs },
 });

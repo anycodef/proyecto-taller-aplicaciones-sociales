@@ -32,20 +32,26 @@ export interface RepositorioEvidencias {
   marcarEliminada(tx: Tx, id: string, motivo: MotivoEliminacion): Promise<boolean>;
 }
 
-/** Blob Storage privado. La subida directa con SAS (D-402 de la spec) se sustituye hoy por `subir` desde la API. */
+export type UrlFirmada = { url: string; expiraEn: string };
+export type InspeccionBlob = { bytes: number; contentType: string; firmaJpeg: boolean };
+
+/** Blob Storage privado con URLs SAS de 5 minutos (D-402, D-410). */
 export interface AlmacenEvidencias {
-  /** Escribe el blob con la identidad de la API; la subida directa del navegador exige CORS en la cuenta (desviación D-402). */
-  subir(blobNombre: string, contenido: Buffer, contentType: string): Promise<void>;
-  urlSubida(blobNombre: string, ahora: Date): Promise<{ url: string; expiraEn: string }>;
-  urlLectura(blobNombre: string, ahora: Date): Promise<{ url: string; expiraEn: string }>;
-  inspeccionar(blobNombre: string): Promise<{ bytes: number; contentType: string } | undefined>;
+  /** Solo permite crear: una subida no puede sobrescribir un blob existente. */
+  urlSubida(blobNombre: string, ahora: Date): Promise<UrlFirmada>;
+  /** Solo lectura y Cache-Control no-store para que el visor no guarde copia. */
+  urlLectura(blobNombre: string, ahora: Date): Promise<UrlFirmada>;
+  inspeccionar(blobNombre: string): Promise<InspeccionBlob | undefined>;
   borrar(blobNombre: string): Promise<void>;
+  /** Devuelve cuántos blobs borró con ese prefijo. */
+  borrarPrefijo(prefijo: string): Promise<number>;
 }
 
 export interface RepositorioJustificaciones {
   /** Idempotente por id de justificación: reenviar el lote devuelve lo ya guardado (D-413). */
   insertarLote(tx: Tx, justificaciones: readonly Justificacion[], por: string | null): Promise<Justificacion[]>;
   obtener(tx: Tx, id: string): Promise<Justificacion | undefined>;
+  obtenerLote(tx: Tx, loteId: string): Promise<Justificacion[]>;
   /** Persiste el resultado de `revisar` del dominio; falla si ya no estaba pendiente. */
   guardarRevision(tx: Tx, revisada: Justificacion): Promise<void>;
   /** Devuelve los ids afectados; la justificación se conserva (RF-407). */
@@ -54,6 +60,8 @@ export interface RepositorioJustificaciones {
   /** Pendientes con efecto del ciclo, agrupadas por lote para revisarlas juntas (RF-403, RF-408). */
   bandeja(tx: Tx, cicloId: string): Promise<LoteBandeja[]>;
   listarPorCatequizando(tx: Tx, catequizandoId: string): Promise<Justificacion[]>;
+  /** Para las consultas en proceso de 003, 006 y 007 (D-414). */
+  listarPorCiclo(tx: Tx, cicloId: string): Promise<Justificacion[]>;
   /** Todas las de sus hijos con vínculo vigente, también las del otro apoderado (supuesto A-14). */
   listarPorApoderado(tx: Tx, apoderadoId: string): Promise<Justificacion[]>;
   /** Para el pull de 003: solo estado, sin causa, motivo ni evidencia (D-408). Puede reentregar la última fila del cursor. */
@@ -68,3 +76,17 @@ export type PlazoCiclo = { cicloId: string; diasPlazo: number; predeterminado: b
 export type JustificacionEnBandeja = Justificacion & { duplicada: boolean };
 export type LoteBandeja = { loteId: string; justificaciones: JustificacionEnBandeja[] };
 export type CambioEstado = Pick<AusenciaRef, "catequizandoId" | "sesionId" | "fecha" | "tipoSesion"> & { id: string; estadoVisible: EstadoVisible; actualizadoEn: string };
+
+/** 006 y 007 se suscriben en proceso; la notificación corre en la misma transacción (D-414). */
+export type AlCambiarJustificacion = (evento: { justificaciones: readonly Justificacion[] }, tx: Tx) => Promise<void>;
+const suscriptores: AlCambiarJustificacion[] = [];
+/** Devuelve la función para retirar la suscripción. */
+export function registrarAlCambiarJustificacion(puerto: AlCambiarJustificacion): () => void {
+  if (!suscriptores.includes(puerto)) suscriptores.push(puerto);
+  return () => { const i = suscriptores.indexOf(puerto); if (i >= 0) suscriptores.splice(i, 1); };
+}
+/** En orden de registro; si un suscriptor falla, la transacción del cambio se revierte entera. */
+export async function notificarCambioJustificacion(justificaciones: readonly Justificacion[], tx: Tx): Promise<void> {
+  if (!justificaciones.length) return;
+  for (const suscriptor of [...suscriptores]) await suscriptor({ justificaciones }, tx);
+}

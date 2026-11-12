@@ -40,7 +40,12 @@ export const MATRIZ_PERMISOS = {
   "actividad:gestionar": { escritura: true, roles: coordinacion },
   "ciclo:gestionar": { escritura: true, roles: { administracion: "ciclo" } },
   "justificacion:leer": { escritura: false, roles: consultaOperativa },
-  "justificacion:enviar": { escritura: true, roles: { familia: "apoderados" } },
+  // La familia solo actúa sobre sus hijos; la coordinación envía en nombre de un apoderado (RF-406).
+  "justificacion:familia": { escritura: false, roles: { familia: "apoderados" } },
+  "justificacion:enviar": { escritura: true, roles: { familia: "apoderados", ...coordinacion } },
+  "justificacion:bandeja": { escritura: false, roles: { ...coordinacion, supervision: "ciclo" } },
+  "justificacion:historial": { escritura: false, roles: { ...coordinacion, catequista: "grupos", supervision: "ciclo" } },
+  "justificacion:plazo-leer": { escritura: false, roles: { ...coordinacion, catequista: "ciclo", supervision: "ciclo" } },
   "justificacion:revisar": { escritura: true, roles: coordinacion },
   "justificacion:registrar-en-nombre": { escritura: true, roles: coordinacion },
   "justificacion:configurar-plazo": { escritura: true, roles: coordinacion },

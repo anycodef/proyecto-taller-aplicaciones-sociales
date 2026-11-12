@@ -1,4 +1,4 @@
-import { LIMITE_BYTES, validarMetadatos } from "@/lib/justificaciones/evidencia";
+import { LIMITE_BYTES, tieneFirmaJpeg, validarMetadatos } from "@/lib/justificaciones/evidencia";
 
 const foto = (bytes = 200_000, contentType = "image/jpeg") => ({ contentType, bytes });
 
@@ -18,4 +18,10 @@ test("RF-402: exige entre 1 y 3 fotos", () => {
   expect(validarMetadatos([])).toEqual({ valida: false, motivo: "cantidad_fotos" });
   expect(validarMetadatos([foto(), foto(), foto()])).toEqual({ valida: true });
   expect(validarMetadatos([foto(), foto(), foto(), foto()])).toEqual({ valida: false, motivo: "cantidad_fotos" });
+});
+
+test("RNF-402: reconoce la firma JPEG y rechaza otros formatos", () => {
+  expect(tieneFirmaJpeg(new Uint8Array([0xff, 0xd8, 0xff, 0xe0]))).toBe(true);
+  expect(tieneFirmaJpeg(new Uint8Array([0x89, 0x50, 0x4e, 0x47]))).toBe(false);
+  expect(tieneFirmaJpeg(new Uint8Array([0xff, 0xd8]))).toBe(false);
 });

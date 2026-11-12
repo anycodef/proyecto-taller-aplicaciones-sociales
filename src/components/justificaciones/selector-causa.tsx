@@ -1,24 +1,19 @@
-import { GrupoOpciones } from "@/components/ui";
-import { CAUSAS, ETIQUETAS_CAUSA, esCausaValida } from "@/lib/justificaciones/causas";
-import type { Causa } from "@/lib/justificaciones/tipos";
+import { GrupoOpciones } from '@/components/ui';
 
-export interface PropiedadesSelectorCausa {
-  valor: Causa | null;
-  alCambiar: (causa: Causa) => void;
+export interface OpcionCausa {
+  valor: string;
+  etiqueta: string;
 }
 
-const OPCIONES = CAUSAS.map((causa) => ({ valor: causa, etiqueta: ETIQUETAS_CAUSA[causa] }));
+export interface PropiedadesSelectorCausa {
+  /** Las causas llegan del dominio; el componente no decide cuáles se admiten. */
+  causas: readonly OpcionCausa[];
+  valor: string | null;
+  alCambiar: (causa: string) => void;
+  /** null cuando la pantalla ya muestra la pregunta en su propio encabezado. */
+  etiqueta?: string | null;
+}
 
-/** Las tres causas de la ficha de compromiso; viajes o fiestas no justifican (RF-402). */
-export function SelectorCausa({ valor, alCambiar }: PropiedadesSelectorCausa) {
-  return (
-    <GrupoOpciones
-      etiqueta="Motivo de la ausencia"
-      opciones={OPCIONES}
-      valor={valor}
-      alCambiar={(elegido) => {
-        if (esCausaValida(elegido)) alCambiar(elegido);
-      }}
-    />
-  );
+export function SelectorCausa({ causas, valor, alCambiar, etiqueta = "¿Por qué faltó?" }: PropiedadesSelectorCausa) {
+  return <GrupoOpciones etiqueta={etiqueta ?? undefined} opciones={causas} valor={valor} alCambiar={alCambiar} />;
 }

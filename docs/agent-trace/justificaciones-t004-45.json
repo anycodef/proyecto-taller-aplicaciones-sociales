@@ -1,0 +1,41 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-11",
+  "agente": "Claude Code",
+  "modelo": "claude-opus-5-5",
+  "rama": "feat/004-justificaciones",
+  "tarea": "T004-45",
+  "solicitud": "Convertir familia.tsx en familia/index.tsx (ausencias primero y «Mis justificaciones»).",
+  "alcance": [
+    "src/app/(familia)/familia/index.tsx",
+    "src/lib/justificaciones/presentacion.ts",
+    "src/lib/justificaciones/__tests__/presentacion.test.ts",
+    "src/plataforma/justificaciones/usar-conexion.ts",
+    "src/__tests__/familia-inicio.test.tsx",
+    "specs/004-justificaciones/tasks.md",
+    "docs/agent-trace/justificaciones-t004-45.json"
+  ],
+  "criterio": "Pasan RF-401: la pantalla de familia lista primero las ausencias justificables, RF-410: muestra el estado y, si fue rechazada, el motivo y RNF-404: sin conexión muestra un aviso y no guarda nada.",
+  "decisiones": [
+    "La ruta sigue siendo /familia; cada fila abre /familia/justificar con sus ausencias ya marcadas.",
+    "Las fechas se nombran desde la fecha civil, sin depender de la zona horaria del celular."
+  ],
+  "comprobaciones": [
+    {
+      "comando": "npx jest src/__tests__/familia-inicio src/lib/justificaciones/__tests__/presentacion src/__tests__/rutas; npm run typecheck; npm run lint",
+      "resultado": "Pasa: 30 tests (incluye rutas)."
+    },
+    {
+      "comando": "npm run typecheck",
+      "resultado": "Pasa en raíz y API."
+    },
+    {
+      "comando": "npm run lint",
+      "resultado": "Pasa sin errores."
+    }
+  ],
+  "limites": [
+    "La suite completa npm test se ejecuta al cerrar la fase 5."
+  ],
+  "notas": "Cliente de la familia de la spec 004."
+}

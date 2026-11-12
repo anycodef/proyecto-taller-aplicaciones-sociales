@@ -1,0 +1,37 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-11",
+  "agente": "Claude Code",
+  "modelo": "claude-opus-5-5",
+  "rama": "feat/004-justificaciones",
+  "tarea": "T004-47",
+  "solicitud": "Crear la confirmación familia/enviada.tsx.",
+  "alcance": [
+    "src/app/(familia)/familia/enviada.tsx",
+    "src/__tests__/familia-enviada.test.tsx",
+    "specs/004-justificaciones/tasks.md",
+    "docs/agent-trace/justificaciones-t004-47.json"
+  ],
+  "criterio": "Pasa RF-402: confirma la recepción con la lista de ausencias justificadas.",
+  "decisiones": [
+    "El resumen solo lleva nombre del niño, fecha y sesión; nunca la causa ni la evidencia."
+  ],
+  "comprobaciones": [
+    {
+      "comando": "npx jest src/__tests__/familia-enviada; npm run typecheck; npm run lint",
+      "resultado": "Pasa: 1 test."
+    },
+    {
+      "comando": "npm run typecheck",
+      "resultado": "Pasa en raíz y API."
+    },
+    {
+      "comando": "npm run lint",
+      "resultado": "Pasa sin errores."
+    }
+  ],
+  "limites": [
+    "La suite completa npm test (cliente y API con PostgreSQL) se ejecuta al cerrar la fase."
+  ],
+  "notas": "Dominio puro en TypeScript, sin React, React Native ni Expo."
+}

@@ -1,0 +1,47 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-12",
+  "agente": "Claude Code",
+  "modelo": "claude-opus-5-5",
+  "rama": "feat/004-justificaciones",
+  "tarea": "fix-acceso-enlace-pegado",
+  "solicitud": "Corregir en un commit aparte los dos fallos de acceso hallados al probar la spec 004 en el emulador.",
+  "alcance": [
+    "src/lib/seguridad/enlaces.ts",
+    "src/app/index.tsx",
+    "src/app/acceso/familia.tsx",
+    "src/plataforma/api/cliente.ts",
+    "src/lib/seguridad/__tests__/enlaces.test.ts",
+    "src/plataforma/api/__tests__/cliente.test.ts",
+    "src/__tests__/entrada-familia-pegada.test.tsx",
+    "docs/agent-trace/seguridad-fix-enlace-pegado.json"
+  ],
+  "criterio": "Un enlace de familia pegado en Android entra como familia, y un 401 en /acceso/* no dispara la renovación.",
+  "decisiones": [
+    "El tipo del enlace se lee de la ruta /acceso/familia o /acceso/equipo en una función pura de src/lib.",
+    "La entrada de familia usa el token pendiente cuando la URL inicial no trae fragmento, como ya hacía la activación de equipo.",
+    "credencial_terminada sigue llevando a sin-acceso también en /acceso/renovar; solo se omite el reintento con renovación."
+  ],
+  "comprobaciones": [
+    {
+      "comando": "npm run test:app",
+      "resultado": "71 suites, 260 tests pasan."
+    },
+    {
+      "comando": "npm --prefix api test",
+      "resultado": "339/341: fallan 2 tests de asistencia-bd.test.ts de 003 por desfase del reloj de la VM Docker; fallan igual sin este cambio, que no toca la API."
+    },
+    {
+      "comando": "npm run typecheck",
+      "resultado": "Pasa en raíz y API."
+    },
+    {
+      "comando": "npm run lint",
+      "resultado": "Pasa sin errores."
+    }
+  ],
+  "limites": [
+    "Fallos en código de la spec 001; corregidos a pedido explícito del usuario fuera de una tarea de spec."
+  ],
+  "notas": "Reproducido en el emulador: pegar el enlace de familia llamaba a activarEquipo, recibía 401 y renovarSesion se llamaba a sí misma unas 25 veces por segundo."
+}

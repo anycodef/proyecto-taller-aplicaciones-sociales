@@ -201,3 +201,18 @@ test('RNF-106: dos ubicaciones fallidas alertan por correo y resuelven automatic
   assert.equal(receptor.smsReceivers, undefined);
   assert.equal(plantilla.parameters.correoAlertas.defaultValue, '');
 });
+
+test('RNF-403 RF-407: evidencias en contenedor privado, sin versionado ni papelera, CORS PUT/GET y SAS delegada', () => {
+  const contenedores = recursosDe('Microsoft.Storage/storageAccounts/blobServices/containers');
+  assert.ok(contenedores.some(c => JSON.stringify(c.name).includes('evidencias') && c.properties.publicAccess === 'None'));
+  const servicio = recursosDe('Microsoft.Storage/storageAccounts/blobServices').find(s => s.properties);
+  assert.equal(servicio.properties.isVersioningEnabled, false);
+  assert.equal(servicio.properties.deleteRetentionPolicy.enabled, false);
+  assert.equal(servicio.properties.containerDeleteRetentionPolicy.enabled, false);
+  assert.match(JSON.stringify(servicio.properties.cors), /PUT/);
+  const roles = JSON.stringify(recursosDe('Microsoft.Authorization/roleAssignments'));
+  assert.match(roles, /db58b8e5-c6ad-4a2a-8342-4190687cbf4a/);
+  const ajustes = JSON.stringify(recursosDe('Microsoft.Web/sites')[0].properties.siteConfig.appSettings);
+  assert.match(ajustes, /EVIDENCIAS_CUENTA_URL/);
+  assert.doesNotMatch(ajustes, /EVIDENCIAS_MODO|EVIDENCIAS_CONEXION_PRUEBAS/);
+});
