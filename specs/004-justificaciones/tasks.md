@@ -205,7 +205,7 @@
 
     `az bicep build --file infra/main.bicep` termina sin advertencias y `az deployment group what-if` lo confirma. `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T004-29** Implementar en `almacen-evidencias-blob.ts` la SAS de subida (solo crear, 5 min)
+- [x] **T004-29** Implementar en `almacen-evidencias-blob.ts` la SAS de subida (solo crear, 5 min)
   - RF: RF-402, RNF-403
   - Depende de: T004-27, T004-22
   - Hecho cuando: pasan los tests de almacén contra Azurite `RNF-403: la SAS de subida no permite sobrescribir`, `RNF-403: la SAS vencida es rechazada` y `RNF-403: el blob se nombra {cicloId}/{evidenciaId}/{orden}.jpg`. `npm test`, `npm run typecheck` y `npm run lint` pasan.

@@ -32,12 +32,19 @@ export interface RepositorioEvidencias {
   marcarEliminada(tx: Tx, id: string, motivo: MotivoEliminacion): Promise<boolean>;
 }
 
-/** Blob Storage privado; la implementación real llega en la fase 3. */
+export type UrlFirmada = { url: string; expiraEn: string };
+export type InspeccionBlob = { bytes: number; contentType: string; firmaJpeg: boolean };
+
+/** Blob Storage privado con URLs SAS de 5 minutos (D-402, D-410). */
 export interface AlmacenEvidencias {
-  urlSubida(blobNombre: string, ahora: Date): Promise<{ url: string; expiraEn: string }>;
-  urlLectura(blobNombre: string, ahora: Date): Promise<{ url: string; expiraEn: string }>;
-  inspeccionar(blobNombre: string): Promise<{ bytes: number; contentType: string } | undefined>;
+  /** Solo permite crear: una subida no puede sobrescribir un blob existente. */
+  urlSubida(blobNombre: string, ahora: Date): Promise<UrlFirmada>;
+  /** Solo lectura y Cache-Control no-store para que el visor no guarde copia. */
+  urlLectura(blobNombre: string, ahora: Date): Promise<UrlFirmada>;
+  inspeccionar(blobNombre: string): Promise<InspeccionBlob | undefined>;
   borrar(blobNombre: string): Promise<void>;
+  /** Devuelve cuántos blobs borró con ese prefijo. */
+  borrarPrefijo(prefijo: string): Promise<number>;
 }
 
 export interface RepositorioJustificaciones {
