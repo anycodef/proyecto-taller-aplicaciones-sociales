@@ -20,7 +20,7 @@ app en Expo Go. **Nada de Docker, nada de Azure en la nube.**
 | Node 22 o superior | instalado | `node --version` |
 | Azure Functions Core Tools v4 | **4.16.0** | `winget install --id Microsoft.Azure.FunctionsCoreTools --exact`. Queda en `C:\Program Files\Microsoft\Azure Functions Core Tools\func.exe` y en el PATH del sistema (abre una terminal nueva para que lo vea) |
 | PostgreSQL local | servicio `postgresql-x64-18` | Escucha en el **puerto 5433** (no es el 5432 por defecto). Base `sigecat` |
-| Expo Go en el celular | instalado | Debe ser una versión compatible con SDK 57 |
+| **Expo Go del SDK 57** | hay que instalarlo a mano | El proyecto está en **SDK 57** (`expo 57.0.23`) y **Expo Go solo admite el SDK más reciente** (el 58): con el Expo Go de la tienda el celular rechaza el proyecto con "necesitas el SDK 58". En **Android**, instala el Expo Go 57.0.9: <https://github.com/expo/expo-go-releases/releases/download/Expo-Go-57.0.9/Expo-Go-57.0.9.apk> (desinstala antes el otro; también está en `C:\Users\User\Downloads\Expo-Go-57.0.9.apk`). En **iOS** no hay build de Expo Go 57 (la App Store solo ofrece el último): usa el navegador (§3.7). Subir el proyecto a SDK 58 es un cambio de dependencias y queda fuera del alcance de esta demo |
 | Celular y PC en la misma red | — | La IP de esta PC es `192.168.1.77` (Ethernet). Si cambia, cambiala en todos los comandos |
 
 ### Dependencias del proyecto (no se instala nada nuevo para la demo)
