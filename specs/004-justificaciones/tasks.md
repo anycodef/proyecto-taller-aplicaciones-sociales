@@ -215,7 +215,7 @@
   - Depende de: T004-29
   - Hecho cuando: la fábrica del almacén usa `ManagedIdentityCredential` y `getUserDelegationKey` fuera del modo de pruebas. Pasa `almacen-credencial.test.ts › RNF-403: en Azure se usa SAS de usuario delegado y nunca la clave de cuenta`, y ninguna configuración de producción lee una clave de cuenta. `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T004-31** Implementar en el almacén la inspección, la SAS de lectura y el borrado
+- [x] **T004-31** Implementar en el almacén la inspección, la SAS de lectura y el borrado
   - RF: RF-407, RF-410, RNF-402, RNF-403
   - Depende de: T004-30
   - Hecho cuando: pasan los tests de almacén contra Azurite `RNF-402: la inspección detecta un blob de más de 300 KB o sin firma JPEG`, `RNF-403: la SAS de lectura solo permite r, expira en 5 min y fuerza Cache-Control no-store` y `RF-407: borrar elimina todos los archivos de una evidencia`. `npm test`, `npm run typecheck` y `npm run lint` pasan.

@@ -2,7 +2,8 @@ import { ManagedIdentityCredential } from "@azure/identity";
 import {
   BlobSASPermissions, BlobServiceClient, SASProtocol, StorageSharedKeyCredential, generateBlobSASQueryParameters, type BlobSASSignatureValues, type UserDelegationKey,
 } from "@azure/storage-blob";
-import { CONTENEDOR_EVIDENCIAS, type AlmacenEvidencias, type UrlFirmada } from "../dominio/puertos";
+import { tieneFirmaJpeg } from "@/lib/justificaciones/evidencia";
+import { CONTENEDOR_EVIDENCIAS, type AlmacenEvidencias, type InspeccionBlob, type UrlFirmada } from "../dominio/puertos";
 
 export const VIGENCIA_SAS_MS = 5 * 60 * 1000;
 /** Tolera relojes del celular o del servidor algo adelantados. */
@@ -36,7 +37,7 @@ function firmantePruebas(servicio: BlobServiceClient): Firmante {
   return { protocolo: SASProtocol.HttpsAndHttp, firmar: async valores => generateBlobSASQueryParameters(valores, credencial).toString() };
 }
 
-export function crearAlmacenEvidencias(config: ConfigAlmacen): Pick<AlmacenEvidencias, "urlSubida"> {
+export function crearAlmacenEvidencias(config: ConfigAlmacen): AlmacenEvidencias {
   const servicio = config.modo === "azure" ? new BlobServiceClient(config.cuentaUrl, new ManagedIdentityCredential()) : BlobServiceClient.fromConnectionString(config.conexion);
   const firmante = config.modo === "azure" ? firmanteAzure(servicio) : firmantePruebas(servicio);
   const contenedor = servicio.getContainerClient(config.contenedor ?? CONTENEDOR_EVIDENCIAS);
@@ -50,8 +51,38 @@ export function crearAlmacenEvidencias(config: ConfigAlmacen): Pick<AlmacenEvide
     return { url: `${contenedor.getBlobClient(blobNombre).url}?${sas}`, expiraEn: expiresOn.toISOString() };
   }
 
+  async function inspeccionar(blobNombre: string): Promise<InspeccionBlob | undefined> {
+    const blob = contenedor.getBlobClient(blobNombre);
+    try {
+      const propiedades = await blob.getProperties();
+      const inicio = await blob.downloadToBuffer(0, 3);
+      return { bytes: propiedades.contentLength ?? 0, contentType: propiedades.contentType ?? "", firmaJpeg: tieneFirmaJpeg(inicio) };
+    } catch (error) {
+      if ((error as { statusCode?: number }).statusCode === 404) return undefined;
+      throw error;
+    }
+  }
+
+  async function borrar(blobNombre: string): Promise<void> {
+    await contenedor.getBlobClient(blobNombre).deleteIfExists({ deleteSnapshots: "include" });
+  }
+
+  async function borrarPrefijo(prefijo: string): Promise<number> {
+    if (!prefijo.endsWith("/")) throw new Error("prefijo_sin_barra");
+    let cantidad = 0;
+    for await (const item of contenedor.listBlobsFlat({ prefix: prefijo })) {
+      await borrar(item.name);
+      cantidad += 1;
+    }
+    return cantidad;
+  }
+
   return {
     urlSubida: (blobNombre, ahora) => firmarUrl(blobNombre, ahora, BlobSASPermissions.from({ create: true })),
+    urlLectura: (blobNombre, ahora) => firmarUrl(blobNombre, ahora, BlobSASPermissions.from({ read: true }), { cacheControl: "no-store" }),
+    inspeccionar,
+    borrar,
+    borrarPrefijo,
   };
 }
 
