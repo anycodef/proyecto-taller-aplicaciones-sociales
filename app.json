@@ -18,7 +18,10 @@
             "host": "sigecat.app",
             "pathPrefix": "/acceso"
           },
-          "category": ["BROWSABLE", "DEFAULT"]
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
         }
       ],
       "adaptiveIcon": {
@@ -47,6 +50,15 @@
         "expo-secure-store",
         {
           "configureAndroidBackup": false
+        }
+      ],
+      "expo-image",
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "SIGECAT usa la cámara para fotografiar el comprobante de una justificación. La foto no se guarda en el celular.",
+          "photosPermission": "SIGECAT abre tus fotos para elegir el comprobante de una justificación.",
+          "microphonePermission": false
         }
       ]
     ],
