@@ -10,3 +10,13 @@ export function construirUrlEnlace(base: string, tipo: "equipo" | "familia", tok
 export function extraerTokenDeUrl(url: string): string | null {
   try { return new URLSearchParams(new URL(url).hash.slice(1)).get("t"); } catch { return null; }
 }
+export type EnlaceAcceso = { tipo: "equipo" | "familia"; token: string };
+/** El tipo sale de la ruta del enlace: un enlace de familia activado como equipo falla en el servidor. */
+export function leerEnlaceAcceso(texto: string): EnlaceAcceso | null {
+  const token = extraerTokenDeUrl(texto.trim());
+  if (!token) return null;
+  try {
+    const tipo = new URL(texto.trim()).pathname.replace(/\/+$/, "").endsWith("/acceso/familia") ? "familia" : "equipo";
+    return { tipo, token };
+  } catch { return null; }
+}

@@ -61,6 +61,23 @@ test("RF-101: con credencial_terminada el cliente lleva a sin-acceso", async () 
   expect(renovarSesion).not.toHaveBeenCalled();
 });
 
+test("RF-101: un 401 en una ruta de acceso no intenta renovar la sesión", async () => {
+  const renovarSesion = jest.fn(async () => "jwt-renovado");
+  let llamadas = 0;
+  const fetchImpl = (async () => {
+    llamadas += 1;
+    return respuestaFalsa(401, { codigo: "acceso_denegado" });
+  }) as unknown as typeof fetch;
+
+  const cliente = crearClienteHttp(opcionesBase({ fetchImpl, renovarSesion }));
+
+  for (const ruta of ["/acceso/renovar", "/acceso/equipo/activar", "/acceso/familia/entrar"]) {
+    await expect(cliente.solicitar("POST", ruta, {})).rejects.toMatchObject({ estado: 401, codigo: "acceso_denegado" });
+  }
+  expect(renovarSesion).not.toHaveBeenCalled();
+  expect(llamadas).toBe(3);
+});
+
 test("RNF-103: el cliente rechaza una URL base sin HTTPS fuera de desarrollo", () => {
   const insegura = { ...opcionesBase({ urlBase: "http://api.ejemplo/v1" }) };
 

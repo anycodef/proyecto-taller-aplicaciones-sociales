@@ -4,7 +4,7 @@ import * as Clipboard from "expo-clipboard";
 import { Platform, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { Boton, Tarjeta } from "@/components/ui";
-import { extraerTokenDeUrl } from "@/lib/seguridad/enlaces";
+import { leerEnlaceAcceso } from "@/lib/seguridad/enlaces";
 import {
   muestraPegarEnlace,
   TARJETA_INICIO,
@@ -34,13 +34,13 @@ export default function Inicio() {
 
   const pegarEnlace = async () => {
     const texto = await Clipboard.getStringAsync();
-    const token = texto ? extraerTokenDeUrl(texto) : null;
-    if (!token) {
+    const enlace = texto ? leerEnlaceAcceso(texto) : null;
+    if (!enlace) {
       setAviso("No encontramos un enlace de SIGECAT en el portapapeles.");
       return;
     }
-    guardarTokenPendiente(token);
-    router.push("/acceso/equipo");
+    guardarTokenPendiente(enlace.token);
+    router.push(enlace.tipo === "familia" ? "/acceso/familia" : "/acceso/equipo");
   };
 
   if (cargando) {

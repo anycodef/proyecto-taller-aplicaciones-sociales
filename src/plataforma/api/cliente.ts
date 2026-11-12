@@ -87,6 +87,9 @@ export function crearClienteHttp(opciones: ClienteHttpOpciones): ClienteHttp {
         throw crearErrorHttp(401, codigo);
       }
 
+      // Las rutas de acceso no usan JWT: renovar ante su 401 no sirve y, en /acceso/renovar, se llamaría a sí misma sin fin.
+      if (ruta.startsWith("/acceso/")) throw crearErrorHttp(401, codigo);
+
       const tokenRenovado = await renovarSesion();
       if (!tokenRenovado) throw crearErrorHttp(401, codigo);
 
