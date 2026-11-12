@@ -1,0 +1,41 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-12",
+  "agente": "Claude Code",
+  "modelo": "claude-opus-5-5",
+  "rama": "feat/004-justificaciones",
+  "tarea": "fix-subida-evidencia-nativa",
+  "solicitud": "Corregir el envío de la justificación que fallaba en el emulador Android con conexión.",
+  "alcance": [
+    "src/plataforma/justificaciones/enviar-justificacion.ts",
+    "src/plataforma/justificaciones/__tests__/enviar-justificacion.test.ts",
+    "docs/agent-trace/justificaciones-fix-subida-nativa.json"
+  ],
+  "criterio": "En Android el PUT a Blob lleva los bytes del JPEG comprimido y el servidor confirma la evidencia.",
+  "decisiones": [
+    "En nativo el cuerpo se lee con File.arrayBuffer() de expo-file-system, que ya es dependencia; en web se mantiene el Blob del navegador.",
+    "No se cambia el aviso único de fallo: RNF-404 pide el mismo mensaje para cualquier fallo de envío."
+  ],
+  "comprobaciones": [
+    {
+      "comando": "logs de Azurite durante la prueba manual",
+      "resultado": "Antes del cambio: PUT 201 con 14 bytes, HEAD 14, GET de la firma y DELETE; ninguna justificación creada."
+    },
+    {
+      "comando": "npm run test:app",
+      "resultado": "71 suites, 260 tests pasan; el test de RF-402 comprueba ahora los bytes enviados."
+    },
+    {
+      "comando": "npm run typecheck",
+      "resultado": "Pasa en raíz y API."
+    },
+    {
+      "comando": "npm run lint",
+      "resultado": "Pasa sin errores."
+    }
+  ],
+  "limites": [
+    "La API no cambia; su suite conserva los 2 fallos de asistencia-bd de 003 por desfase de reloj."
+  ],
+  "notas": "Hallado al probar en Expo Go 57 sobre el emulador; los tests usaban un fetch simulado y no veían la serialización del Blob."
+}

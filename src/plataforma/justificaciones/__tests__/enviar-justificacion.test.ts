@@ -7,7 +7,9 @@ import { archivosExpo, type ArchivosTemporales, type Manipulador } from "@/plata
 import { crearBorrador, enviarJustificacion, ErrorEnvio, MENSAJE_SIN_ENVIO, subirConFetch } from "@/plataforma/justificaciones/enviar-justificacion";
 
 jest.mock("expo-image-manipulator", () => ({ ImageManipulator: { manipulate: jest.fn() }, SaveFormat: { JPEG: "jpeg" } }));
-jest.mock("expo-file-system", () => ({ File: jest.fn() }));
+// Bytes de un JPEG: la subida debe mandar el contenido del archivo, no un Blob que el fetch de Expo no serializa.
+const JPEG = [0xff, 0xd8, 0xff, 0xe0, 1, 2, 3];
+jest.mock("expo-file-system", () => ({ File: jest.fn().mockImplementation(() => ({ arrayBuffer: async () => new Uint8Array(JPEG).buffer })) }));
 jest.mock("@react-native-community/netinfo", () => ({ __esModule: true, default: { fetch: jest.fn(async () => ({ isConnected: true })) } }));
 
 let secuencia = 0;
@@ -43,6 +45,7 @@ test("RF-402: reserva, sube cada foto con x-ms-blob-type BlockBlob y crea el lot
   expect(lote.loteId).toBe("id-2");
   const subidas = (globalThis.fetch as jest.Mock).mock.calls.filter(([, init]) => init?.method === "PUT");
   expect(subidas).toEqual([["https://blob/c/e/1.jpg?sp=c", expect.objectContaining({ headers: { "x-ms-blob-type": "BlockBlob", "content-type": "image/jpeg" } })]]);
+  expect(Array.from(subidas[0][1].body as Uint8Array)).toEqual(JPEG);
 });
 
 test("RF-403: un reintento manual reutiliza evidenciaId, loteId y los ids de justificación", async () => {

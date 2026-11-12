@@ -1,5 +1,7 @@
 import NetInfo from "@react-native-community/netinfo";
 import * as Crypto from "expo-crypto";
+import { File } from "expo-file-system";
+import { Platform } from "react-native";
 
 import type { ClienteJustificaciones, RespuestaLote } from "@/lib/justificaciones/cliente-justificaciones";
 import type { AusenciaRef, Causa } from "@/lib/justificaciones/tipos";
@@ -37,7 +39,8 @@ export type Subidor = (url: string, foto: FotoComprimida) => Promise<void>;
 
 /** PUT directo a Blob con la SAS; el contenido no pasa por la Function (D-402). */
 export const subirConFetch: Subidor = async (url, foto) => {
-  const cuerpo = await (await fetch(foto.uri)).blob();
+  // En el celular el Blob de React Native no viaja como cuerpo del fetch de Expo: llegaban 14 bytes y el servidor rechazaba la foto.
+  const cuerpo = Platform.OS === "web" ? await (await fetch(foto.uri)).blob() : new Uint8Array(await new File(foto.uri).arrayBuffer());
   const respuesta = await fetch(url, { method: "PUT", body: cuerpo, headers: { "x-ms-blob-type": "BlockBlob", "content-type": "image/jpeg" } });
   if (!respuesta.ok) throw new ErrorEnvio(`subida_${respuesta.status}`, MENSAJE_SIN_ENVIO);
 };
