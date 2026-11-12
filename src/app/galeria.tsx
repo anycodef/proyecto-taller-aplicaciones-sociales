@@ -14,6 +14,7 @@ import { CompartirEnlace } from '@/components/seguridad/compartir-enlace';
 import { ComponenteConsentimiento } from '@/components/seguridad/consentimiento';
 import { TarjetaCarne } from '@/components/catequizandos/tarjeta-carne';
 import { ConfirmacionEscaneo } from '@/components/asistencia/confirmacion-escaneo';
+import { BurbujaMensaje } from '@/components/asistente/burbuja-mensaje';
 import { TarjetaRiesgo } from '@/components/riesgo/tarjeta-riesgo';
 import { SelectorAusencias } from '@/components/justificaciones/selector-ausencias';
 import { SelectorCausa } from '@/components/justificaciones/selector-causa';
@@ -191,6 +192,23 @@ export default function Galeria() {
               { catequizandoId: 'n2', fecha: '2026-11-08', origen: 'domingo', estado: 'suma', sesionIds: ['s4'] },
             ],
           }}
+        />
+      </Seccion>
+
+      <Seccion titulo="Asistente de catequesis">
+        <BurbujaMensaje mensaje={{ id: 'u', autor: 'usuario', texto: '¿Qué es el bautismo?' }} />
+        <BurbujaMensaje
+          mensaje={{
+            id: 'a', autor: 'asistente',
+            respuesta: {
+              respuesta: 'Según el material público de catequesis: el bautismo es el primer sacramento de la iniciación cristiana.',
+              fuentes: [{ id: 'bautismo', documento: 'Catecismo', seccion: 'Bautismo (Mateo 28:19-20)', fuente: 'https://example.org', licencia: 'Dominio público' }],
+              proveedor: 'extractivo', modelo: 'extractivo-1', versionCorpus: 'v1',
+            },
+          }}
+        />
+        <BurbujaMensaje
+          mensaje={{ id: 'g', autor: 'asistente', respuesta: { respuesta: 'No puedo consultar datos de niños, familias, salud, documentos o riesgo. Contacta a la coordinación parroquial.', fuentes: [], proveedor: 'guardia', modelo: 'filtro', versionCorpus: 'v1' } }}
         />
       </Seccion>
 

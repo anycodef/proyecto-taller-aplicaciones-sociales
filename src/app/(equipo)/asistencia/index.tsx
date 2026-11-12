@@ -1,4 +1,4 @@
-import { router } from "expo-router";
+import { router, type Href } from "expo-router";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { Aviso, Boton, FilaNavegacion, Insignia } from "@/components/ui";
@@ -74,6 +74,12 @@ export default function MenuAsistencia() {
           );
         })}
       </View>
+
+      <FilaNavegacion
+        titulo="Asistente de catequesis"
+        subtitulo="Preguntas de doctrina con fuentes públicas"
+        alPresionar={() => router.push("/asistente" as Href)}
+      />
 
       <Boton
         etiqueta="Sincronizar ahora"

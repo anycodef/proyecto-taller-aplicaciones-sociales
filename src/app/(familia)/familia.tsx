@@ -28,6 +28,11 @@ export default function Familia() {
         />
       ))}
       <FilaNavegacion
+        titulo="Asistente de catequesis"
+        subtitulo="Preguntas de doctrina con fuentes públicas"
+        alPresionar={() => router.push("/asistente" as Href)}
+      />
+      <FilaNavegacion
         titulo="Mis justificaciones"
         subtitulo="Estado de lo que ya enviaste"
         alPresionar={() => router.push("/familia/mis-justificaciones" as Href)}

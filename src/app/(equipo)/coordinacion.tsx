@@ -14,6 +14,7 @@ const OPCIONES: { titulo: string; subtitulo: string; ruta: Href }[] = [
   { titulo: "Avisos del sistema", subtitulo: "Alertas para la coordinación", ruta: "/avisos-sistema" },
   { titulo: "Grupos", subtitulo: "Grupos del ciclo y conteo de niños", ruta: "/coordinacion/grupos" as Href },
   { titulo: "Pasar lista", subtitulo: "Vista del catequista", ruta: "/asistencia" },
+  { titulo: "Asistente de catequesis", subtitulo: "Preguntas de doctrina con fuentes públicas", ruta: "/asistente" as Href },
 ];
 
 export default function Coordinacion() {
