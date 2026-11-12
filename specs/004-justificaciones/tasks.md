@@ -40,7 +40,7 @@
 
 ## Fase 1 — Dominio puro (`src/lib/justificaciones/`)
 
-- [ ] **T004-04** Crear `tipos.ts` y `causas.ts` con la lista cerrada de causas **[Supuesto A-02, A-03]**
+- [x] **T004-04** Crear `tipos.ts` y `causas.ts` con la lista cerrada de causas **[Supuesto A-02, A-03]**
   - RF: RF-402, RF-404
   - Depende de: T001 (F0-2: regla ESLint que prohíbe importar React, React Native y Expo en `src/lib`)
   - Hecho cuando: pasan `causas.test.ts › RF-402: la lista de causas es exactamente salud_nino, familiar_directo y evento_escolar`, `RF-402: rechaza una causa fuera de la lista (viaje)` y `RF-404: solo evento_escolar permite justificación anticipada`. La etiqueta visible de `familiar_directo` es «Enfermedad o fallecimiento de un familiar directo». `npm test`, `npm run typecheck` y `npm run lint` pasan.
