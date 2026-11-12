@@ -6,10 +6,46 @@ app en Expo Go. **Nada de Docker, nada de Azure en la nube.**
 
 - Fecha de la última verificación: 2026-11-12.
 - Equipo verificado: Windows, Expo Go, API local y PostgreSQL local.
-- Alcance verificado: **el guion completo contra la API real** (`npm run verificar-demo`).
+- Alcance verificado: **el guion completo contra la API real** (`npm run verificar-demo`)
+  y **el recorrido de pantallas en el navegador** (menú, lista, por enviar,
+  registro manual, índice).
 - **No verificado en un teléfono real**: la parte del celular (activación, PIN,
   modo avión y reconexión) no se puede automatizar aquí. Hay que repasarla a mano
   antes de la exposición.
+
+---
+
+## 0. Lo más rápido para la demostración
+
+Con la siembra hecha (§3.4) y la API levantada (§3.3), **un solo comando** deja
+la app lista en el modo demostración: activa la cuenta de demo, fija el PIN,
+entra directo a pasar lista y baja la nomina.
+
+```powershell
+# Celular (Expo Go del SDK 57): escanea el QR que sale
+npm run demo:app
+
+# Navegador (para compartir pantalla en una exposición virtual)
+npm run demo:app -- --web
+```
+
+Con el modo demostración **no hay que abrir enlaces ni escribir el PIN**: al
+abrir la app ya se entra en *Pasar lista* con el grupo de demo y sus ocho
+ninos, y se puede ir a cualquier pantalla escribiendo la ruta:
+
+| Ruta | Pantalla |
+| --- | --- |
+| `/asistencia` | Menú: pasar lista, grupos y pendientes |
+| `/asistencia/lista/<idGrupo>` | Lista de catequesis (todos presentes, un toque marca ausente) |
+| `/asistencia/pendientes` | Por enviar (cuenta y lista lo pendiente) |
+| `/asistencia/manual` | Registro manual |
+| `/asistencia/correccion/<idSesion>/<idNino>` | Corregir asistencia |
+| `/navegacion` | Índice de pantallas (solo en desarrollo) |
+
+El modo demostración solo existe en desarrollo y solo si se indica el token
+(`EXPO_PUBLIC_DEMO_ENLACE`), que el script `npm run demo:app` toma de
+`api/demo-local.json`. Fuera de ese modo, la app sigue pidiendo el enlace y
+el PIN como siempre.
 
 ---
 
@@ -165,29 +201,35 @@ Vuelve a sembrar después del ensayo (para dejar la sesión limpia).
 
 ```powershell
 cd D:\Documents\proyecto-taller-aplicaciones-sociales
+npm run demo:app
+```
+
+- El script deja la URL de la API y el token del enlace de demo en las
+  variables que Metro inyecta y arranca el servidor de desarrollo en la red
+  local. Usa el CLI ya instalado (`node_modules/.bin/expo`) y **no** `npx expo
+  start`: `npx` puede traer un CLI más nuevo que actualiza las dependencias del
+  proyecto (la última vez subió el árbol a Expo 58) y rompe la demo.
+- `EXPO_PUBLIC_URL_API` es la dirección de la API **tal como la ve el celular**
+  (por la IP de la red local, no `localhost`).
+- Metro **inyecta** esa variable al empaquetar: si la cambias, reinicia Metro.
+- Escanea el código QR con el celular (Expo Go del SDK 57) o escribe a mano
+  `exp://192.168.1.77:8081`.
+
+Si prefieres el flujo normal (enlace y PIN a mano), en vez del script:
+
+```powershell
 $env:EXPO_PUBLIC_URL_API="http://192.168.1.77:7071/api"
 npm start -- --lan
 ```
 
-- Usa `npm start` y **no** `npx expo start`: `npx` puede traer un CLI más nuevo que
-  actualiza las dependencias del proyecto (la última vez subió el árbol a Expo 58)
-  y rompe la demo. `npm start` usa el CLI ya instalado.
-- `EXPO_PUBLIC_URL_API` es la dirección de la API **tal como la ve el celular**
-  (por la IP de la red local, no `localhost`).
-- Metro **inyecta** esa variable al empaquetar: si la cambias, reinicia Metro con
-  `npm start -- --lan -c`.
-- Escanea el código QR con el celular (Expo Go) o escribe a mano
-  `exp://192.168.1.77:8081`.
-
 ### 3.7 Revisar y mostrar las pantallas en el navegador (opcional)
 
 ```powershell
-$env:EXPO_PUBLIC_URL_API="http://127.0.0.1:7071/api"
-npm start -- --web
+npm run demo:app -- --web
 ```
 
-Abre `http://localhost:8081/navegacion` (el índice de pantallas, solo en
-desarrollo).
+Abre `http://localhost:8081/asistencia` (o `http://localhost:8081/navegacion`,
+el índice de pantallas, solo en desarrollo).
 
 **Por qué desde el índice casi todo te devuelve al Inicio**: las pantallas del
 equipo y de la familia están detrás del control de acceso
@@ -196,13 +238,12 @@ Sin una cuenta activada y con PIN, esos grupos no existen en el navegador de
 rutas y cualquier enlace dentro de ellos vuelve al índice. Solo son públicas
 las pantallas de acceso (activar cuenta, fijar PIN, desbloqueo, acceso denegado).
 
-Para verlas, **activa antes la cuenta de demo en el navegador**:
+En el **modo demostración** (§0) esto no hace falta: la cuenta se activa sola y
+las pantallas del equipo abren directamente, con sus datos.
 
-1. Abre `http://localhost:8081/acceso/equipo#t=<token>` (el token está en el
-   bloque `demo` de `npm run sembrar-demo`, en el campo `enlace`).
-2. Fija un PIN de 4 dígitos.
-3. Ya entras al menú **Pasar lista** y a las pantallas de asistencia.
-4. Para simular "sin conexión" en el navegador: DevTools → Network → **Offline**.
+Para simular "sin conexión" en el navegador: DevTools → Network → **Offline**.
+Para hacerlo más real: apaga el Wi-Fi de la PC (el navegador y la API siguen
+funcionando en `127.0.0.1`).
 
 En el navegador el estado local va al almacenamiento local del navegador
 (`expo-file-system` y `expo-secure-store` no tienen implementación real en web),
@@ -212,7 +253,9 @@ tMirror el celular.
 Verificado en el navegador el 2026-11-12: activar el enlace, fijar el PIN,
 bajar la nomina, marcar un nio ausente, confirmar la lista y enviarla. El
 servidor queda con **8 marcas (7 presentes y 1 ausente) y 1 lista, sin
-duplicados**, y el navegador queda con la cola de pendientes vacia.
+duplicados**, y el navegador queda con la cola de pendientes vacia. Con el modo
+demostracion se llega a `/asistencia`, `/asistencia/lista/<grupo>`,
+`/asistencia/pendientes` y `/asistencia/manual` escribiendo la ruta.
 
 > Si el navegador se queda en "Abriendo tu enlace..." o da error de red, mira
 > la consola: casi siempre es que la API se levanto sin `--cors *`.

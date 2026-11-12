@@ -80,7 +80,7 @@ function montar(disco: AlmacenLocalDisco, cliente: { solicitar: unknown }) {
   );
 }
 
-test("RF-307: al volver a primer plano se sincroniza lo pendiente", async () => {
+test("RF-307: al abrir la app se envia lo pendiente y al volver a primer plano tambien", async () => {
   const escuchas: ((estado: string) => void)[] = [];
   const espia = jest.spyOn(AppState, "addEventListener").mockImplementation((_evento, escucha) => {
     escuchas.push(escucha as (estado: string) => void);
@@ -97,13 +97,22 @@ test("RF-307: al volver a primer plano se sincroniza lo pendiente", async () => 
 
   montar(discoConPendientes(), cliente);
   await waitFor(() => expect(escuchas.length).toBeGreaterThan(0));
-  expect(llamadas).not.toContain("POST /sincronizacion/cambios");
+  // Al abrir la app ya se envio lo pendiente.
+  await waitFor(() => expect(llamadas).toContain("POST /sincronizacion/cambios"));
+  const sincronizacionesAlAbrir = llamadas.filter(
+    (llamada) => llamada === "GET /sincronizacion/cambios"
+  ).length;
 
   await act(async () => {
     escuchas[0]("active");
   });
 
-  await waitFor(() => expect(llamadas).toContain("POST /sincronizacion/cambios"));
+  // Al volver a primer plano se sincroniza otra vez.
+  await waitFor(() =>
+    expect(llamadas.filter((llamada) => llamada === "GET /sincronizacion/cambios").length).toBe(
+      sincronizacionesAlAbrir + 1
+    )
+  );
   espia.mockRestore();
 });
 

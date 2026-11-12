@@ -108,6 +108,15 @@ export function ProveedorAsistencia({
     }
   }, [cliente, repositorio]);
 
+  // Al abrir la app se baja la nomina una vez, para no esperar al primer
+  // toque del usuario.
+  const sincronizadoAlAbrir = useRef(false);
+  useEffect(() => {
+    if (!conConexion || sincronizadoAlAbrir.current) return;
+    sincronizadoAlAbrir.current = true;
+    void sincronizarAhora();
+  }, [conConexion, sincronizarAhora]);
+
   // Al volver la conexion se envia lo pendiente antes de nada mas.
   useEffect(() => {
     if (antesSinRed.current || !conConexion) {

@@ -1,0 +1,27 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-12",
+  "agente": "OpenCode",
+  "modelo": "minimax-m3.1-flash-free",
+  "tarea": "T003-82",
+  "solicitud": "El usuario sigue sin poder entrar a las pantallas: pide prioridad total a las pantallas de la spec 003 y una forma directa de acceder",
+  "commitPrevisto": "feat(demo): modo demostracion para entrar directo a las pantallas de asistencia",
+  "alcance": [
+    "src/plataforma/seguridad/demo-directo.tsx",
+    "src/app/_layout.tsx",
+    "src/plataforma/asistencia/contexto-asistencia.tsx",
+    "src/plataforma/asistencia/__tests__/contexto-asistencia.test.tsx",
+    "scripts/demo-app.mjs",
+    "package.json",
+    "docs/demo-asistencia.md"
+  ],
+  "criterio": "T003-82: con la cuenta de demo sembrada, al abrir la app se entra directo a pasar lista, con datos, y se llega a cualquier pantalla de la spec 003 escribiendo la ruta.",
+  "comprobaciones": ["npm run test:app", "npm run typecheck", "npm run lint", "recorrido real en el navegador contra la API local"],
+  "resultados": {
+    "tests": "Cliente: 43 suites y 148 tests en verde",
+    "typecheck": "Pasa raiz y API",
+    "lint": "Pasa sin errores ni advertencias",
+    "navegador": "/asistencia muestra el menu con Grupo demo y 8 ninos; /asistencia/lista/<grupo> muestra la lista de los 8 nios con la sesion del dia; /asistencia/pendientes muestra Por enviar; /asistencia/manual muestra el registro manual; /navegacion muestra el indice. Todo con la cuenta activada sola y sin escribir el PIN."
+  },
+  "notas": "El modo demostracion solo existe en desarrollo (ES_DESARROLLO) y solo si EXPO_PUBLIC_DEMO_ENLACE trae el token que emite la siembra: activa la cuenta, fija el PIN, deja la sesion abierta y baja la nomina sola. Conserva la ruta con la que se abrio la app porque el router pasa por el indice mientras carga la sesion. El script npm run demo:app deja la URL de la API y el token en las variables de Metro y arranca el CLI instalado (no npx, que actualiza las dependencias). Ademas la app sincroniza al abrir, para que la nomina baje sin tocar nada."
+}

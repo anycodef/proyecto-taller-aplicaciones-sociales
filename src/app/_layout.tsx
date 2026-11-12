@@ -1,6 +1,7 @@
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 
+import { DemoDirecto } from "@/plataforma/seguridad/demo-directo";
 import { ProveedorSesion, useSesion } from "@/plataforma/seguridad/contexto-sesion";
 import { colores } from "@/tema";
 
@@ -8,6 +9,7 @@ export default function LayoutRaiz() {
   return (
     <ProveedorSesion>
       <StatusBar style="auto" />
+      <DemoDirecto />
       <Navegacion />
     </ProveedorSesion>
   );
