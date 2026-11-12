@@ -6,6 +6,18 @@ Según la ficha de compromiso, tres faltas no justificadas llevan al retiro del 
 
 **Objetivo:** que los padres justifiquen en pocos pasos desde su enlace personal, que cada justificación quede ligada de forma inequívoca al niño y a la ausencia con su evidencia, que la coordinación las revise en un solo lugar fuera de su WhatsApp, y que cualquier catequista del grupo pueda ver su estado.
 
+### Dependencias justificadas
+
+Aprobadas por el usuario el 2026-11-11 (principio 1, supuesto A-09 del plan). Ninguna tiene costo de licencia ni de suscripción. Las de la API y de pruebas no se instalan en la app.
+
+**API y pruebas** (T004-01):
+
+| Paquete | Uso | Alternativa descartada |
+| --- | --- | --- |
+| `@azure/storage-blob` | Reservar evidencias con SAS de subida solo `c` de 5 min, inspeccionar blobs y emitir SAS de lectura de 5 min con `rscc=no-store` (RNF-403). Ya está en `api/` por el motor de retención de 001. | Pasar los bytes por la Function (D-402): más tiempo y memoria facturados. Proxy de lectura por la Function (D-410): más costo sin ganancia de seguridad. |
+| `@azure/identity` | Credencial de la identidad administrada de la Function App para pedir la clave de usuario delegado y firmar las SAS en Azure, sin clave de cuenta (RNF-403, RF-407). | Clave de cuenta en la configuración: secreto de larga vida con acceso total al almacenamiento. Solo se usa con Azurite en pruebas. |
+| Imagen Docker de Azurite (`mcr.microsoft.com/azure-storage/azurite:3.35.0`) | Emular Blob Storage en los tests de almacén y extremo a extremo. Ya está en `api/docker-compose.yml`. | Probar contra una cuenta real: costo, red y datos fuera del equipo de desarrollo. |
+
 ## Usuarios
 
 - **Familia:** justifica ausencias desde su enlace personal (spec 001, RF-110) y consulta el resultado.
