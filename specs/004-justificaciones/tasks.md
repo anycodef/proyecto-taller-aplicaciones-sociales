@@ -506,7 +506,7 @@
 
 ## Fase 8 — Validación de los criterios de finalización
 
-- [ ] **T004-71** Verificar que cada RF y RNF de la spec 004 tiene un test que lo cita
+- [x] **T004-71** Verificar que cada RF y RNF de la spec 004 tiene un test que lo cita
   - RF: RF-401, RF-402, RF-403, RF-404, RF-405, RF-406, RF-407, RF-408, RF-409, RF-410, RNF-401, RNF-402, RNF-403, RNF-404, RNF-405
   - Depende de: T004-70, T001 (F0-7: `scripts/verificar-cobertura-rf.mjs`)
   - Hecho cuando: `node scripts/verificar-cobertura-rf.mjs` informa 0 requisitos de la spec 004 sin test y queda como paso bloqueante para 004 en `ci.yml`. `npm test`, `npm run typecheck` y `npm run lint` pasan.
