@@ -36,6 +36,7 @@ function Navegacion() {
       </Stack.Protected>
       <Stack.Protected guard={autenticada}>
         <Stack.Screen name="asistente" options={{ title: "Asistente de catequesis" }} />
+        <Stack.Screen name="catequizandos/[id]/index" options={{ title: "Perfil del niño" }} />
       </Stack.Protected>
       <Stack.Protected guard={autenticada && rolesEfectivos.includes("familia") && (tipo === "familia" || equipo)}>
         <Stack.Screen name="(familia)" />

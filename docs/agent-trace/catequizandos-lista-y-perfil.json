@@ -1,0 +1,31 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-12",
+  "agente": "Claude Code",
+  "modelo": "claude-sonnet-5-5",
+  "tarea": "catequizandos-lista-y-perfil",
+  "solicitud": "El catequista debe ver a sus catequizandos y abrir el perfil de cada uno; la demo se sentia incompleta porque las pantallas de catequizandos existian pero ningun panel las enlazaba y no funcionaban contra la API",
+  "commitPrevisto": "feat(catequizandos): lista de catequizandos y perfil conectados a la API",
+  "alcance": [
+    "src/lib/catequizandos/{api,perfil,nomina}.ts",
+    "src/lib/catequizandos/__tests__/{api,perfil,nomina}.test.ts",
+    "src/app/(equipo)/mis-catequizandos.tsx",
+    "src/app/catequizandos/index.tsx",
+    "src/app/catequizandos/[id]/index.tsx",
+    "src/app/coordinacion/grupos/index.tsx",
+    "src/app/(equipo)/coordinacion/grupos/[id]/carnes.tsx",
+    "src/app/(equipo)/_layout.tsx",
+    "src/app/_layout.tsx",
+    "src/app/(equipo)/asistencia/index.tsx",
+    "src/app/(equipo)/coordinacion.tsx",
+    "src/__tests__/catequizandos-pantallas.test.tsx"
+  ],
+  "criterio": "El catequista abre Mis catequizandos desde su menu, ve sus grupos con sus ninos (tambien sin conexion, desde la nomina local), busca por nombre y abre el perfil con grupo, edad, faltas, ultimos domingos, estado de documentos y apoderados. La coordinacion lo ve desde su panel.",
+  "comprobaciones": ["npm run typecheck", "npm run lint", "npm run test:app"],
+  "resultados": {
+    "tests": "70 suites y 316 tests del cliente en verde (21 nuevos)",
+    "typecheck": "sin errores",
+    "lint": "sin errores"
+  },
+  "notas": "Bugs previos corregidos: (1) cicloAbierto trataba la respuesta { ciclo } como el ciclo directo, lo que rompia Grupos y Catequizandos; (2) el id de las pantallas de perfil y carnes se leia como propiedad y Expo Router lo entrega como parametro de ruta; (3) las pantallas de perfil, grupos y catequizandos pasaban a useCarga una funcion sin memoizar y repetian la consulta en cada render; (4) el perfil esperaba grupo como texto y la API lo devuelve como objeto. /catequizandos redirige a /mis-catequizandos porque la lista vieja solo mostraba grupos y se reabria a si misma. El perfil no muestra datos de contacto del apoderado, salud ni imagenes de documentos. No se probo en un celular al cierre de este registro."
+}

@@ -1,35 +1,38 @@
-import { router, type Href } from "expo-router";
+import { router, useLocalSearchParams, type Href } from "expo-router";
+import { useCallback } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 
-import { Aviso, Boton, FilaNavegacion, Insignia, Tarjeta } from "@/components/ui";
+import { Aviso, Boton, Insignia, Tarjeta } from "@/components/ui";
+import {
+  documentosPendientes,
+  estadoDeAsistencia,
+  estadoDeDocumento,
+  ETIQUETA_DOCUMENTO,
+  textoRelacion,
+  ultimosDomingos,
+  type PerfilApi,
+} from "@/lib/catequizandos/perfil";
+import { fechaCorta } from "@/lib/justificaciones/seleccion";
 import { useCarga } from "@/plataforma/api/usar-carga";
 import { useSesion } from "@/plataforma/seguridad/contexto-sesion";
 import { colores, espacio, tipografia } from "@/tema";
 
-function sexoLabel(sexo: "femenino" | "masculino"): string {
-  return sexo === "femenino" ? "Femenino" : "Masculino";
-}
-
-type PerfilCatequizandoData = {
-  id: string;
-  nombres: string;
-  apellidos: string;
-  fechaNacimiento: string;
-  sexo: "femenino" | "masculino";
-  bautizado: boolean;
-  grupo: string;
-  estado: "vigente" | "inactivo" | "anonimizado";
-};
-
-export default function PerfilCatequizando({ id }: { id: string }) {
+/**
+ * Perfil único del niño (spec 002, RF-201): datos, grupo, asistencia del ciclo, estado de los documentos y apoderados.
+ * Los documentos muestran solo su estado, nunca una imagen; salud y neurodivergencia no se muestran aquí (RNF-101).
+ */
+export default function PerfilCatequizando({ id: idPropio }: { id?: string }) {
   const { apiCatequizandos } = useSesion();
-  const cargar = () => apiCatequizandos.consultarPerfil(id) as Promise<PerfilCatequizandoData>;
-  const { datos: nino, error, cargando } = useCarga<PerfilCatequizandoData>(cargar);
+  const parametros = useLocalSearchParams<{ id?: string }>();
+  const id = idPropio ?? parametros?.id ?? "";
+  // Sin useCallback, `useCarga` repite la consulta en cada render.
+  const cargar = useCallback(() => apiCatequizandos.consultarPerfil(id) as Promise<PerfilApi>, [apiCatequizandos, id]);
+  const { datos: nino, error, cargando, recargar } = useCarga<PerfilApi>(cargar);
 
   if (cargando) {
     return (
       <ScrollView contentContainerStyle={estilos.contenido}>
-        <Text style={[tipografia.cuerpo, estilos.texto]}>Cargando perfil…</Text>
+        <Text style={[tipografia.cuerpo, estilos.suave]}>Cargando perfil…</Text>
       </ScrollView>
     );
   }
@@ -37,96 +40,106 @@ export default function PerfilCatequizando({ id }: { id: string }) {
   if (error || !nino) {
     return (
       <ScrollView contentContainerStyle={estilos.contenido}>
-        <Text style={[tipografia.nota, estilos.error]}>
-          {error ?? "No se encontró el perfil."}
-        </Text>
-        <Boton
-          etiqueta="Volver"
-          variante="secundario"
-          alPresionar={() => router.replace("/catequizandos" as Href)}
-        />
+        <Aviso tono="error" mensaje={error ?? "No se encontró el perfil."} />
+        <Boton etiqueta="Reintentar" variante="secundario" alPresionar={recargar} />
+        <Boton etiqueta="Volver" variante="enlace" alPresionar={() => router.back()} />
       </ScrollView>
     );
   }
 
-  const edad = Math.floor(
-    (new Date().getTime() - new Date(nino.fechaNacimiento).getTime()) / (365.25 * 24 * 60 * 60 * 1000)
-  );
+  const asistencia = nino.resumenes?.resumenAsistencia;
+  const recientes = asistencia ? ultimosDomingos(asistencia.domingos, 5) : [];
+  const pendientes = documentosPendientes(nino.documentos);
 
   return (
     <ScrollView contentContainerStyle={estilos.contenido}>
-      <View style={estilos.header}>
+      <View style={estilos.cabecera}>
         <View style={estilos.avatar}>
-          <Text style={estilos.avatarTexto}>{nino.nombres.charAt(0)}{nino.apellidos.charAt(0)}</Text>
+          <Text style={estilos.avatarTexto}>
+            {nino.nombres.charAt(0)}
+            {nino.apellidos.charAt(0)}
+          </Text>
         </View>
         <View style={estilos.textos}>
-          <Text style={[tipografia.titulo, estilos.titulo]}>{nino.nombres} {nino.apellidos}</Text>
-          <Text style={[tipografia.cuerpo, estilos.grupo]}>{nino.grupo} · {edad} años</Text>
-          <Insignia
-            texto={nino.estado === "vigente" ? "Activo" : nino.estado === "inactivo" ? "Inactivo" : "Anonimizado"}
-            tono={nino.estado === "vigente" ? "solido" : "neutro"}
-          />
+          <Text style={[tipografia.titulo, estilos.titulo]}>
+            {nino.nombres} {nino.apellidos}
+          </Text>
+          <Text style={[tipografia.cuerpo, estilos.suave]}>
+            {nino.grupo?.nombre ?? "Sin grupo"} · {nino.edad} años
+          </Text>
         </View>
       </View>
 
       <Tarjeta>
-        <Text style={[tipografia.etiqueta, estilos.etiquetaTexto]}>Datos del niño</Text>
-        <FilaNavegacion
-          titulo="Fecha de nacimiento"
-          subtitulo={nino.fechaNacimiento}
-          alPresionar={undefined}
-        />
-        <FilaNavegacion
-          titulo="Sexo"
-          subtitulo={sexoLabel(nino.sexo)}
-          alPresionar={undefined}
-        />
-        <FilaNavegacion
-          titulo="Bautizado"
-          subtitulo={nino.bautizado ? "Sí" : "No"}
-          alPresionar={undefined}
-        />
+        <Text style={[tipografia.etiqueta, estilos.suave]}>Datos del niño</Text>
+        <Text style={[tipografia.cuerpo, estilos.titulo]}>Nació el {nino.fechaNacimiento}</Text>
+        <Text style={[tipografia.cuerpo, estilos.titulo]}>{nino.sexo === "femenino" ? "Femenino" : "Masculino"}</Text>
+        <Text style={[tipografia.cuerpo, estilos.titulo]}>{nino.bautizado ? "Bautizado" : "Aún no bautizado"}</Text>
       </Tarjeta>
 
-      <Text style={[tipografia.encabezado, estilos.tituloSeccion]}>
-        Apoderados
-      </Text>
-      <Text style={[tipografia.cuerpo, estilos.textoVacio]}>
-        Los apoderados se muestran tras vincularlos desde la ficha de la cuenta.
-      </Text>
+      <Text style={[tipografia.encabezado, estilos.titulo]}>Asistencia del ciclo</Text>
+      {asistencia ? (
+        <Tarjeta tono={asistencia.faltas >= 2 ? "advertencia" : "neutra"}>
+          <Text style={[tipografia.cuerpoFuerte, estilos.titulo]}>
+            {asistencia.faltas} {asistencia.faltas === 1 ? "falta" : "faltas"} sin justificar
+          </Text>
+          <Text style={[tipografia.nota, estilos.suave]}>Una falta es un domingo sin misa ni catequesis.</Text>
+          {recientes.map((domingo) => (
+            <View key={domingo.fecha} style={estilos.fila}>
+              <Text style={[tipografia.cuerpo, estilos.fecha]}>{fechaCorta(domingo.fecha)}</Text>
+              <Insignia texto={`Misa: ${estadoDeAsistencia(domingo.misa).texto}`} tono={estadoDeAsistencia(domingo.misa).tono} />
+              <Insignia texto={`Catequesis: ${estadoDeAsistencia(domingo.catequesis).texto}`} tono={estadoDeAsistencia(domingo.catequesis).tono} />
+            </View>
+          ))}
+        </Tarjeta>
+      ) : (
+        <Aviso tono="informativo" mensaje="Todavía no hay resumen de asistencia." />
+      )}
 
-      <Text style={[tipografia.encabezado, estilos.tituloSeccion]}>
-        Documentos
-      </Text>
-      <Aviso tono="informativo" mensaje="Consulta los estados de los documentos en línea." />
+      <Text style={[tipografia.encabezado, estilos.titulo]}>Documentos de inscripción</Text>
+      <Tarjeta>
+        {pendientes > 0 ? <Text style={[tipografia.nota, estilos.pendiente]}>{pendientes} por entregar o corregir</Text> : null}
+        {nino.documentos.map((documento) => {
+          const estado = estadoDeDocumento(documento.estado);
+          return (
+            <View key={documento.id} style={estilos.filaDocumento}>
+              <Text style={[tipografia.cuerpo, estilos.titulo, estilos.texto]}>{ETIQUETA_DOCUMENTO[documento.tipo] ?? documento.tipo}</Text>
+              <Insignia texto={estado.texto} tono={estado.tono} />
+            </View>
+          );
+        })}
+      </Tarjeta>
 
-      <Boton
-        etiqueta="Volver a la lista"
-        variante="enlace"
-        alPresionar={() => router.replace("/catequizandos" as Href)}
-      />
+      <Text style={[tipografia.encabezado, estilos.titulo]}>Apoderados</Text>
+      <Tarjeta>
+        {nino.apoderados.length === 0 ? <Text style={[tipografia.cuerpo, estilos.suave]}>Sin apoderados vinculados.</Text> : null}
+        {nino.apoderados.map((apoderado) => (
+          <View key={apoderado.id} style={estilos.filaDocumento}>
+            <Text style={[tipografia.cuerpo, estilos.titulo, estilos.texto]}>
+              {apoderado.nombres} {apoderado.apellidos}
+            </Text>
+            <Insignia texto={textoRelacion(apoderado.relacion, apoderado.detalleRelacion)} tono="suave" />
+          </View>
+        ))}
+      </Tarjeta>
+
+      <Boton etiqueta="Volver" variante="enlace" alPresionar={() => router.back()} />
+      <Boton etiqueta="Mis catequizandos" variante="enlace" alPresionar={() => router.replace("/mis-catequizandos" as Href)} />
     </ScrollView>
   );
 }
 
 const estilos = StyleSheet.create({
   contenido: { flexGrow: 1, backgroundColor: colores.fondo, padding: espacio.xl, gap: espacio.m },
-  header: { gap: espacio.m, marginBottom: espacio.m },
-  avatar: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: colores.primarioSuave,
-    alignItems: "center",
-    justifyContent: "center",
-  },
+  cabecera: { flexDirection: "row", alignItems: "center", gap: espacio.m },
+  avatar: { width: 56, height: 56, borderRadius: 28, backgroundColor: colores.primario, alignItems: "center", justifyContent: "center" },
   avatarTexto: { color: colores.primarioTexto, fontSize: 18, fontWeight: "600" },
-  textos: { gap: espacio.s },
+  textos: { flex: 1, gap: espacio.xs },
   titulo: { color: colores.texto },
-  grupo: { color: colores.textoSuave },
-  etiquetaTexto: { color: colores.textoSuave },
-  textoVacio: { color: colores.textoSuave },
-  tituloSeccion: { color: colores.primario, marginTop: espacio.m, marginBottom: espacio.s },
-  texto: { color: colores.textoSuave },
-  error: { color: colores.errorTexto },
+  suave: { color: colores.textoSuave },
+  pendiente: { color: colores.advertenciaTexto },
+  fila: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: espacio.s },
+  fecha: { color: colores.texto, minWidth: 56 },
+  filaDocumento: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: espacio.m },
+  texto: { flex: 1 },
 });

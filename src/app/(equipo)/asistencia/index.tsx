@@ -76,6 +76,11 @@ export default function MenuAsistencia() {
       </View>
 
       <FilaNavegacion
+        titulo="Mis catequizandos"
+        subtitulo="Tus niños: perfil, asistencia y documentos"
+        alPresionar={() => router.push("/mis-catequizandos" as Href)}
+      />
+      <FilaNavegacion
         titulo="Riesgo de deserción"
         subtitulo="Niños de tus grupos con faltas, y por qué"
         alPresionar={() => router.push("/riesgo" as Href)}

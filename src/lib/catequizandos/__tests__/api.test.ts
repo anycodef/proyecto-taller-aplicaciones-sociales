@@ -65,3 +65,11 @@ test("RF-202: inscribir envía el UUID generado en el cliente y reintenta con el
   expect(llamadas[1].cuerpo).toMatchObject({ id: "3f2504e0-4f89-41d3-9a0c-0305e82c3301" });
   expect((llamadas[0].cuerpo as PeticionInscripcion).id).toBe((llamadas[1].cuerpo as PeticionInscripcion).id);
 });
+
+test("RF-206: cicloAbierto lee el ciclo del contrato { ciclo } y devuelve null si no hay ciclo abierto", async () => {
+  const ciclo = { id: "c1", nombre: "2026", fechaInicio: "2026-01-01", fechaFin: "2026-12-31", estado: "abierto" as const };
+  const conCiclo = crearApiCatequizandos({ solicitar: async <T,>() => ({ ciclo }) as T });
+  expect(await conCiclo.cicloAbierto()).toEqual(ciclo);
+  const sinCiclo = crearApiCatequizandos({ solicitar: async <T,>() => ({ ciclo: null }) as T });
+  expect(await sinCiclo.cicloAbierto()).toBeNull();
+});

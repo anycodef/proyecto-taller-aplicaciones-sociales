@@ -35,6 +35,8 @@ export default function LayoutEquipo() {
             name="asistencia/correccion/[sesionId]/[catequizandoId]"
             options={{ title: "Corregir asistencia" }}
           />
+          {/* Después de asistencia: el primer destino de este grupo es la pantalla de reserva de las rutas prohibidas. */}
+          <Stack.Screen name="mis-catequizandos" options={{ title: "Mis catequizandos" }} />
         </Stack.Protected>
         <Stack.Protected guard={coordinacion || (equipo && rolesEfectivos.includes("catequista"))}>
           <Stack.Screen name="riesgo" options={{ title: "Riesgo de deserción" }} />
