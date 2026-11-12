@@ -60,7 +60,7 @@
   - Depende de: T004-06
   - Hecho cuando: pasan `estados.test.ts › RF-407: corregida a presente queda sin efecto y se conserva` y `RF-407: si la ausencia vuelve a ausente se restaura el efecto`, y el estado de revisión no cambia en ninguno de los dos casos. `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T004-08** Implementar `ausenciasJustificables` en `justificables.ts`
+- [x] **T004-08** Implementar `ausenciasJustificables` en `justificables.ts`
   - RF: RF-401, RF-405, RF-408
   - Depende de: T004-05, T004-06
   - Hecho cuando: pasan `justificables.test.ts › RF-401: misa, catequesis y actividad obligatoria son justificables`, `RF-405: una ausencia con plazo vencido ya no es justificable`, `RF-401: no ofrece una ausencia con justificación pendiente o aprobada` y `RF-408: una rechazada con plazo vigente vuelve a ofrecerse`. `npm test`, `npm run typecheck` y `npm run lint` pasan.
