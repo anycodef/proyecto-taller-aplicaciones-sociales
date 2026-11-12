@@ -55,7 +55,7 @@ describe("registro de modulos", () => {
   });
 
   test("RF-1206: un modulo pendiente o con permiso aun no creado se anuncia como proximo y no se enlaza", () => {
-    const pendientes = [modulo({ id: "pendiente", estado: "pendiente" }), modulo({ id: "sin-permiso", accion: "justificacion:revisar" })];
+    const pendientes = [modulo({ id: "pendiente", estado: "pendiente" }), modulo({ id: "sin-permiso", accion: "modulo:inexistente" })];
     expect(modulosDelPanel("coordinacion", ["coordinacion"], pendientes)).toEqual({ conectados: [], proximamente: pendientes });
   });
 
