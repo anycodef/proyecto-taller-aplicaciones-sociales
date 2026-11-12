@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { consultarFaltas } from "../../../src/modulos/asistencia/aplicacion/consultar-faltas";
 import { fuenteJustificacionesVacia, registrarFuenteJustificaciones } from "../../../src/modulos/asistencia/dominio/puertos";
 import { consultaJustificaciones, fuenteJustificacionesAprobadas } from "../../../src/modulos/justificaciones/aplicacion/consulta-justificaciones";
+import { proveedorResumenJustificaciones } from "../../../src/modulos/justificaciones/aplicacion/resumen-perfil";
 import { enTx, prepararBd, sembrar, type BdPrueba, type Semilla } from "./soporte";
 
 let bd: BdPrueba;
@@ -52,4 +53,9 @@ test("RF-409: la consulta expone diasPlazo y estadoParaRiesgo", async () => {
     expect(await consultaJustificaciones.ausenciaMisaJustificada(s.cicloId, { catequizandoId: s.catequizandoId, sesionId: s.sesionId }, tx)).toBe(true);
     expect(await consultaJustificaciones.ausenciaMisaJustificada(s.cicloId, { catequizandoId: s.catequizandoId, sesionId: s.sesion2Id }, tx)).toBe(false);
   });
+});
+
+test("RF-410: el resumen del perfil de 002 solo trae el estado visible", async () => {
+  const resumen = await enTx(bd, tx => proveedorResumenJustificaciones.consultar(s.catequizandoId, s.cicloId, {} as never, tx));
+  expect(resumen).toEqual({ estados: [{ id: justificacionId, sesionId: s.sesionId, fecha: "2026-11-01", tipoSesion: "misa", estado: "aprobada" }] });
 });

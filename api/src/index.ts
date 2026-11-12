@@ -8,7 +8,7 @@ import { registrarProveedorResumen, participanteRetencion } from "./modulos/cate
 import { registrarParticipanteRetencion, participanteSeguridad } from "./modulos/seguridad";
 import { participanteRetencionAsistencia, consultarResumenAsistencia, registrarAlCambiarAsistencia, registrarFuenteJustificaciones } from "./modulos/asistencia";
 import { proveedorAvisos, participanteRetencionAvisos } from "./modulos/avisos";
-import { alCambiarAsistencia, fuenteJustificacionesAprobadas, participanteRetencionJustificaciones, proveedorJustificaciones, registrarJustificaciones } from "./modulos/justificaciones";
+import { alCambiarAsistencia, fuenteJustificacionesAprobadas, participanteRetencionJustificaciones, proveedorJustificaciones, proveedorResumenJustificaciones, registrarJustificaciones } from "./modulos/justificaciones";
 import { registrarProveedor } from "./modulos/sincronizacion/aplicacion/registro-proveedores";
 import { registrarCiclos } from "./modulos/ciclos";
 import { registrarActividades } from "./modulos/actividades";
@@ -21,6 +21,7 @@ import { consultar } from "./compartido/bd/pool";
 import { registrarEstado } from "./compartido/http/estado";
 
 registrarProveedorResumen({ nombre: "resumenAsistencia", consultar: (id, cicloId, _contexto, tx) => consultarResumenAsistencia(id, cicloId, tx) });
+registrarProveedorResumen(proveedorResumenJustificaciones);
 registrarParticipanteRetencion(participanteRetencionAsistencia);
 registrarParticipanteRetencion(participanteRetencion);
 registrarParticipanteRetencion(participanteSeguridad);

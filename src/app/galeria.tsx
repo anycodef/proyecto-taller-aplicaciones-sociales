@@ -16,6 +16,7 @@ import { TarjetaCarne } from '@/components/catequizandos/tarjeta-carne';
 import { FormularioJustificacion } from '@/components/justificaciones/formulario-justificacion';
 import { SelectorAusencias } from '@/components/justificaciones/selector-ausencias';
 import { SelectorCausa } from '@/components/justificaciones/selector-causa';
+import { ResumenJustificaciones } from '@/components/justificaciones/resumen-justificaciones';
 import { VisorEvidencia } from '@/components/justificaciones/visor-evidencia';
 import { CAUSAS, ETIQUETAS_CAUSA } from '@/lib/justificaciones/causas';
 import { colores, espacio, tipografia } from '@/tema';
@@ -162,6 +163,17 @@ export default function Galeria() {
 
       <Seccion titulo="Visor de evidencia">
         <VisorEvidencia justificacionId="ejemplo" obtener={async () => Promise.reject(Object.assign(new Error('sin_evidencia'), { codigo: 'sin_evidencia' }))} />
+      </Seccion>
+
+      <Seccion titulo="Resumen de justificaciones en el perfil">
+        <ResumenJustificaciones
+          estados={[
+            { id: 'j-1', sesionId: 'misa', tipoSesion: 'misa', fecha: '2026-11-08', estado: 'pendiente' },
+            { id: 'j-2', sesionId: 'catequesis', tipoSesion: 'catequesis', fecha: '2026-11-01', estado: 'aprobada' },
+            { id: 'j-3', sesionId: 'misa-25', tipoSesion: 'misa', fecha: '2026-10-25', estado: 'rechazada' },
+            { id: 'j-4', sesionId: 'misa-18', tipoSesion: 'misa', fecha: '2026-10-18', estado: 'sin_efecto' },
+          ]}
+        />
       </Seccion>
 
       <Seccion titulo="Carné">

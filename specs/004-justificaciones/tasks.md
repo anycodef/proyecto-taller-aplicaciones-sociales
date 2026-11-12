@@ -455,10 +455,11 @@
   - Depende de: T004-62, T004-25, T004-15
   - Hecho cuando: pasan los tests `RF-410: el catequista recibe solo los estados de sus grupos`, `RF-410: la coordinación recibe todos los del ciclo` y `RF-410: el pull solo envía id, niño, sesión, fecha, tipo y estado visible`. `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T004-64** Crear `resumen-justificaciones.tsx` y registrarlo como proveedor del perfil de 002
+- [x] **T004-64** Crear `resumen-justificaciones.tsx` y registrarlo como proveedor del perfil de 002
   - RF: RF-407, RF-410, RNF-405
   - Depende de: T004-63, T004-55, T004-57, T002 (Fase 3: `ProveedorResumenPerfil`)
   - Hecho cuando: pasan `RF-410: el perfil muestra pendiente, aprobada, rechazada o sin efecto sin conexión` y `RNF-405: el detalle y la evidencia piden conexión`. `npm test`, `npm run typecheck` y `npm run lint` pasan.
+  - Nota (2026-11-11): el componente recibe las filas de estado como propiedad y el servidor registra `resumenJustificaciones` en el perfil de 002. Leerlas del almacén local depende del paso pendiente de T004-62.
 
 - [x] **T004-65** Implementar `ConsultaJustificaciones` y el adaptador real de `FuenteJustificacionesAprobadas` para 003
   - RF: RF-409
