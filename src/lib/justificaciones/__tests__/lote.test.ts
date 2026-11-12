@@ -1,4 +1,4 @@
-import { validarLote, type ContextoLote } from "@/lib/justificaciones/lote";
+import { expandirLote, validarLote, type ContextoLote } from "@/lib/justificaciones/lote";
 import type { AusenciaRef, EntradaLote, ItemLote } from "@/lib/justificaciones/tipos";
 
 const misa: AusenciaRef = { catequizandoId: "nino-1", sesionId: "misa-0101", tipoSesion: "misa", fecha: "2026-11-01" };
@@ -36,4 +36,37 @@ test("RF-405: la coordinación tampoco puede justificar una ausencia vencida", (
   const enNombre = lote({ canal: "coordinacion", registradaPor: "coord-1", ausencias: [vencida] });
   expect(validarLote(enNombre, contexto)).toEqual({ valido: false, motivo: "no_justificable", sesionId: "misa-1018" });
   expect(validarLote(lote({ canal: "coordinacion" }), contexto)).toEqual({ valido: false, motivo: "registro_sin_autor" });
+});
+
+const enviadaEn = "2026-11-04T10:00:00-05:00";
+const domingos: AusenciaRef[] = ["2026-10-25", "2026-11-01", "2026-11-08"].map(fecha => ({ catequizandoId: "nino-1", sesionId: `misa-${fecha}`, tipoSesion: "misa", fecha }));
+
+test("RF-403: un lote de tres fechas crea tres justificaciones con la misma evidencia", () => {
+  const js = expandirLote(lote({ ausencias: domingos.map(a => item(a)) }), enviadaEn);
+  expect(js).toHaveLength(3);
+  expect(js.map(j => j.fecha)).toEqual(["2026-10-25", "2026-11-01", "2026-11-08"]);
+  expect(new Set(js.map(j => j.evidenciaId))).toEqual(new Set(["ev-1"]));
+  expect(new Set(js.map(j => j.loteId))).toEqual(new Set(["lote-1"]));
+  expect(new Set(js.map(j => j.id)).size).toBe(3);
+  expect(js.every(j => j.causa === "salud_nino" && j.estadoRevision === "pendiente")).toBe(true);
+});
+
+test("RF-403: una evidencia, una justificación por niño (hermanos)", () => {
+  const hermano = item({ ...misa, catequizandoId: "nino-2" });
+  const js = expandirLote(lote({ ausencias: [item(misa), hermano] }), enviadaEn);
+  expect(js.map(j => j.catequizandoId)).toEqual(["nino-1", "nino-2"]);
+  expect(js.map(j => j.evidenciaId)).toEqual(["ev-1", "ev-1"]);
+});
+
+test("RF-406: el canal coordinación lleva registrada_por y registrada_en", () => {
+  const [enNombre] = expandirLote(lote({ canal: "coordinacion", registradaPor: "coord-1" }), enviadaEn);
+  expect(enNombre).toMatchObject({ canal: "coordinacion", enviadaPor: "apoderado-1", registradaPor: "coord-1", registradaEn: enviadaEn });
+  const [porEnlace] = expandirLote(lote(), enviadaEn);
+  expect(porEnlace).toMatchObject({ canal: "enlace", registradaPor: null, registradaEn: null });
+  expect(() => expandirLote(lote({ canal: "coordinacion" }), enviadaEn)).toThrow("registro_sin_autor");
+});
+
+test("RF-407: cada justificación queda ligada a niño, sesión, fecha y tipo", () => {
+  const [j] = expandirLote(lote(), enviadaEn);
+  expect(j).toMatchObject({ id: "j-nino-1-misa-0101", catequizandoId: "nino-1", sesionId: "misa-0101", fecha: "2026-11-01", tipoSesion: "misa", enviadaPor: "apoderado-1", enviadaEn });
 });

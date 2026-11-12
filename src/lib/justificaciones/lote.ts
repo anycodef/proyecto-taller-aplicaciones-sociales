@@ -1,6 +1,6 @@
 import { esCausaValida, permiteAnticipada } from "./causas";
 import { MAXIMO_FOTOS, MINIMO_FOTOS } from "./evidencia";
-import type { AusenciaRef, EntradaLote } from "./tipos";
+import { ErrorJustificacion, type AusenciaRef, type EntradaLote, type Justificacion } from "./tipos";
 
 export type MotivoLoteInvalido =
   | "sin_ausencias"
@@ -40,4 +40,34 @@ export function validarLote(entrada: EntradaLote, contexto: ContextoLote): Resul
     if (!(item.anticipada ? anticipables : justificables).has(clave(item))) return { valido: false, motivo: "no_justificable", sesionId };
   }
   return { valido: true };
+}
+
+/** Una justificación por ausencia, con la misma causa y evidencia (D-404). Llamar tras `validarLote`. */
+export function expandirLote(entrada: EntradaLote, enviadaEn: string): Justificacion[] {
+  const causa = entrada.causa;
+  if (!esCausaValida(causa)) throw new ErrorJustificacion("causa_invalida");
+  const enNombre = entrada.canal === "coordinacion";
+  if (enNombre && !entrada.registradaPor) throw new ErrorJustificacion("registro_sin_autor");
+  return entrada.ausencias.map(item => ({
+    id: item.justificacionId,
+    loteId: entrada.loteId,
+    cicloId: entrada.cicloId,
+    catequizandoId: item.catequizandoId,
+    sesionId: item.sesionId,
+    tipoSesion: item.tipoSesion,
+    fecha: item.fecha,
+    causa,
+    anticipada: item.anticipada,
+    evidenciaId: entrada.evidenciaId,
+    enviadaPor: entrada.apoderadoId,
+    enviadaEn,
+    canal: entrada.canal,
+    registradaPor: enNombre ? entrada.registradaPor ?? null : null,
+    registradaEn: enNombre ? enviadaEn : null,
+    estadoRevision: "pendiente",
+    revisadaPor: null,
+    revisadaEn: null,
+    motivoRechazo: null,
+    sinEfectoDesde: null,
+  }));
 }
