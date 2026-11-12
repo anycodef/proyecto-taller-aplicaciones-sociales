@@ -1,5 +1,8 @@
 # Infraestructura backend 001–003
 
+Guía paso a paso para desplegar, verificar y ensayar una caída:
+[`docs/despliegue-azure.md`](../docs/despliegue-azure.md) (spec 012).
+
 Entrega de T001-16–25/27/28/143/144, T002-94 y parte infra de T003-55.
 `main.bicep` tiene ámbito **grupo de recursos**, `rg-sigecat-prod`. Solo existe
 `prod`; desarrollo usa PostgreSQL 16/Azurite locales. La infraestructura no

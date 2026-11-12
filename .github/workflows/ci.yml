@@ -58,8 +58,8 @@ jobs:
         run: docker run --detach --name sigecat-azurite --publish 127.0.0.1:10000:10000 mcr.microsoft.com/azure-storage/azurite:3.35.0 azurite --blobHost 0.0.0.0 --skipApiVersionCheck
       - name: Tests completos (globalSetup crea y migra bases aisladas)
         run: npm test
-      - name: Tests de infraestructura compilada
-        run: node --test api/pruebas/infra/plantilla.test.mjs
+      - name: Tests de infraestructura compilada y scripts de despliegue
+        run: node --test api/pruebas/infra/plantilla.test.mjs api/pruebas/infra/despliegue.test.mjs
       - name: Compilar API
         run: npm run build --prefix api
       - name: Informe RF y RNF
@@ -68,3 +68,43 @@ jobs:
         run: node api/scripts/verificar-openapi.mjs
       - name: Diff sin errores de espacios
         run: git diff --check
+  # RF-1202. Cuando despliegue.yml reutiliza este workflow, el contexto github es
+  # el del llamador: workflow_ref distingue la ejecucion propia de ci.yml.
+  web:
+    needs: verificar
+    if: >-
+      github.ref == 'refs/heads/main'
+      && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+      && contains(github.workflow_ref, '.github/workflows/ci.yml@')
+      && vars.FRONTEND_HABILITADO == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - name: Instalar raiz
+        run: npm ci
+      - name: Exigir la URL publica de la API
+        env:
+          URL_API: ${{ vars.URL_API_PUBLICA }}
+        run: |
+          case "$URL_API" in
+            https://*/v1) ;;
+            *) echo "::error::Configura la variable URL_API_PUBLICA con la salida urlApi (https://<apim>.azure-api.net/v1)."; exit 1 ;;
+          esac
+      - name: Exportar la web
+        env:
+          EXPO_PUBLIC_URL_API: ${{ vars.URL_API_PUBLICA }}
+          EXPO_PUBLIC_CLAVE_APIM: ${{ secrets.CLAVE_APIM_WEB }}
+        run: npx expo export --platform web --output-dir frontend-web
+      - name: Comprobar configuracion de Static Web Apps
+        run: test -f frontend-web/staticwebapp.config.json && test -f frontend-web/index.html
+      - uses: actions/upload-artifact@v4
+        with:
+          name: frontend-web
+          path: frontend-web
+          retention-days: 30
+          if-no-files-found: error
