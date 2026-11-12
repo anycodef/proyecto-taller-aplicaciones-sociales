@@ -74,7 +74,8 @@ export default function Inicio() {
       <Text style={[tipografia.nota, estilos.pie]}>
         ¿Aún no tienes enlace? Pídelo a la coordinación.
       </Text>
-      {__DEV__ ? (
+      {/* Herramientas de desarrollo: solo con EXPO_PUBLIC_HERRAMIENTAS_DEV=1; en la demo no se ven. */}
+      {__DEV__ && process.env.EXPO_PUBLIC_HERRAMIENTAS_DEV === "1" ? (
         <>
           <Boton etiqueta="Galería de componentes" variante="enlace" alPresionar={() => router.push("/galeria")} />
           <Boton

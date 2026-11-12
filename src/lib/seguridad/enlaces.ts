@@ -7,6 +7,15 @@ export function construirUrlEnlace(base: string, tipo: "equipo" | "familia", tok
   url.hash = `t=${encodeURIComponent(token)}`;
   return url.toString();
 }
+/**
+ * El enlace https lleva el token en el fragmento (`#t=`), que el navegador no envía a ningún servidor.
+ * Expo Go descarta el fragmento al abrir un `exp://`, así que ese enlace lo lleva en la consulta (`?t=`).
+ */
 export function extraerTokenDeUrl(url: string): string | null {
-  try { return new URLSearchParams(new URL(url).hash.slice(1)).get("t"); } catch { return null; }
+  try {
+    const enlace = new URL(url);
+    return new URLSearchParams(enlace.hash.slice(1)).get("t") ?? enlace.searchParams.get("t");
+  } catch {
+    return null;
+  }
 }

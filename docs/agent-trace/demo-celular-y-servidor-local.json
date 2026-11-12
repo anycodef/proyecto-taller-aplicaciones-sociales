@@ -1,0 +1,27 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-12",
+  "agente": "Claude Code",
+  "modelo": "claude-sonnet-5-5",
+  "tarea": "demo-celular-y-servidor-local",
+  "solicitud": "Levantar el proyecto para probarlo en un celular con Expo Go: la app no activaba el enlace del catequista, la coordinacion no puede entrar por la web y el celular mostraba un menu de desarrollo",
+  "commitPrevisto": "fix(acceso): leer el token del enlace tambien en la consulta y preparar la demo en celular",
+  "alcance": [
+    "src/lib/seguridad/enlaces.ts",
+    "src/lib/seguridad/__tests__/enlaces.test.ts",
+    "src/app/index.tsx",
+    "api/scripts/servidor-local.ts",
+    "api/scripts/preparar-demo.ts",
+    "api/scripts/sembrar-demo.ts",
+    "api/package.json",
+    "api/package-lock.json"
+  ],
+  "criterio": "El enlace de Expo Go lleva el token en ?t= porque Expo Go descarta el fragmento #t= y la app respondia No encontramos tu enlace; la portada no muestra herramientas de desarrollo salvo EXPO_PUBLIC_HERRAMIENTAS_DEV=1; un servidor local con los handlers reales sirve la API sin Core Tools; DEMO_DELEGACION=1 delega la coordinacion al catequista demo para mostrar los dos roles con un solo celular (spec 001, RF-104).",
+  "comprobaciones": ["npm run typecheck", "npm run lint", "npx jest src/lib/seguridad src/__tests__/inicio.test.tsx src/__tests__/activacion-equipo.test.tsx"],
+  "resultados": {
+    "tests": "9 de 9 en las suites tocadas; el paso del enlace por ?t= se probo con test, no en el celular al cierre de este registro",
+    "typecheck": "sin errores",
+    "lint": "sin errores"
+  },
+  "notas": "El enlace https de la familia sigue usando el fragmento. La coordinacion no puede activarse en web porque expo-secure-store no existe en web; es del diseno actual. El servidor local no es el host de Functions: sin temporizadores ni clave de host. Las claves locales de la base viven solo en la guia de demo y en comandos locales."
+}

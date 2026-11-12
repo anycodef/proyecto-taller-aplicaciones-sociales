@@ -35,7 +35,8 @@ function enlaceExpo(url: string): string | null {
   if (!base) return null;
   const token = url.split("#t=")[1];
   if (!token) return null;
-  return `${base.replace(/\/+$/, "")}/acceso/equipo#t=${token}`;
+  // Expo Go descarta el fragmento (#t=) de un exp://, así que el token viaja en la consulta.
+  return `${base.replace(/\/+$/, "")}/acceso/equipo?t=${token}`;
 }
 
 export async function sembrarDemo(): Promise<ResultadoDemo> {
