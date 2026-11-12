@@ -135,5 +135,5 @@ async function definirPlazo(tx: Tx, cicloId: string, diasPlazo: number, por: str
 }
 
 export const repositorioJustificacionesPg: RepositorioJustificaciones = {
-  insertarLote, obtener, guardarRevision, marcarSinEfecto, restaurarEfecto, bandeja, listarPorCatequizando, listarPorApoderado, cambiosDesde, obtenerPlazo, definirPlazo,
+  insertarLote, obtener, obtenerLote: listarPorLote, guardarRevision, marcarSinEfecto, restaurarEfecto, bandeja, listarPorCatequizando, listarPorApoderado, cambiosDesde, obtenerPlazo, definirPlazo,
 };

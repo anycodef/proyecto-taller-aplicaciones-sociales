@@ -222,17 +222,17 @@
 
 ## Fase 4 — Functions de familia
 
-- [ ] **T004-32** Implementar `listar-justificables.ts` y `GET /familia/ausencias-justificables`
+- [x] **T004-32** Implementar `listar-justificables.ts` y `GET /familia/ausencias-justificables`
   - RF: RF-401, RF-405, RF-408
   - Depende de: T004-08, T004-25, T004-26, T003 (Fase 1: `consultarAusencias`), T001 (F1: `conAcceso` y entrada por enlace de familia), T002 (Fase 1: `alcanceFamilia`), T008 (Fase 0: `GET /ciclos/abierto`), T005 (sesiones de actividades obligatorias vía RF-313 de 003)
   - Hecho cuando: pasan los tests HTTP `RF-401: devuelve las ausencias justificables de los hijos con niño, fecha y sesión`, `RF-405: una ausencia vencida no aparece como justificable`, `RF-401: sin token responde 401` y `RF-401: un catequista recibe 403`. `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T004-33** Implementar `GET /familia/sesiones-anticipables`
+- [x] **T004-33** Implementar `GET /familia/sesiones-anticipables`
   - RF: RF-404
   - Depende de: T004-09, T004-32, T003 (Fase 1: sesiones futuras del ciclo creadas por `generarSesionesDominicales`)
   - Hecho cuando: pasan los tests HTTP `RF-404: devuelve las sesiones futuras de los hijos que no tienen justificación` y `RF-404: otra familia no ve las sesiones de un niño ajeno`. `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T004-34** Implementar `reservar-evidencia.ts` y `POST /evidencias/reservas` **[Supuesto A-06]**
+- [x] **T004-34** Implementar `reservar-evidencia.ts` y `POST /evidencias/reservas` **[Supuesto A-06]**
   - RF: RF-402, RNF-402, RNF-403
   - Depende de: T004-10, T004-15, T004-29
   - Hecho cuando: pasan los tests HTTP:
@@ -248,7 +248,7 @@
   - Depende de: T004-34, T004-22, T001 (F0-4: política base de APIM)
    - Hecho cuando: Functions limita a 10/min por cuenta con contador PostgreSQL atómico compartido, reservas 20/h; APIM solo global. Test `RNF-403: la reserva 21 de una cuenta en una hora responde 429` y concurrencia entre procesos prueban límite. Bicep y checks con evidencia; contrato de 001 no acredita módulo 004 implementado.
 
-- [ ] **T004-36** Implementar el servicio `crear-lote.ts` (verificar los blobs, insertar y confirmar)
+- [x] **T004-36** Implementar el servicio `crear-lote.ts` (verificar los blobs, insertar y confirmar)
   - RF: RF-402, RF-403, RF-404, RF-407, RNF-402
   - Depende de: T004-11, T004-12, T004-23, T004-31
   - Hecho cuando: pasan los tests del servicio con dobles:
@@ -259,7 +259,7 @@
 
     `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T004-37** Exponer `POST /justificaciones/lotes` para la familia
+- [x] **T004-37** Exponer `POST /justificaciones/lotes` para la familia
   - RF: RF-401, RF-402, RF-403, RF-404, RF-407, RF-408
   - Depende de: T004-36, T004-15, T008 (Fase 0: rechazo de escrituras con el ciclo cerrado)
   - Hecho cuando: pasan los tests HTTP:
@@ -270,7 +270,7 @@
 
     `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T004-38** Implementar `GET /familia/justificaciones` **[Supuesto A-01, A-14]**
+- [x] **T004-38** Implementar `GET /familia/justificaciones` **[Supuesto A-01, A-14]**
   - RF: RF-410, RF-406
   - Depende de: T004-25, T004-15
   - Hecho cuando: pasan los tests HTTP:

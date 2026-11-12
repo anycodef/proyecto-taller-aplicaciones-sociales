@@ -8,7 +8,7 @@ import { registrarProveedorResumen, participanteRetencion } from "./modulos/cate
 import { registrarParticipanteRetencion, participanteSeguridad } from "./modulos/seguridad";
 import { participanteRetencionAsistencia, consultarResumenAsistencia } from "./modulos/asistencia";
 import { proveedorAvisos, participanteRetencionAvisos } from "./modulos/avisos";
-import { participanteRetencionJustificaciones } from "./modulos/justificaciones";
+import { participanteRetencionJustificaciones, registrarJustificaciones } from "./modulos/justificaciones";
 import { registrarProveedor } from "./modulos/sincronizacion/aplicacion/registro-proveedores";
 import { registrarCiclos } from "./modulos/ciclos";
 import { registrarActividades } from "./modulos/actividades";
@@ -38,6 +38,7 @@ registrarCiclos();
 registrarActividades();
 registrarRiesgo();
 registrarAsistente();
+registrarJustificaciones();
 app.timer("depurarMetadatos", { schedule: "0 30 9 * * *", handler: async () => {
   await enTransaccion(async tx => {
     await tx.query("SET LOCAL ROLE sigecat_retencion");

@@ -19,6 +19,8 @@ jest.mock("@azure/storage-blob", () => {
   return { ...real, BlobServiceClient: ServicioFalso, generateBlobSASQueryParameters: generar, StorageSharedKeyCredential: jest.fn().mockImplementation(() => { claveCompartida(); return {}; }) };
 });
 
+// Va después de los dobles: sus fábricas leen constantes que deben existir al cargar el módulo.
+// eslint-disable-next-line import/first
 import { configAlmacenDesdeEntorno, crearAlmacenEvidencias } from "../../../src/modulos/justificaciones/infraestructura/almacen-evidencias-blob";
 
 test("RNF-403: en Azure se usa SAS de usuario delegado y nunca la clave de cuenta", async () => {

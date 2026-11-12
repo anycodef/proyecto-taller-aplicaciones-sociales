@@ -51,6 +51,7 @@ export interface RepositorioJustificaciones {
   /** Idempotente por id de justificación: reenviar el lote devuelve lo ya guardado (D-413). */
   insertarLote(tx: Tx, justificaciones: readonly Justificacion[], por: string | null): Promise<Justificacion[]>;
   obtener(tx: Tx, id: string): Promise<Justificacion | undefined>;
+  obtenerLote(tx: Tx, loteId: string): Promise<Justificacion[]>;
   /** Persiste el resultado de `revisar` del dominio; falla si ya no estaba pendiente. */
   guardarRevision(tx: Tx, revisada: Justificacion): Promise<void>;
   /** Devuelve los ids afectados; la justificación se conserva (RF-407). */
