@@ -73,6 +73,9 @@ export function contextoDeSesion(sesion: SesionAlmacenada): ContextoAcceso {
   return {
     cuentaId: sesion.cuentaId,
     credencialId: sesion.credencialId,
+    // El servidor exige el dispositivo en cada registro: sin el, no se puede
+    // pasar lista ni registrar una asistencia.
+    ...(sesion.dispositivoId ? { dispositivoId: sesion.dispositivoId } : {}),
     rolesPropios: sesion.contexto.rolesPropios,
     ...(sesion.contexto.delegacionVigente ? { delegacionVigente: sesion.contexto.delegacionVigente } : {}),
     gruposAsignados: sesion.contexto.gruposAsignados,

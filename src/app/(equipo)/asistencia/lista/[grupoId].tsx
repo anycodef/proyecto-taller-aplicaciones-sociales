@@ -31,7 +31,7 @@ type GrupoLocal = {
 };
 
 export default function ListaCatequesis({
-  grupoId,
+  grupoId: grupoIdProp,
   ahora,
 }: {
   grupoId: string;
@@ -46,13 +46,20 @@ export default function ListaCatequesis({
   const reloj = useInstante();
   const instante = ahora ?? reloj;
 
-  const parametros = useLocalSearchParams<{ sesionId?: string | string[] }>();
+  // El identificador del grupo llega como prop de la ruta; en el navegador se
+  // lee tambien de los parametros de navegacion.
+  const parametros = useLocalSearchParams<{ grupoId?: string | string[]; sesionId?: string | string[] }>();
+  const grupoId = useMemo(() => {
+    const deParametros = parametros?.grupoId;
+    const valor = Array.isArray(deParametros) ? deParametros[0] : deParametros;
+    return valor ?? grupoIdProp;
+  }, [parametros, grupoIdProp]);
+
   const sesionIdPedida = useMemo(() => {
     const pedida = parametros?.sesionId;
     if (Array.isArray(pedida)) return pedida[0] ?? null;
     return pedida ?? null;
   }, [parametros]);
-
   const ninos: NinoLocal[] = useMemo(
     () =>
       filasDe(almacen, "catequizandos").filter(

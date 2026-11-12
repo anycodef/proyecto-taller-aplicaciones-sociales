@@ -1,5 +1,6 @@
 import * as Crypto from "expo-crypto";
 import * as SecureStore from "expo-secure-store";
+import { Platform } from "react-native";
 
 import type { ContextoAcceso, Rol } from "@/lib/seguridad/contexto-acceso";
 
@@ -19,7 +20,28 @@ export type AlmacenSeguro = {
   borrar(clave: string): Promise<void>;
 };
 
+/**
+ * Almacen del navegador. expo-secure-store no tiene implementacion real en
+ * web (su build web es un objeto vacio), asi que la sesion del equipo se
+ * guarda en el almacenamiento local del navegador. Es mas débil que el
+ * keychain del celular: por eso la app de la familia y la supervision siguen
+ * siendo las que se usan en el navegador.
+ */
+function crearAlmacenNavegador(): AlmacenSeguro {
+  const disponible = typeof localStorage !== "undefined";
+  return {
+    leer: async clave => (disponible ? localStorage.getItem(clave) : null),
+    escribir: async (clave, valor) => {
+      if (disponible) localStorage.setItem(clave, valor);
+    },
+    borrar: async clave => {
+      if (disponible) localStorage.removeItem(clave);
+    },
+  };
+}
+
 export function crearAlmacenSecureStore(): AlmacenSeguro {
+  if (Platform.OS === "web") return crearAlmacenNavegador();
   return {
     leer: (clave) => SecureStore.getItemAsync(clave),
     escribir: (clave, valor) => SecureStore.setItemAsync(clave, valor),
@@ -43,6 +65,8 @@ export type SesionAlmacenada = {
   tipo: "equipo" | "familia";
   cuentaId: string;
   credencialId: string;
+  /** Identificador del celular: el servidor lo exige en cada registro. */
+  dispositivoId?: string;
   tokenRenovacion?: string;
   ultimaRenovacionServidor?: number;
   instanteMaximoVisto: number;

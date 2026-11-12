@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { Aviso, Boton, CampoTexto, GrupoOpciones, Insignia, Tarjeta } from "@/components/ui";
@@ -19,8 +19,8 @@ const OPCIONES = [
 ] as const;
 
 export default function CorregirAsistencia({
-  sesionId,
-  catequizandoId,
+  sesionId: sesionIdProp,
+  catequizandoId: catequizandoIdProp,
   ahora,
 }: {
   sesionId: string;
@@ -36,6 +36,21 @@ export default function CorregirAsistencia({
   const [guardado, setGuardado] = useState(false);
   const reloj = useInstante();
   const instante = ahora ?? reloj;
+
+  // Los identificadores llegan como prop de la ruta; en el navegador se leen
+  // tambien de los parametros de navegacion.
+  const parametros = useLocalSearchParams<{
+    sesionId?: string | string[];
+    catequizandoId?: string | string[];
+  }>();
+  const sesionId = useMemo(() => {
+    const valor = parametros?.sesionId;
+    return (Array.isArray(valor) ? valor[0] : valor) ?? sesionIdProp;
+  }, [parametros, sesionIdProp]);
+  const catequizandoId = useMemo(() => {
+    const valor = parametros?.catequizandoId;
+    return (Array.isArray(valor) ? valor[0] : valor) ?? catequizandoIdProp;
+  }, [parametros, catequizandoIdProp]);
 
   const sesion = useMemo(() => {
     const fila = almacen.colecciones.sesiones?.[sesionId];

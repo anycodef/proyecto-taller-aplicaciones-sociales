@@ -1,0 +1,28 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-12",
+  "agente": "OpenCode",
+  "modelo": "minimax-m3.1-flash-free",
+  "tarea": "T003-82",
+  "solicitud": "El usuario pregunta por que el indice de navegacion devuelve al Inicio casi todas las pantallas y pide una manera de acceder a las pantallas de la spec 003 para la demostracion",
+  "commitPrevisto": "fix(asistencia): abrir las pantallas de asistencia tambien en el navegador",
+  "alcance": [
+    "src/plataforma/seguridad/almacen-seguro.ts",
+    "src/plataforma/seguridad/sesion.ts",
+    "src/plataforma/seguridad/contexto-sesion.tsx",
+    "src/plataforma/seguridad/__tests__/sesion.test.ts",
+    "src/plataforma/asistencia/almacen-local.ts",
+    "src/app/(equipo)/asistencia/lista/[grupoId].tsx",
+    "src/app/(equipo)/asistencia/correccion/[sesionId]/[catequizandoId].tsx",
+    "docs/demo-asistencia.md"
+  ],
+  "criterio": "T003-82: con una cuenta activada, las pantallas de asistencia se abren y se pueden demostrar, tambien en el navegador.",
+  "comprobaciones": ["npm run test:app", "npm run typecheck", "npm run lint", "recorrido real en el navegador contra la API local"],
+  "resultados": {
+    "tests": "Cliente: 43 suites y 148 tests en verde",
+    "typecheck": "Pasa raiz y API",
+    "lint": "Pasa sin errores ni advertencias",
+    "navegador": "Activacion con el enlace de demo, PIN 1234, menu con Grupo demo y 8 ninos, lista con los 8 nios, un ausente, confirmar la lista y envio al servidor: 8 marcas (7 presentes y 1 ausente) y 1 lista, sin duplicados, y la cola del navegador vacia."
+  },
+  "notas": "El retorno al Inicio es el control de acceso: Stack.Protected en src/app/_layout.tsx y src/app/(equipo)/_layout.tsx esconde los grupos (equipo) y (familia) sin sesion y el navegador de rutas cae al indice; solo son publicas las pantallas de acceso. Para demostrar en el navegador hacen falta tres arreglos: (1) expo-secure-store y expo-file-system no tienen implementacion real en web, asi que la sesion y el estado local de asistencia van al almacenamiento local del navegador; (2) el identificador de la ruta no llegaba como prop en el navegador, asi que las pantallas lo leen tambien de useLocalSearchParams; (3) la API local necesita --cors * para que el preflight del navegador no de 404. Ademas se arreglo un bug que afectaba tambien al celular: al restaurar la sesion del disco se perdia el identificador del dispositivo, y sin el el servidor rechaza cualquier registro y la app no deja pasar lista."
+}

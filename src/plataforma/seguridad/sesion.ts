@@ -170,7 +170,9 @@ export function crearGestorSesion(opciones: GestorSesionOpciones): GestorSesion 
       credencialId: respuesta.contexto.credencialId,
       tokenRenovacion: respuesta.tokenRenovacion,
       ultimaRenovacion: respuesta.ultimaRenovacion ? Date.parse(respuesta.ultimaRenovacion) : undefined,
-      contexto: respuesta.contexto,
+      // El servidor exige el dispositivo en cada registro: se guarda el que el
+      // celular ya conoce, no el que venga en la respuesta.
+      contexto: { ...respuesta.contexto, dispositivoId },
     };
   }
 
@@ -182,6 +184,7 @@ export function crearGestorSesion(opciones: GestorSesionOpciones): GestorSesion 
       tipo: "equipo",
       cuentaId: activacion.contexto.cuentaId,
       credencialId: activacion.credencialId,
+      dispositivoId: activacion.contexto.dispositivoId,
       tokenRenovacion: activacion.tokenRenovacion,
       ultimaRenovacionServidor: activacion.ultimaRenovacion,
       instanteMaximoVisto: ahora(),
