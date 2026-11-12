@@ -135,7 +135,7 @@
   - Depende de: T004-05, T008 (Fase 0: M1, tabla `ciclo`), T001 (F0-3: runner de migraciones y `docker-compose.yml`), T001 (F0-6: skill `nueva-migracion`)
   - Hecho cuando: la migración crea `justificacion_plazos` y se aplica limpia sobre una base vacía en Docker. Pasa `contrato-plazo.test.ts › RF-405: dias_plazo fuera de 1 a 60 es rechazado por la restricción`. `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T004-19** Crear la migración `NNNN_justificaciones_evidencias.sql` (`evidencias` y `evidencia_archivos`) **[Supuesto A-06]**
+- [x] **T004-19** Crear la migración `NNNN_justificaciones_evidencias.sql` (`evidencias` y `evidencia_archivos`) **[Supuesto A-06]**
   - RF: RF-402, RF-407, RNF-402, RNF-403
   - Depende de: T004-18
   - Hecho cuando: pasan `contrato-evidencias.test.ts › RNF-402: evidencia_archivos rechaza bytes mayores de 307200`, `RF-402: orden fuera de 1 a 3 es rechazado` y `RNF-403: una evidencia nace en estado reservada`. `npm test`, `npm run typecheck` y `npm run lint` pasan.
