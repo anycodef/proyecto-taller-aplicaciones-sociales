@@ -156,7 +156,7 @@
 
     `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T004-22** Definir los puertos de dominio e implementar `repositorio-evidencias-pg.ts`
+- [x] **T004-22** Definir los puertos de dominio e implementar `repositorio-evidencias-pg.ts`
   - RF: RF-402, RNF-403
   - Depende de: T004-21
   - Hecho cuando: `dominio/puertos.ts` declara `RepositorioJustificaciones`, `RepositorioEvidencias` y `AlmacenEvidencias`. Pasan los tests de contrato `RNF-403: reservar y confirmar una evidencia con sus archivos`, `RNF-403: listarHuerfanas devuelve solo las reservas no confirmadas de más de 24 h` y `RNF-403: cuenta las reservas de una cuenta en la última hora`. `npm test`, `npm run typecheck` y `npm run lint` pasan.

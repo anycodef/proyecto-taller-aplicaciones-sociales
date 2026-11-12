@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { readFile, readdir } from "node:fs/promises";
 import { resolve } from "node:path";
-import { Pool } from "pg";
+import { Pool, type PoolClient } from "pg";
 
 /** Esquema propio por archivo: las pruebas de 004 no comparten filas con otras suites. */
 export type BdPrueba = { app: Pool; admin: Pool; cerrar(): Promise<void> };
@@ -41,4 +41,18 @@ export async function sembrar(bd: BdPrueba): Promise<Semilla> {
   for (const id of [s.catequizandoId, s.hermanoId]) await q("INSERT INTO vinculo_apoderado(id,catequizando_id,apoderado_id,relacion) VALUES($1,$2,$3,'madre')", [randomUUID(), id, s.apoderadoId]);
   await q("INSERT INTO sesion(id,ciclo_id,fecha,tipo) VALUES($1,$2,'2026-11-01','misa'),($3,$2,'2026-11-01','catequesis')", [s.sesionId, s.cicloId, s.sesion2Id]);
   return s;
+}
+
+/** Ejecuta en una transacción del rol de la aplicación y confirma, como haría enTransaccion. */
+export async function enTx<T>(bd: BdPrueba, operacion: (tx: PoolClient) => Promise<T>): Promise<T> {
+  const cliente = await bd.app.connect();
+  try {
+    await cliente.query("BEGIN");
+    const resultado = await operacion(cliente);
+    await cliente.query("COMMIT");
+    return resultado;
+  } catch (error) {
+    await cliente.query("ROLLBACK");
+    throw error;
+  } finally { cliente.release(); }
 }
