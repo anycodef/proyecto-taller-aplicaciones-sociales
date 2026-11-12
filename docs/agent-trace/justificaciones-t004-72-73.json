@@ -1,0 +1,37 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-11",
+  "agente": "Claude Code",
+  "modelo": "claude-opus-5-5",
+  "rama": "feat/004-justificaciones",
+  "tarea": "T004-72-73",
+  "solicitud": "Implementar la fase 8 de la spec 004.",
+  "alcance": [
+    "docs/pruebas-manuales-004.md",
+    "specs/004-justificaciones/tasks.md",
+    "docs/agent-trace/justificaciones-t004-72-73.json"
+  ],
+  "criterio": "La guía cubre los pasos de T004-72 y T004-73 y cada criterio de finalización de la spec.",
+  "decisiones": [
+    "Las casillas se marcan solo con la prueba hecha.",
+    "Se listan los pendientes conocidos de la fase 7."
+  ],
+  "comprobaciones": [
+    {
+      "comando": "node scripts/verificar-cobertura-rf.mjs --bloquear 004",
+      "resultado": "Los nombres de test citados existen en el repositorio."
+    },
+    {
+      "comando": "npm run typecheck",
+      "resultado": "Pasa en raíz y API."
+    },
+    {
+      "comando": "npm run lint",
+      "resultado": "Pasa sin errores."
+    }
+  ],
+  "limites": [
+    "T004-72 y T004-73 siguen abiertas hasta ejecutar las pruebas en dispositivo y en campo."
+  ],
+  "notas": "Solo documentación; las pruebas manuales no se ejecutaron."
+}

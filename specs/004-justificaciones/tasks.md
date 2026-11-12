@@ -518,6 +518,7 @@
     - en modo avión, el envío muestra el aviso y `adb shell run-as <paquete> ls -R cache files` no lista ninguna foto ni archivo del manipulador;
     - la bandeja y el visor sin red muestran el aviso;
     - una SAS de lectura copiada falla con 403 a los 6 minutos.
+  - Preparación (2026-11-12): guía y tabla de resultados en `docs/pruebas-manuales-004.md`; pendiente de ejecutar.
 
     Los resultados quedan en el PR. `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
@@ -525,6 +526,7 @@
   - RF: RNF-401, RF-401, RF-402, RF-410
   - Depende de: T004-71, T004-72
   - Hecho cuando: al menos 5 apoderados con celulares propios y sin la app abren su enlace y completan una justificación con foto, cada uno en menos de 60 s medidos con cronómetro. Un catequista de otro grupo no ve nada. Cada criterio de finalización de la spec queda marcado como verificado en el PR, con el test o la medición que lo respalda. `npm test`, `npm run typecheck` y `npm run lint` pasan.
+  - Preparación (2026-11-12): guía y tabla de resultados en `docs/pruebas-manuales-004.md`; pendiente de ejecutar.
 
 ---
 
