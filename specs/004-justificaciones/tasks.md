@@ -189,7 +189,7 @@
 
 ## Fase 3 — Blob Storage, infraestructura y Azurite
 
-- [ ] **T004-27** Instalar `@azure/storage-blob` y `@azure/identity` en `api/` y añadir Azurite a `docker-compose.yml`
+- [x] **T004-27** Instalar `@azure/storage-blob` y `@azure/identity` en `api/` y añadir Azurite a `docker-compose.yml`
   - RF: RNF-403
   - Depende de: T004-01, T001 (F0-3: esqueleto de `api/` y `docker-compose.yml`)
   - Hecho cuando: `npm ls @azure/storage-blob @azure/identity --prefix api` muestra versiones fijas. Tras `docker compose up -d azurite`, el puerto 10000 responde y un test de humo crea y borra un contenedor. La app de `src/` no importa ninguno de los dos paquetes. `npm test`, `npm run typecheck` y `npm run lint` pasan.
