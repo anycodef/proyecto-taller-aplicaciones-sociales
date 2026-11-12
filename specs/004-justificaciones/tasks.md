@@ -488,12 +488,12 @@
   - Depende de: T004-22, T004-31
   - Hecho cuando: con reloj falso pasan `RNF-403: las reservas no confirmadas de más de 24 h se borran y se marcan huerfana` y `RNF-403: la limpieza no toca las evidencias confirmadas`. El cron está en UTC (`0 0 8 * * *`). `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T004-69** Escribir el extremo a extremo del flujo principal (API, Postgres y Azurite)
+- [x] **T004-69** Escribir el extremo a extremo del flujo principal (API, Postgres y Azurite)
   - RF: RF-401, RF-402, RF-403, RF-408, RF-409
   - Depende de: T004-37, T004-53, T004-65
   - Hecho cuando: pasa `e2e › RF-409: tras aprobar, la falta deja de contar`. El test recorre justificables, reserva, subida, un lote de tres fechas, la bandeja, la aprobación y `faltaJustificada`, y comprueba que se crean tres justificaciones con la misma evidencia. `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T004-70** Escribir el extremo a extremo de los casos límite
+- [x] **T004-70** Escribir el extremo a extremo de los casos límite
   - RF: RF-405, RF-407, RF-408
   - Depende de: T004-69, T004-61, T001 (F1: revocación de enlace)
   - Hecho cuando: pasan los tests de extremo a extremo:
