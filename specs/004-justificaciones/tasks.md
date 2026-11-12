@@ -318,7 +318,7 @@
   - Depende de: T004-04, T004-09
   - Hecho cuando: pasan `RF-402: el selector muestra solo las tres causas como chips` y `RF-403: el selector permite marcar ausencias de varios hijos y fechas`. Los componentes no contienen reglas de negocio. `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T004-45** Convertir `familia.tsx` en `familia/index.tsx` (ausencias primero y «Mis justificaciones»)
+- [x] **T004-45** Convertir `familia.tsx` en `familia/index.tsx` (ausencias primero y «Mis justificaciones»)
   - RF: RF-401, RF-410, RNF-404
   - Depende de: T004-40, T004-44
   - Hecho cuando: pasan `RF-401: la pantalla de familia lista primero las ausencias justificables`, `RF-410: muestra el estado y, si fue rechazada, el motivo` y `RNF-404: sin conexión muestra un aviso y no guarda nada`. `npm test`, `npm run typecheck` y `npm run lint` pasan.
