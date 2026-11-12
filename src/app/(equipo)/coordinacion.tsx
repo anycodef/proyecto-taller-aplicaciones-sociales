@@ -36,7 +36,7 @@ export default function Coordinacion() {
       <Pendiente
         items={[
           "Asistencia consolidada por grupo contra el mínimo del ciclo",
-          "Bandeja de justificaciones con la lectura OCR ya resuelta",
+          "Bandeja de justificaciones con su evidencia",
           "Catequizandos con señal de riesgo de deserción",
           "Alta de grupos, catequistas e inscripciones con consentimiento",
         ]}

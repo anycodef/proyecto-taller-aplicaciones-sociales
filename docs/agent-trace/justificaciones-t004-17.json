@@ -1,0 +1,38 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-11",
+  "agente": "Claude Code",
+  "modelo": "claude-opus-5-5",
+  "rama": "feat/004-justificaciones",
+  "tarea": "T004-17",
+  "solicitud": "Retirar Justificacion y ResultadoOcr de src/lib/domain/modelo.ts.",
+  "alcance": [
+    "src/lib/domain/modelo.ts",
+    "src/app/(equipo)/coordinacion.tsx",
+    "specs/004-justificaciones/tasks.md",
+    "docs/agent-trace/justificaciones-t004-17.json"
+  ],
+  "criterio": "modelo.ts reexporta los tipos nuevos, ResultadoOcr no aparece en src/ y ningún import queda roto.",
+  "decisiones": [
+    "Nadie importaba Justificacion desde modelo.ts; la reexportación mantiene el punto de entrada.",
+    "El estado justificado de EstadoAsistencia no se toca: pertenece a 003."
+  ],
+  "comprobaciones": [
+    {
+      "comando": "npx jest src/lib/justificaciones",
+      "resultado": "Pasa npm test completo: cliente 40 suites y 155 tests; API 33 suites y 222 tests."
+    },
+    {
+      "comando": "npm run typecheck",
+      "resultado": "Pasa en raíz y API."
+    },
+    {
+      "comando": "npm run lint",
+      "resultado": "Pasa sin errores."
+    }
+  ],
+  "limites": [
+    "La suite completa npm test (cliente y API con PostgreSQL) se ejecuta al cerrar la fase 1."
+  ],
+  "notas": "Dominio puro en TypeScript, sin React, React Native ni Expo."
+}

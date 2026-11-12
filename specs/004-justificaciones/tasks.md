@@ -123,7 +123,7 @@
   - Depende de: T004-10
   - Hecho cuando: pasan `compresion.test.ts › RNF-402: el plan inicial limita el lado mayor a 1600 px con calidad 0,7`, `RNF-402: siguienteIntento baja la calidad a 0,55 y 0,4 y luego el lado a 1280 y 1024` y `RNF-402: el plan de compresión termina bajo 300 KB o falla en 5 intentos`. `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T004-17** Retirar `Justificacion` y `ResultadoOcr` de `src/lib/domain/modelo.ts`
+- [x] **T004-17** Retirar `Justificacion` y `ResultadoOcr` de `src/lib/domain/modelo.ts`
   - RF: RF-407
   - Depende de: T004-04
   - Hecho cuando: `modelo.ts` reexporta los tipos de `src/lib/justificaciones/tipos.ts`, la búsqueda de `ResultadoOcr` en `src/` no encuentra nada y ningún import queda roto. `npm test`, `npm run typecheck` y `npm run lint` pasan.
