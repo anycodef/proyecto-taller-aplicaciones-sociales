@@ -56,6 +56,11 @@ const servidor = createServer(async (req, res) => {
       });
       const r2 = await r.handler(peticion, { log: () => undefined, error: () => undefined, warn: () => undefined });
       console.info(`${metodo} /${camino} -> ${r2.status ?? 200}${(r2.jsonBody as { codigo?: string } | undefined)?.codigo ? ` ${(r2.jsonBody as { codigo: string }).codigo}` : ""}`);
+      // Un cuerpo `body` ya viene serializado (la sincronización lo usa para fijar cabeceras): se envía tal cual, sin volver a codificarlo.
+      if (r2.jsonBody === undefined && (typeof r2.body === "string" || r2.body instanceof Uint8Array)) {
+        res.writeHead(r2.status ?? 200, { ...CORS, "access-control-expose-headers": "x-hora-servidor", ...r2.headers });
+        return res.end(r2.body);
+      }
       return enviar(r2.status ?? 200, r2.jsonBody ?? r2.body, r2.headers);
     }
     console.info(`${metodo} /${camino} -> 404 sin ruta`);
