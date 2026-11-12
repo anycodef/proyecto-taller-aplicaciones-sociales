@@ -45,7 +45,7 @@
   - Depende de: T001 (F0-2: regla ESLint que prohíbe importar React, React Native y Expo en `src/lib`)
   - Hecho cuando: pasan `causas.test.ts › RF-402: la lista de causas es exactamente salud_nino, familiar_directo y evento_escolar`, `RF-402: rechaza una causa fuera de la lista (viaje)` y `RF-404: solo evento_escolar permite justificación anticipada`. La etiqueta visible de `familiar_directo` es «Enfermedad o fallecimiento de un familiar directo». `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T004-05** Implementar `plazo.ts` (fecha límite y vigencia) **[Supuesto A-11, A-12]**
+- [x] **T004-05** Implementar `plazo.ts` (fecha límite y vigencia) **[Supuesto A-11, A-12]**
   - RF: RF-405
   - Depende de: T004-04
   - Hecho cuando: pasan `plazo.test.ts › RF-405: el plazo vence al final del día calendario en America/Lima`, `RF-405: un minuto después del límite el plazo ya no está vigente`, `RF-405: rechaza un plazo fuera de 1 a 60 días` y `RF-405: el plazo por defecto es 7 días`. La hora `ahora` llega como parámetro y no se agrega ninguna dependencia. `npm test`, `npm run typecheck` y `npm run lint` pasan.
