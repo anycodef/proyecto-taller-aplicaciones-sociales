@@ -92,7 +92,7 @@
   - Depende de: T004-11
   - Hecho cuando: pasan `lote.test.ts › RF-403: un lote de tres fechas crea tres justificaciones con la misma evidencia`, `RF-403: una evidencia, una justificación por niño (hermanos)`, `RF-406: el canal coordinación lleva registrada_por y registrada_en` y `RF-407: cada justificación queda ligada a niño, sesión, fecha y tipo`. `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T004-13** Implementar `efectos.ts` para los consumidores de 003, 006 y 007 **[Supuesto A-13]**
+- [x] **T004-13** Implementar `efectos.ts` para los consumidores de 003, 006 y 007 **[Supuesto A-13]**
   - RF: RF-409
   - Depende de: T004-07
   - Hecho cuando: pasan los tests de `efectos.test.ts`:
