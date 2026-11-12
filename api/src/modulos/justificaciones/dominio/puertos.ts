@@ -79,8 +79,14 @@ export type CambioEstado = Pick<AusenciaRef, "catequizandoId" | "sesionId" | "fe
 
 /** 006 y 007 se suscriben en proceso; la notificación corre en la misma transacción (D-414). */
 export type AlCambiarJustificacion = (evento: { justificaciones: readonly Justificacion[] }, tx: Tx) => Promise<void>;
-let alCambiarJustificacion: AlCambiarJustificacion = async () => undefined;
-export function registrarAlCambiarJustificacion(puerto: AlCambiarJustificacion): void { alCambiarJustificacion = puerto; }
+const suscriptores: AlCambiarJustificacion[] = [];
+/** Devuelve la función para retirar la suscripción. */
+export function registrarAlCambiarJustificacion(puerto: AlCambiarJustificacion): () => void {
+  if (!suscriptores.includes(puerto)) suscriptores.push(puerto);
+  return () => { const i = suscriptores.indexOf(puerto); if (i >= 0) suscriptores.splice(i, 1); };
+}
+/** En orden de registro; si un suscriptor falla, la transacción del cambio se revierte entera. */
 export async function notificarCambioJustificacion(justificaciones: readonly Justificacion[], tx: Tx): Promise<void> {
-  if (justificaciones.length) await alCambiarJustificacion({ justificaciones }, tx);
+  if (!justificaciones.length) return;
+  for (const suscriptor of [...suscriptores]) await suscriptor({ justificaciones }, tx);
 }

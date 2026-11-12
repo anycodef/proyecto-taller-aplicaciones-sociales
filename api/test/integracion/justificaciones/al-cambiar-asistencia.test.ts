@@ -10,6 +10,7 @@ let bd: BdPrueba;
 let s: Semilla;
 let justificacionId: string;
 const notificadas: string[][] = [];
+let retirar: () => void = () => undefined;
 
 beforeAll(async () => {
   bd = await prepararBd("alcambio004");
@@ -20,10 +21,10 @@ beforeAll(async () => {
   await bd.app.query(`INSERT INTO justificacion(id,lote_id,ciclo_id,catequizando_id,sesion_id,tipo_sesion,fecha_sesion,causa,evidencia_id,enviada_por,canal)
     VALUES($1,$2,$3,$4,$5,'misa','2026-11-01','salud_nino',$6,$7,'enlace')`, [justificacionId, randomUUID(), s.cicloId, s.catequizandoId, s.sesionId, evidenciaId, s.apoderadoId]);
   registrarAlCambiarAsistencia(alCambiarAsistencia);
-  registrarAlCambiarJustificacion(async ({ justificaciones }) => { notificadas.push(justificaciones.map(j => j.id)); });
+  retirar = registrarAlCambiarJustificacion(async ({ justificaciones }) => { notificadas.push(justificaciones.map(j => j.id)); });
 });
 afterAll(async () => {
-  registrarAlCambiarJustificacion(async () => undefined);
+  retirar();
   await bd?.cerrar();
 });
 
