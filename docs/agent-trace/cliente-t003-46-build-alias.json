@@ -1,0 +1,24 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-12",
+  "agente": "OpenCode",
+  "modelo": "minimax-m3.1-flash-free",
+  "tarea": "T003-46",
+  "solicitud": "Levantar la API local para la demo de la spec 003 en esta PC",
+  "commitPrevisto": "fix(api): resolver el alias @/lib en el build de la API",
+  "alcance": [
+    "api/esbuild.config.mjs"
+  ],
+  "criterio": "T003-46 (preparacion local): npm --prefix api run build produce api/dist/index.js con el alias @/lib resuelto al dominio compartido.",
+  "comprobaciones": ["npm run build", "npm run typecheck", "npm run lint"],
+  "resultados": {
+    "build": "api/dist/index.js (246 KB) y su mapa de fuentes",
+    "typecheck": "Pasa raiz y API",
+    "lint": "Pasa sin errores ni advertencias"
+  },
+  "evidencia": {
+    "antes": "npm --prefix api run build -> X [ERROR] Could not resolve \"/D:/Documents/.../src/lib/seguridad/contexto-acceso\" (originally \"@/lib/seguridad/contexto-acceso\"). El alias usaba new URL(...).pathname, que en Windows devuelve una ruta con barra inicial que esbuild no resuelve.",
+    "despues": "El alias usa fileURLToPath(new URL(\"../src/lib\", import.meta.url)) y el build termina sin errores."
+  },
+  "notas": "El fallo era de Windows, no del proyecto en general: en Linux pathname no lleva barra inicial. No se toco el modelo de datos ni el comportamiento de la API, solo la resolucion de una ruta en el empaquetado."
+}
