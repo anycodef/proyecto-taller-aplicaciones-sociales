@@ -1,7 +1,8 @@
 import type { Tx } from "../../../compartido/bd/transaccion";
 import { ErrorAplicacion } from "../../../compartido/http/respuestas";
-import type { RefBlob } from "../../seguridad/aplicacion/motor-retencion";
-import { CONTENEDOR_EVIDENCIAS } from "../dominio/puertos";
+import type { BorradorBlobs, RefBlob } from "../../seguridad/aplicacion/motor-retencion";
+import { CONTENEDOR_EVIDENCIAS, type AlmacenEvidencias } from "../dominio/puertos";
+import { obtenerAlmacenEvidencias } from "../infraestructura/almacen";
 
 async function exigirContextoRetencion(tx: Tx): Promise<void> {
   const permiso = await tx.query<{ autorizado: boolean }>("SELECT current_user='sigecat_retencion' AND current_setting('sigecat.contexto',true) IN ('retiro_consentimiento','retencion') AS autorizado");
@@ -49,3 +50,20 @@ export const participanteRetencionJustificaciones = {
   alRetirarConsentimiento,
   alVencerCiclo,
 };
+
+/**
+ * El motor de 001 borra los blobs después del commit. Las evidencias usan la identidad administrada
+ * de su almacén (D-402), no `BLOBS_CONEXION`: sus rutas se desvían al almacén de 004.
+ */
+export function crearBorradorConEvidencias(otros: BorradorBlobs, almacen: () => AlmacenEvidencias = obtenerAlmacenEvidencias): BorradorBlobs {
+  return { borrar: ref => (ref.contenedor === CONTENEDOR_EVIDENCIAS ? almacen().borrar(ref.ruta) : otros.borrar(ref)) };
+}
+
+/**
+ * Puerto para 008: borra por prefijo `{cicloId}/` lo que quede del ciclo en Blob, aunque no tenga
+ * fila (reservas a medio subir). Es idempotente; las filas las depura `alVencerCiclo`.
+ */
+export async function eliminarEvidenciasDeCiclo(cicloId: string, almacen: AlmacenEvidencias = obtenerAlmacenEvidencias()): Promise<number> {
+  if (!/^[0-9a-f-]{36}$/i.test(cicloId)) throw new ErrorAplicacion(422, "ciclo_invalido");
+  return almacen.borrarPrefijo(`${cicloId}/`);
+}

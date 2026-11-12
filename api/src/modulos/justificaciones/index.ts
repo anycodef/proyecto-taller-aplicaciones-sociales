@@ -1,7 +1,7 @@
 export { registrarJustificaciones, manejadoresJustificaciones, manejadoresCoordinacion } from "./http";
 export { registrarAlCambiarJustificacion } from "./dominio/puertos";
 export { configurarAlmacenEvidencias } from "./infraestructura/almacen";
-export { participanteRetencionJustificaciones } from "./aplicacion/depurar-evidencias";
+export { crearBorradorConEvidencias, eliminarEvidenciasDeCiclo, participanteRetencionJustificaciones } from "./aplicacion/depurar-evidencias";
 export { alCambiarAsistencia } from "./aplicacion/al-cambiar-asistencia";
 export { proveedorJustificaciones } from "./aplicacion/proveedor-pull";
 export { proveedorResumenJustificaciones } from "./aplicacion/resumen-perfil";

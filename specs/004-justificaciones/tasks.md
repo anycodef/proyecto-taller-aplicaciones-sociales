@@ -472,7 +472,7 @@
   - Hecho cuando: pasan los tests `RF-409: aprobar o dejar sin efecto notifica a los suscriptores en proceso` y `RF-409: una ausencia a misa aprobada no cuenta en contra en la aptitud`, este último con la regla de 006. `npm test`, `npm run typecheck` y `npm run lint` pasan.
   - Avance (2026-11-11): varios suscriptores en proceso, en la misma transacción; pasa el test de notificación y `ausenciaMisaJustificada` queda expuesta. Falta el test con la regla de 006: el módulo de aptitud no existe todavía.
 
-- [ ] **T004-67** Implementar `depurar-evidencias.ts` como participante de retención y consentimiento **[Supuesto A-07]**
+- [x] **T004-67** Implementar `depurar-evidencias.ts` como participante de retención y consentimiento **[Supuesto A-07]**
   - RF: RF-407
   - Depende de: T004-31, T004-22, T001 (F3: motor de retención, retiro de consentimiento y bandeja `borrado_blob_pendiente`), T008 (Fase 5: puerto `eliminarEvidenciasDeCiclo`)
   - Hecho cuando: pasan los tests contra Azurite y Postgres:
