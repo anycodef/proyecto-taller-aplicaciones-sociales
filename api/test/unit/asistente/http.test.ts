@@ -130,3 +130,10 @@ test("RNF-1004: un fallo inesperado responde 500 sin exponer detalles internos",
   expect(r.status).toBe(500);
   expect(r.jsonBody).toEqual({ codigo: "error_interno" });
 });
+
+test("RF-1004 RF-1008: «¿Cuántas faltas tiene Juan?» responde 200 con proveedor guardia y sin fuentes", async () => {
+  jest.mocked(preguntarAsistente).mockImplementationOnce(jest.requireActual("../../../src/modulos/asistente/aplicacion/preguntar").preguntarAsistente);
+  const r = await manejadoresAsistente.preguntar(peticion({ pregunta: "¿Cuántas faltas tiene Juan?" }), invocacion);
+  expect(r.status).toBe(200);
+  expect(r.jsonBody).toMatchObject({ proveedor: "guardia", modelo: "filtro", fuentes: [] });
+});

@@ -155,3 +155,66 @@ test("RF-1003: el prompt contiene solo la pregunta y los fragmentos recuperados"
   expect(prompt).toContain("[Documento, Eucaristía]");
   expect(prompt).not.toContain("nombre del niño");
 });
+
+test("RF-1004: rechaza preguntas por el seguimiento de una persona concreta aunque no diga «niño»", () => {
+  for (const pregunta of [
+    "¿Cuántas faltas tiene Juan?",
+    "¿Faltó María el domingo?",
+    "¿Está en riesgo el hijo de la señora Rosa?",
+    "dame el teléfono de Pedro Ramírez",
+    "cómo va mi hijo",
+    "¿Cómo le fue a Ana en la catequesis?",
+    "cuantas faltas tiene juan",
+    "¿Asistió el niño ayer?",
+  ]) {
+    const evaluacion = evaluarGuardia(pregunta);
+    expect({ pregunta, permitida: evaluacion.permitida }).toEqual({ pregunta, permitida: false });
+    if (!evaluacion.permitida) expect(evaluacion.motivo).toBe("datos_personales");
+  }
+});
+
+test("RF-1004: no bloquea preguntas doctrinales con nombres bíblicos ni palabras como «falta»", () => {
+  for (const pregunta of [
+    "¿Quién fue Juan el Bautista?",
+    "¿Qué dijo Pedro en Pentecostés?",
+    "¿Qué es la confirmación?",
+    "¿Qué es la eucaristía?",
+    "¿Qué dice la Biblia sobre la falta de fe?",
+    "¿Dónde vive Dios?",
+    "¿Qué hizo María en Nazaret?",
+    "¿Qué enseñó Jesús sobre la salud del alma?",
+  ]) {
+    const evaluacion = evaluarGuardia(pregunta);
+    expect({ pregunta, permitida: evaluacion.permitida }).toEqual({ pregunta, permitida: true });
+  }
+});
+
+test("RF-1004: «receta de ceviche» no es consejo profesional y termina en abstención por falta de sustento", async () => {
+  expect(evaluarGuardia("dame una receta de ceviche").permitida).toBe(true);
+  expect(evaluarGuardia("¿Quién ganó el mundial?").permitida).toBe(true);
+  const respuesta = await consultarAsistente("dame una receta de ceviche", { corpus: corpusDe(eucaristia) });
+  expect(respuesta.proveedor).toBe("extractivo");
+  expect(respuesta.modelo).toBe("abstencion");
+  expect(respuesta.fuentes).toEqual([]);
+  expect(respuesta.respuesta).toContain("No encontré sustento");
+});
+
+test("RF-1004: sigue rechazando consejo médico con receta médica, recetar, medicamentos y dosis", () => {
+  for (const pregunta of [
+    "me recetaron antibióticos, ¿qué dosis?",
+    "¿Me puedes dar una receta médica?",
+    "¿Puedes recetar algo para la fiebre?",
+    "¿Qué medicamentos debo tomar?",
+    "¿Cuál es el tratamiento para la ansiedad?",
+  ]) {
+    const evaluacion = evaluarGuardia(pregunta);
+    expect({ pregunta, permitida: evaluacion.permitida }).toEqual({ pregunta, permitida: false });
+    if (!evaluacion.permitida) expect(evaluacion.motivo).toBe("consejo_profesional");
+  }
+});
+
+test("RF-1004: «¿Cuántas faltas tiene Juan?» responde con el filtro de datos personales y sin fuentes", async () => {
+  const respuesta = await consultarAsistente("¿Cuántas faltas tiene Juan?", { corpus: corpusDe(eucaristia) });
+  expect(respuesta).toMatchObject({ proveedor: "guardia", modelo: "filtro", fuentes: [] });
+  expect(respuesta.respuesta).toContain("No puedo consultar datos de niños");
+});
