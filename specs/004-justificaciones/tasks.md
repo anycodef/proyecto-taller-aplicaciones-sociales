@@ -118,7 +118,7 @@
 
     `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T004-16** Implementar `compresion.ts` (plan iterativo de compresión)
+- [x] **T004-16** Implementar `compresion.ts` (plan iterativo de compresión)
   - RF: RNF-402
   - Depende de: T004-10
   - Hecho cuando: pasan `compresion.test.ts › RNF-402: el plan inicial limita el lado mayor a 1600 px con calidad 0,7`, `RNF-402: siguienteIntento baja la calidad a 0,55 y 0,4 y luego el lado a 1280 y 1024` y `RNF-402: el plan de compresión termina bajo 300 KB o falla en 5 intentos`. `npm test`, `npm run typecheck` y `npm run lint` pasan.
