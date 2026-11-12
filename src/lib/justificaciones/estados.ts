@@ -22,3 +22,12 @@ export function revisar(justificacion: Justificacion, decision: DecisionRevision
 export function estadoVisible(justificacion: Justificacion): EstadoVisible {
   return justificacion.sinEfectoDesde ? "sin_efecto" : justificacion.estadoRevision;
 }
+
+/** Se marca y se conserva: la traza de la justificación no se pierde (RF-407, D-406). */
+export function dejarSinEfecto(justificacion: Justificacion, en: string): Justificacion {
+  return justificacion.sinEfectoDesde ? justificacion : { ...justificacion, sinEfectoDesde: en };
+}
+
+export function restaurarEfecto(justificacion: Justificacion): Justificacion {
+  return justificacion.sinEfectoDesde ? { ...justificacion, sinEfectoDesde: null } : justificacion;
+}

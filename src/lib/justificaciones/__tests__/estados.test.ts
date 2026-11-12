@@ -1,4 +1,4 @@
-import { estadoVisible, revisar } from "@/lib/justificaciones/estados";
+import { dejarSinEfecto, estadoVisible, restaurarEfecto, revisar } from "@/lib/justificaciones/estados";
 import { justificacion } from "./fabrica";
 
 const en = "2026-11-03T09:00:00-05:00";
@@ -29,4 +29,19 @@ test("RF-410: estadoVisible devuelve pendiente, aprobada, rechazada o sin_efecto
   expect(estadoVisible(justificacion({ estadoRevision: "aprobada" }))).toBe("aprobada");
   expect(estadoVisible(justificacion({ estadoRevision: "rechazada", motivoRechazo: "x" }))).toBe("rechazada");
   expect(estadoVisible(justificacion({ estadoRevision: "aprobada", sinEfectoDesde: en }))).toBe("sin_efecto");
+});
+
+test("RF-407: corregida a presente queda sin efecto y se conserva", () => {
+  const aprobada = revisar(justificacion(), "aprobada", "coord-1", en);
+  const anulada = dejarSinEfecto(aprobada, "2026-11-04T08:00:00-05:00");
+  expect(anulada).toEqual({ ...aprobada, sinEfectoDesde: "2026-11-04T08:00:00-05:00" });
+  expect(estadoVisible(anulada)).toBe("sin_efecto");
+  expect(dejarSinEfecto(anulada, "2026-11-05T08:00:00-05:00").sinEfectoDesde).toBe("2026-11-04T08:00:00-05:00");
+});
+
+test("RF-407: si la ausencia vuelve a ausente se restaura el efecto", () => {
+  const rechazada = revisar(justificacion(), "rechazada", "coord-1", en, "Foto ilegible");
+  const restaurada = restaurarEfecto(dejarSinEfecto(rechazada, "2026-11-04T08:00:00-05:00"));
+  expect(restaurada).toEqual(rechazada);
+  expect(estadoVisible(restaurada)).toBe("rechazada");
 });

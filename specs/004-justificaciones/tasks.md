@@ -55,7 +55,7 @@
   - Depende de: T004-04
   - Hecho cuando: pasan `estados.test.ts › RF-408: solo se revisa una justificación pendiente`, `RF-408: rechazar sin motivo lanza error`, `RF-408: la revisión registra quién y cuándo` y `RF-410: estadoVisible devuelve pendiente, aprobada, rechazada o sin_efecto`. Aprobar y rechazar son estados finales (A-05). `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T004-07** Implementar `dejarSinEfecto` y `restaurarEfecto` en `estados.ts`
+- [x] **T004-07** Implementar `dejarSinEfecto` y `restaurarEfecto` en `estados.ts`
   - RF: RF-407
   - Depende de: T004-06
   - Hecho cuando: pasan `estados.test.ts › RF-407: corregida a presente queda sin efecto y se conserva` y `RF-407: si la ausencia vuelve a ausente se restaura el efecto`, y el estado de revisión no cambia en ninguno de los dos casos. `npm test`, `npm run typecheck` y `npm run lint` pasan.
