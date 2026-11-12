@@ -23,6 +23,8 @@ export default function LayoutEquipo() {
           <Stack.Screen name="coordinacion" options={{ title: "Coordinación" }} />
           <Stack.Screen name="coordinacion/grupos/[id]/carnes" options={{ title: "Carnés" }} />
           <Stack.Screen name="avisos-sistema" options={{ title: "Avisos del sistema" }} />
+          <Stack.Screen name="coordinacion/justificaciones/index" options={{ title: "Justificaciones" }} />
+          <Stack.Screen name="coordinacion/justificaciones/[loteId]" options={{ title: "Lote de justificaciones" }} />
         </Stack.Protected>
         <Stack.Protected guard={equipo && rolesEfectivos.some((rol) => rol !== "familia")}>
           <Stack.Screen name="asistencia" options={{ title: "Pasar lista" }} />

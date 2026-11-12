@@ -3,6 +3,8 @@ import type { Rol } from "@/lib/seguridad/contexto-acceso";
 /** Puerto minimo que necesita la API. La plataforma aporta la implementacion. */
 export type ClienteHttp = {
   solicitar<T>(metodo: string, ruta: string, cuerpo?: unknown): Promise<T>;
+  /** Solo la subida de fotos de 004 lo usa; los dobles de prueba de otras pantallas pueden omitirlo. */
+  solicitarBinario?<T>(metodo: string, ruta: string, datos: Blob | ArrayBuffer | Uint8Array, contentType: string): Promise<T>;
 };
 
 export type Cuenta = {

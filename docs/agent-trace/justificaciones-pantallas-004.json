@@ -1,0 +1,34 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-12",
+  "agente": "Claude Code",
+  "modelo": "claude-sonnet-5-5",
+  "tarea": "T1B-004-pantallas",
+  "solicitud": "Pantallas del 004: la familia ve sus ausencias justificables, elige motivo, adjunta foto y envia; ve el estado de sus justificaciones; la coordinacion revisa la bandeja por lote, ve la evidencia, aprueba o rechaza con motivo",
+  "commitPrevisto": "feat(justificaciones): cliente, familia y bandeja de coordinacion",
+  "alcance": [
+    "src/lib/justificaciones/{cliente-justificaciones,seleccion,enviar-justificacion}.ts",
+    "src/plataforma/justificaciones/**",
+    "src/plataforma/api/cliente.ts",
+    "src/components/justificaciones/**",
+    "src/app/(familia)/familia/{justificar,enviada,mis-justificaciones}.tsx",
+    "src/app/(familia)/familia.tsx",
+    "src/app/(familia)/_layout.tsx",
+    "src/app/(equipo)/coordinacion/justificaciones/**",
+    "src/app/(equipo)/_layout.tsx",
+    "src/app/galeria.tsx",
+    "src/__tests__/{justificar-ausencia,bandeja-justificaciones}.test.tsx",
+    "app.json",
+    "package.json",
+    "package-lock.json"
+  ],
+  "criterio": "Con la API de T1A, una familia envia una justificacion con foto y la coordinacion la aprueba; sin red muestra No se envio y no encola ni guarda la foto; la foto se reduce a menos de 300 KB y los temporales se borran; la evidencia se muestra sin cache.",
+  "comprobaciones": ["npm run typecheck", "npm run lint", "npm run test:app", "npx expo export --platform web"],
+  "resultados": {
+    "tests": "60 suites y 257 tests en verde (45 nuevos); RF-1206 sigue pasando",
+    "typecheck": "sin errores (cliente y api)",
+    "lint": "sin errores",
+    "exportWeb": "npx expo export --platform web termina y genera las rutas nuevas"
+  },
+  "notas": "Dependencias de la spec 004 instaladas con npx expo install: expo-image-picker, expo-image-manipulator, expo-file-system (ya estaba), expo-image. app.json recibe los plugins expo-image y expo-image-picker (textos de permiso en espanol) y el instalador reformateo un arreglo. El cliente HTTP gana solicitarBinario (el cuerpo ya no es solo JSON). No se cambio el estado de ningun modulo en modulos.ts (tarea T8). La ruta /familia/mis-justificaciones es nueva y no esta en el registro de modulos. No se probo en un celular ni contra func start: pendiente del recorrido de T8."
+}

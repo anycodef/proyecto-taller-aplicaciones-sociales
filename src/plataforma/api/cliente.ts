@@ -18,9 +18,15 @@ export type ClienteHttpOpciones = {
   enDesarrollo?: boolean;
 };
 
+/** Foto ya comprimida: viaja como binario, nunca como JSON ni en base64 (RF-402). */
+export type DatosBinarios = Blob | ArrayBuffer | Uint8Array;
+
 export type ClienteHttp = {
   solicitar<T>(metodo: string, ruta: string, cuerpo?: unknown): Promise<T>;
+  solicitarBinario<T>(metodo: string, ruta: string, datos: DatosBinarios, contentType: string): Promise<T>;
 };
+
+type Carga = { tipo: "json"; cuerpo: unknown } | { tipo: "binario"; datos: DatosBinarios; contentType: string };
 
 function codigoDe(cuerpo: unknown): string {
   if (cuerpo && typeof cuerpo === "object" && "codigo" in cuerpo) {
@@ -60,23 +66,25 @@ export function crearClienteHttp(opciones: ClienteHttpOpciones): ClienteHttp {
   async function enviar(
     metodo: string,
     ruta: string,
-    cuerpo: unknown,
+    carga: Carga,
     token: string | null
   ): Promise<Response> {
     const cabeceras: Record<string, string> = { accept: "application/json" };
-    if (cuerpo !== undefined) cabeceras["content-type"] = "application/json";
+    if (carga.tipo === "binario") cabeceras["content-type"] = carga.contentType;
+    else if (carga.cuerpo !== undefined) cabeceras["content-type"] = "application/json";
     if (token) cabeceras.authorization = `Bearer ${token}`;
     if (claveSuscripcion) cabeceras["ocp-apim-subscription-key"] = claveSuscripcion;
+    const cuerpo = carga.tipo === "binario" ? carga.datos : carga.cuerpo === undefined ? undefined : JSON.stringify(carga.cuerpo);
     return pedir(`${urlBase}${ruta}`, {
       method: metodo,
       headers: cabeceras,
-      ...(cuerpo === undefined ? {} : { body: JSON.stringify(cuerpo) }),
+      ...(cuerpo === undefined ? {} : { body: cuerpo as BodyInit }),
     });
   }
 
-  async function solicitar<T>(metodo: string, ruta: string, cuerpo?: unknown): Promise<T> {
+  async function ejecutar<T>(metodo: string, ruta: string, carga: Carga): Promise<T> {
     const token = await obtenerToken();
-    let respuesta = await enviar(metodo, ruta, cuerpo, token);
+    let respuesta = await enviar(metodo, ruta, carga, token);
 
     if (respuesta.status === 401) {
       const cuerpoError = await cuerpoDe(respuesta);
@@ -90,7 +98,7 @@ export function crearClienteHttp(opciones: ClienteHttpOpciones): ClienteHttp {
       const tokenRenovado = await renovarSesion();
       if (!tokenRenovado) throw crearErrorHttp(401, codigo);
 
-      respuesta = await enviar(metodo, ruta, cuerpo, tokenRenovado);
+      respuesta = await enviar(metodo, ruta, carga, tokenRenovado);
       if (respuesta.status === 401) throw crearErrorHttp(401, codigoDe(await cuerpoDe(respuesta)));
     }
 
@@ -99,5 +107,9 @@ export function crearClienteHttp(opciones: ClienteHttpOpciones): ClienteHttp {
     return (await cuerpoDe(respuesta)) as T;
   }
 
-  return { solicitar };
+  const solicitar = <T>(metodo: string, ruta: string, cuerpo?: unknown) => ejecutar<T>(metodo, ruta, { tipo: "json", cuerpo });
+  const solicitarBinario = <T>(metodo: string, ruta: string, datos: DatosBinarios, contentType: string) =>
+    ejecutar<T>(metodo, ruta, { tipo: "binario", datos, contentType });
+
+  return { solicitar, solicitarBinario };
 }

@@ -67,3 +67,38 @@ test("RNF-103: el cliente rechaza una URL base sin HTTPS fuera de desarrollo", (
   expect(() => crearClienteHttp(insegura)).toThrow("url_base_insegura");
   expect(() => crearClienteHttp({ ...insegura, enDesarrollo: true })).not.toThrow();
 });
+
+test("RF-402: la subida binaria envía el JPEG tal cual con su content-type, el token y sin JSON", async () => {
+  const peticiones: Peticion[] = [];
+  const fetchImpl = (async (url: string, init: RequestInit) => {
+    peticiones.push({ url, init });
+    return respuestaFalsa(200, { orden: 1, bytes: 4 });
+  }) as unknown as typeof fetch;
+  const foto = new Uint8Array([0xff, 0xd8, 0xff, 0xe0]);
+
+  const cliente = crearClienteHttp(opcionesBase({ fetchImpl }));
+  const resultado = await cliente.solicitarBinario<{ orden: number }>("PUT", "/evidencias/e1/archivos/1", foto, "image/jpeg");
+
+  expect(resultado).toEqual({ orden: 1, bytes: 4 });
+  expect(peticiones[0].url).toBe("https://api.ejemplo/v1/evidencias/e1/archivos/1");
+  expect(peticiones[0].init.method).toBe("PUT");
+  expect(peticiones[0].init.body).toBe(foto);
+  const cabeceras = peticiones[0].init.headers as Record<string, string>;
+  expect(cabeceras["content-type"]).toBe("image/jpeg");
+  expect(cabeceras.authorization).toBe("Bearer jwt-inicial");
+});
+
+test("RF-402: la subida binaria también renueva la sesión una vez ante un 401 y reintenta el mismo binario", async () => {
+  const cuerpos: unknown[] = [];
+  const respuestas = [respuestaFalsa(401, { codigo: "acceso_denegado" }), respuestaFalsa(200, { orden: 2, bytes: 1 })];
+  const fetchImpl = (async (_url: string, init: RequestInit) => {
+    cuerpos.push(init.body);
+    return respuestas[cuerpos.length - 1];
+  }) as unknown as typeof fetch;
+  const foto = new Uint8Array([1]);
+
+  const cliente = crearClienteHttp(opcionesBase({ fetchImpl }));
+  await cliente.solicitarBinario("PUT", "/evidencias/e1/archivos/2", foto, "image/jpeg");
+
+  expect(cuerpos).toEqual([foto, foto]);
+});

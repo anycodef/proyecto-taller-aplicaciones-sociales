@@ -14,6 +14,11 @@ import { CompartirEnlace } from '@/components/seguridad/compartir-enlace';
 import { ComponenteConsentimiento } from '@/components/seguridad/consentimiento';
 import { TarjetaCarne } from '@/components/catequizandos/tarjeta-carne';
 import { ConfirmacionEscaneo } from '@/components/asistencia/confirmacion-escaneo';
+import { SelectorAusencias } from '@/components/justificaciones/selector-ausencias';
+import { SelectorCausa } from '@/components/justificaciones/selector-causa';
+import { TarjetaLote } from '@/components/justificaciones/tarjeta-lote';
+import { VisorEvidencia } from '@/components/justificaciones/visor-evidencia';
+import type { Causa } from '@/lib/justificaciones/tipos';
 import { colores, espacio, tipografia } from '@/tema';
 import { useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
@@ -23,6 +28,8 @@ export default function Galeria() {
   const [nombre, setNombre] = useState('');
   const [sexo, setSexo] = useState<string | null>(null);
   const [pin, setPin] = useState('');
+  const [seleccionAusencias, setSeleccionAusencias] = useState<ReadonlySet<string>>(new Set(['n1|s1']));
+  const [causa, setCausa] = useState<Causa | null>(null);
 
   if (verResultado) {
     return (
@@ -145,6 +152,35 @@ export default function Galeria() {
         <ConfirmacionEscaneo estado="otro_grupo" />
         <ConfirmacionEscaneo estado="ya_registrado" />
         <ConfirmacionEscaneo estado="invalido" />
+      </Seccion>
+
+      <Seccion titulo="Justificar una ausencia">
+        <SelectorAusencias
+          ausencias={[
+            { catequizandoId: 'n1', nombre: 'Ana Demostración', sesionId: 's1', tipoSesion: 'misa', fecha: '2026-11-08', venceEn: '2026-11-15T23:59:59-05:00' },
+            { catequizandoId: 'n1', nombre: 'Ana Demostración', sesionId: 's2', tipoSesion: 'catequesis', fecha: '2026-11-08', venceEn: '2026-11-15T23:59:59-05:00' },
+          ]}
+          seleccion={seleccionAusencias}
+          alAlternar={(clave) => setSeleccionAusencias((actual) => (actual.has(clave) ? new Set([...actual].filter((c) => c !== clave)) : new Set([...actual, clave])))}
+        />
+        <SelectorCausa valor={causa} alCambiar={setCausa} />
+      </Seccion>
+
+      <Seccion titulo="Bandeja de justificaciones">
+        <TarjetaLote
+          alPresionar={() => undefined}
+          lote={{
+            loteId: 'lote-1',
+            justificaciones: [
+              { id: 'j1', catequizandoId: 'n1', nombre: 'Ana Demostración', fecha: '2026-11-08', tipoSesion: 'misa', causa: 'salud_nino', enviadaEn: '2026-11-09T14:00:00.000Z', canal: 'enlace', duplicada: true },
+              { id: 'j2', catequizandoId: 'n1', nombre: 'Ana Demostración', fecha: '2026-11-08', tipoSesion: 'catequesis', causa: 'salud_nino', enviadaEn: '2026-11-09T14:00:00.000Z', canal: 'enlace', duplicada: false },
+            ],
+          }}
+        />
+      </Seccion>
+
+      <Seccion titulo="Visor de evidencia">
+        <VisorEvidencia urls={[]} />
       </Seccion>
     </ScrollView>
   );

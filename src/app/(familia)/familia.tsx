@@ -17,7 +17,6 @@ export default function Familia() {
       pendientes={[
         "Asistencias del ciclo y cuantas faltan para el sacramento",
         ...modulos.proximamente.map((modulo) => `${modulo.titulo}: ${modulo.subtitulo.toLowerCase()}`),
-        "Estado de revision de cada justificacion enviada",
       ]}
     >
       {modulos.conectados.map((modulo) => (
@@ -28,6 +27,11 @@ export default function Familia() {
           alPresionar={() => router.push(modulo.ruta as Href)}
         />
       ))}
+      <FilaNavegacion
+        titulo="Mis justificaciones"
+        subtitulo="Estado de lo que ya enviaste"
+        alPresionar={() => router.push("/familia/mis-justificaciones" as Href)}
+      />
     </PantallaRol>
   );
 }
