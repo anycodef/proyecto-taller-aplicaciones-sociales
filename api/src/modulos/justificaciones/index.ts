@@ -1,4 +1,5 @@
-export { registrarJustificaciones, manejadoresJustificaciones } from "./http";
+export { registrarJustificaciones, manejadoresJustificaciones, manejadoresCoordinacion } from "./http";
+export { registrarAlCambiarJustificacion } from "./dominio/puertos";
 export { configurarAlmacenEvidencias } from "./infraestructura/almacen";
 export { participanteRetencionJustificaciones } from "./aplicacion/depurar-evidencias";
 export { repositorioEvidenciasPg } from "./infraestructura/repositorio-evidencias-pg";

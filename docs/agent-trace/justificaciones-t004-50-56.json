@@ -1,0 +1,47 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-11",
+  "agente": "Claude Code",
+  "modelo": "claude-opus-5-5",
+  "rama": "feat/004-justificaciones",
+  "tarea": "T004-50-56",
+  "solicitud": "Implementar la API de la fase 6 de la spec 004.",
+  "alcance": [
+    "api/src/modulos/justificaciones/aplicacion/coordinacion.ts",
+    "api/src/modulos/justificaciones/aplicacion/crear-lote.ts",
+    "api/src/modulos/justificaciones/http/index.ts",
+    "api/src/modulos/justificaciones/index.ts",
+    "api/src/modulos/justificaciones/dominio/puertos.ts",
+    "api/openapi.json",
+    "api/test/http/inventario.test.ts",
+    "api/test/integracion/justificaciones/http-coordinacion.test.ts",
+    "src/lib/seguridad/matriz-permisos.ts",
+    "specs/004-justificaciones/tasks.md",
+    "docs/agent-trace/justificaciones-t004-50-56.json"
+  ],
+  "criterio": "Pasan los 26 tests de http-coordinacion.test.ts con los nombres de T004-50 y T004-52 a T004-56; npm test completo en verde.",
+  "decisiones": [
+    "El historial muestra la identidad operativa de quien registró o revisó, nunca su identidad real.",
+    "La coordinación queda sujeta al mismo plazo que la familia (A-04) y solo registra para hijos con vínculo vigente del apoderado indicado.",
+    "El plazo usa la ruta ciclos/{id} para seguir la convención de parámetros de ciclos.",
+    "El inventario de arranque pasa de 73 a 80 bindings."
+  ],
+  "comprobaciones": [
+    {
+      "comando": "npm test (cliente 184, API 316 con PostgreSQL y Azurite); npm run typecheck; npm run lint; node api/scripts/verificar-openapi.mjs (80 operaciones)",
+      "resultado": "Pasa: 26 tests de integración HTTP."
+    },
+    {
+      "comando": "npm run typecheck",
+      "resultado": "Pasa en raíz y API."
+    },
+    {
+      "comando": "npm run lint",
+      "resultado": "Pasa sin errores."
+    }
+  ],
+  "limites": [
+    "Un solo commit para T004-50 y T004-52 a T004-56: comparten coordinacion.ts y el registro HTTP. El notificador alCambiarJustificacion queda vacío hasta T004-66."
+  ],
+  "notas": "API de coordinación de la spec 004."
+}

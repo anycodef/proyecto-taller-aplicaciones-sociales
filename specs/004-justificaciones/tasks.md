@@ -350,7 +350,7 @@
 
 ## Fase 6 — Coordinación: plazo, bandeja, revisión, evidencia y registro en nombre de
 
-- [ ] **T004-50** Implementar `configurar-plazo.ts` y `GET`/`PUT /ciclos/{cicloId}/plazo-justificacion` **[Supuesto A-11]**
+- [x] **T004-50** Implementar `configurar-plazo.ts` y `GET`/`PUT /ciclos/{cicloId}/plazo-justificacion` **[Supuesto A-11]**
   - RF: RF-405
   - Depende de: T004-26, T004-14, T001 (F1: auditoría `0102`)
   - Hecho cuando: pasan los tests HTTP:
@@ -366,7 +366,7 @@
   - Depende de: T004-50
   - Hecho cuando: pasan `RF-405: la pantalla muestra el plazo vigente y guarda uno nuevo` y `RF-405: sin conexión avisa y no guarda nada`. `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T004-52** Implementar `bandeja.ts` y `GET /justificaciones/bandeja`
+- [x] **T004-52** Implementar `bandeja.ts` y `GET /justificaciones/bandeja`
   - RF: RF-408, RF-403
   - Depende de: T004-25, T004-14
   - Hecho cuando: pasan los tests HTTP:
@@ -377,7 +377,7 @@
 
     `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T004-53** Implementar `revisar.ts` y `POST /justificaciones/revisiones`
+- [x] **T004-53** Implementar `revisar.ts` y `POST /justificaciones/revisiones`
   - RF: RF-408, RF-403
   - Depende de: T004-52, T004-24, T008 (Fase 0: rechazo de escrituras con el ciclo cerrado)
   - Hecho cuando: pasan los tests HTTP:
@@ -389,7 +389,7 @@
 
     El servicio llama a un notificador vacío que se completa en T004-66. `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T004-54** Implementar `obtener-evidencia.ts` y `GET /justificaciones/{id}/evidencia`, con auditoría **[Supuesto A-07]**
+- [x] **T004-54** Implementar `obtener-evidencia.ts` y `GET /justificaciones/{id}/evidencia`, con auditoría **[Supuesto A-07]**
   - RF: RF-407, RF-410, RNF-403, RNF-405
   - Depende de: T004-31, T004-15, T001 (F1: auditoría `0102`)
   - Hecho cuando: pasan los tests HTTP:
@@ -401,12 +401,12 @@
 
     `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T004-55** Implementar `GET /catequizandos/{id}/justificaciones` (historial del perfil)
+- [x] **T004-55** Implementar `GET /catequizandos/{id}/justificaciones` (historial del perfil)
   - RF: RF-407, RF-410, RF-406
   - Depende de: T004-25, T004-15
   - Hecho cuando: pasan los tests HTTP `RF-407: el perfil lista la ausencia, la causa, la fecha de envío, quién la envió y el canal`, `RF-406: muestra «registrada por la coordinación en nombre de» con quién y cuándo` y `RF-410: un catequista de otro grupo recibe 403`. `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T004-56** Habilitar el registro en nombre de un apoderado en la API **[Supuesto A-04]**
+- [x] **T004-56** Habilitar el registro en nombre de un apoderado en la API **[Supuesto A-04]**
   - RF: RF-406
   - Depende de: T004-32, T004-37, T002 (Fase 1: `GET /apoderados` y apoderados del niño)
   - Hecho cuando: existe `GET /coordinacion/catequizandos/{id}/ausencias-justificables` y `POST /justificaciones/lotes` acepta `apoderadoId` con canal coordinación. Pasan los tests HTTP:

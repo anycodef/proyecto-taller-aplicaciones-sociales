@@ -74,3 +74,11 @@ export type PlazoCiclo = { cicloId: string; diasPlazo: number; predeterminado: b
 export type JustificacionEnBandeja = Justificacion & { duplicada: boolean };
 export type LoteBandeja = { loteId: string; justificaciones: JustificacionEnBandeja[] };
 export type CambioEstado = Pick<AusenciaRef, "catequizandoId" | "sesionId" | "fecha" | "tipoSesion"> & { id: string; estadoVisible: EstadoVisible; actualizadoEn: string };
+
+/** 006 y 007 se suscriben en proceso; la notificación corre en la misma transacción (D-414). */
+export type AlCambiarJustificacion = (evento: { justificaciones: readonly Justificacion[] }, tx: Tx) => Promise<void>;
+let alCambiarJustificacion: AlCambiarJustificacion = async () => undefined;
+export function registrarAlCambiarJustificacion(puerto: AlCambiarJustificacion): void { alCambiarJustificacion = puerto; }
+export async function notificarCambioJustificacion(justificaciones: readonly Justificacion[], tx: Tx): Promise<void> {
+  if (justificaciones.length) await alCambiarJustificacion({ justificaciones }, tx);
+}
