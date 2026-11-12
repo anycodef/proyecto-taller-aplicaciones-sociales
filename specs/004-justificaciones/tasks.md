@@ -70,7 +70,7 @@
   - Depende de: T004-08
   - Hecho cuando: pasan `justificables.test.ts › RF-401: misa y catequesis del mismo domingo se muestran en una fila`, `RF-404: ofrece las sesiones futuras del ciclo que no tienen justificación` y `RF-404: no ofrece como anticipables sesiones pasadas ni de otro ciclo`. `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T004-10** Implementar `evidencia.ts` (validación de metadatos) **[Supuesto A-06]**
+- [x] **T004-10** Implementar `evidencia.ts` (validación de metadatos) **[Supuesto A-06]**
   - RF: RF-402, RNF-402, RNF-403
   - Depende de: T004-04
   - Hecho cuando: pasan `evidencia.test.ts › RNF-402: rechaza un archivo de más de 307 200 bytes`, `RNF-403: rechaza un content-type distinto de image/jpeg` y `RF-402: exige entre 1 y 3 fotos`. `npm test`, `npm run typecheck` y `npm run lint` pasan.
