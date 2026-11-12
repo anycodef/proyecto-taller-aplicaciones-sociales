@@ -483,7 +483,7 @@
 
     `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T004-68** Implementar el temporizador `limpiarEvidenciasHuerfanas` (todos los días a las 03:00 de Lima)
+- [x] **T004-68** Implementar el temporizador `limpiarEvidenciasHuerfanas` (todos los días a las 03:00 de Lima)
   - RF: RNF-403
   - Depende de: T004-22, T004-31
   - Hecho cuando: con reloj falso pasan `RNF-403: las reservas no confirmadas de más de 24 h se borran y se marcan huerfana` y `RNF-403: la limpieza no toca las evidencias confirmadas`. El cron está en UTC (`0 0 8 * * *`). `npm test`, `npm run typecheck` y `npm run lint` pasan.

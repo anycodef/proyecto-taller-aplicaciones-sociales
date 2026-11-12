@@ -35,8 +35,9 @@ test("RNF-106 RF-101 RF-106 RF-201 RF-307: el arranque real registra 80 bindings
     expect(orden).toEqual(["asistencia", "catequizandos", "seguridad", "avisos", "justificaciones"]);
     expect(resumen).toHaveBeenCalledWith(expect.objectContaining({ nombre: "resumenAsistencia", consultar: expect.any(Function) }));
     const timers = jest.mocked(app.timer).mock.calls as [string, TimerFunctionOptions][];
-    expect(timers.map(([nombre]) => nombre).sort()).toEqual(["borradosPendientes", "depurarMetadatos", "generarSesionesDominicales", "precalentarDomingo", "purgaAuditoria", "retencionDiaria"]);
+    expect(timers.map(([nombre]) => nombre).sort()).toEqual(["borradosPendientes", "depurarMetadatos", "generarSesionesDominicales", "limpiarEvidenciasHuerfanas", "precalentarDomingo", "purgaAuditoria", "retencionDiaria"]);
     expect(timers.find(([nombre]) => nombre === "depurarMetadatos")?.[1].schedule).toBe("0 30 9 * * *");
+    expect(timers.find(([nombre]) => nombre === "limpiarEvidenciasHuerfanas")?.[1].schedule).toBe("0 0 8 * * *");
     expect(bd.obtenerPool).not.toHaveBeenCalled();
     expect(bd.consultar).not.toHaveBeenCalled();
   } finally {

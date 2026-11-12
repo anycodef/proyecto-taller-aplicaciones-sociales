@@ -10,6 +10,7 @@ import { ErrorAplicacion, respuesta } from "../../../compartido/http/respuestas"
 import { validarCuerpo } from "../../../compartido/http/validar-cuerpo";
 import { consultarBandeja, consultarPlazo, definirPlazo, esquemaPlazo, esquemaRevision, historialCatequizando, justificablesParaCoordinacion, obtenerEvidencia, revisarJustificaciones } from "../aplicacion/coordinacion";
 import { crearLote, esquemaLote } from "../aplicacion/crear-lote";
+import { CRON_LIMPIAR_HUERFANAS, limpiarEvidenciasHuerfanas } from "../aplicacion/limpiar-huerfanas";
 import { listarAnticipables, listarJustificables, listarMisJustificaciones } from "../aplicacion/familia";
 import { esquemaReserva, reservarEvidencia } from "../aplicacion/reservar-evidencia";
 import { obtenerAlmacenEvidencias } from "../infraestructura/almacen";
@@ -105,4 +106,5 @@ export function registrarJustificaciones(): void {
   app.http("historialJustificaciones", { methods: ["GET"], authLevel: "function", route: "catequizandos/{id}/justificaciones", handler: manejadoresCoordinacion.historial });
   app.http("justificablesCoordinacion", { methods: ["GET"], authLevel: "function", route: "coordinacion/catequizandos/{id}/ausencias-justificables", handler: manejadoresCoordinacion.justificablesDeNino });
   app.http("crearLoteJustificaciones", { methods: ["POST"], authLevel: "function", route: "justificaciones/lotes", handler: manejadoresJustificaciones.crearLote });
+  app.timer("limpiarEvidenciasHuerfanas", { schedule: CRON_LIMPIAR_HUERFANAS, handler: async () => { await limpiarEvidenciasHuerfanas(new Date()); } });
 }
