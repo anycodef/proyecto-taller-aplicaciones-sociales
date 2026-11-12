@@ -108,7 +108,7 @@
   - Depende de: T004-04, T001 (F1: `contexto-acceso` y `matriz-permisos`), T001 (F2: delegación `0103`)
   - Hecho cuando: pasan `permisos.test.ts › RF-408: solo la coordinación o un delegado vigente puede revisar`, `RF-408: supervisión no puede revisar`, `RF-408: un delegado con la delegación vencida no puede revisar`, `RF-406: solo la coordinación o un delegado registra en nombre de un apoderado` y `RF-401: un apoderado solo justifica a sus hijos`. `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T004-15** Implementar `puedeVerEstado` y `puedeVerEvidencia` y agregar las filas de 004 a la matriz de 001
+- [x] **T004-15** Implementar `puedeVerEstado` y `puedeVerEvidencia` y agregar las filas de 004 a la matriz de 001
   - RF: RF-410, RNF-403
   - Depende de: T004-14
   - Hecho cuando: `matriz-permisos.ts` tiene `justificacion:revisar`, `justificacion:registrar-en-nombre` y `justificacion:configurar-plazo`, y `justificacion:leer` y `evidencia:leer` con los alcances del plan. Pasan los tests de `permisos.test.ts`:

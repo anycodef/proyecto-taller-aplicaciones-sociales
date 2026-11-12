@@ -1,3 +1,4 @@
+import { autorizar } from "@/lib/seguridad/autorizacion";
 import type { ContextoAcceso } from "@/lib/seguridad/contexto-acceso";
 
 /** La delegación se revalida con `ahora`: el contexto pudo armarse antes de vencer. */
@@ -17,4 +18,16 @@ export function puedeRegistrarEnNombre(ctx: ContextoAcceso, ahora: Date): boolea
 /** Supervisión consulta pero no revisa (RF-408). */
 export function puedeRevisar(ctx: ContextoAcceso, ahora: Date): boolean {
   return coordinacionVigente(ctx, ahora);
+}
+
+export type NinoAlcance = { catequizandoId: string; grupoId: string };
+
+/** Familia y catequistas del grupo ven el estado; supervisión y coordinación, todo el ciclo. */
+export function puedeVerEstado(ctx: ContextoAcceso, nino: NinoAlcance): boolean {
+  return autorizar(ctx, "justificacion:leer", nino).permitido;
+}
+
+/** La familia nunca ve la evidencia por la plataforma, ni la propia (RF-410, RNF-403). */
+export function puedeVerEvidencia(ctx: ContextoAcceso, nino: NinoAlcance): boolean {
+  return autorizar(ctx, "evidencia:leer", nino).permitido;
 }

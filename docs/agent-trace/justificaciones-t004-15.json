@@ -1,0 +1,39 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-11",
+  "agente": "Claude Code",
+  "modelo": "claude-opus-5-5",
+  "rama": "feat/004-justificaciones",
+  "tarea": "T004-15",
+  "solicitud": "Implementar puedeVerEstado y puedeVerEvidencia y agregar las filas de 004 a la matriz de 001.",
+  "alcance": [
+    "src/lib/justificaciones/permisos.ts",
+    "src/lib/justificaciones/__tests__/permisos.test.ts",
+    "src/lib/seguridad/matriz-permisos.ts",
+    "specs/004-justificaciones/tasks.md",
+    "docs/agent-trace/justificaciones-t004-15.json"
+  ],
+  "criterio": "Pasan los tests RF-410 de permisos.test.ts; la matriz tiene las tres acciones nuevas y conserva justificacion:leer y evidencia:leer con los alcances del plan.",
+  "decisiones": [
+    "justificacion:leer y evidencia:leer ya existían con los alcances del plan; no se cambian.",
+    "Se verificaron además los tests de seguridad de la API (59) que consumen la matriz."
+  ],
+  "comprobaciones": [
+    {
+      "comando": "npx jest src/lib/justificaciones",
+      "resultado": "Pasa: 81 tests de src/lib; 59 tests de seguridad de API."
+    },
+    {
+      "comando": "npm run typecheck",
+      "resultado": "Pasa en raíz y API."
+    },
+    {
+      "comando": "npm run lint",
+      "resultado": "Pasa sin errores."
+    }
+  ],
+  "limites": [
+    "La suite completa npm test (cliente y API con PostgreSQL) se ejecuta al cerrar la fase 1."
+  ],
+  "notas": "Dominio puro en TypeScript, sin React, React Native ni Expo."
+}

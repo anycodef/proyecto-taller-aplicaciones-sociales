@@ -1,5 +1,6 @@
-import { puedeJustificar, puedeRegistrarEnNombre, puedeRevisar } from "@/lib/justificaciones/permisos";
+import { puedeJustificar, puedeRegistrarEnNombre, puedeRevisar, puedeVerEstado, puedeVerEvidencia } from "@/lib/justificaciones/permisos";
 import type { ContextoAcceso, Rol } from "@/lib/seguridad/contexto-acceso";
+import { MATRIZ_PERMISOS } from "@/lib/seguridad/matriz-permisos";
 
 const ahora = new Date("2026-11-04T15:00:00Z");
 
@@ -38,4 +39,34 @@ test("RF-401: un apoderado solo justifica a sus hijos", () => {
   expect(puedeJustificar(familia, "nino-1")).toBe(true);
   expect(puedeJustificar(familia, "nino-9")).toBe(false);
   expect(puedeJustificar(contexto(["coordinacion"], { catequizandosApoderados: ["nino-1"] }), "nino-1")).toBe(false);
+});
+
+const nino = { catequizandoId: "nino-1", grupoId: "grupo-a" };
+
+test("RF-410: un catequista de otro grupo no ve estado ni evidencia", () => {
+  const otro = contexto(["catequista"], { gruposAsignados: ["grupo-b"] });
+  expect(puedeVerEstado(otro, nino)).toBe(false);
+  expect(puedeVerEvidencia(otro, nino)).toBe(false);
+});
+
+test("RF-410: la familia ve el estado pero no la evidencia", () => {
+  const familia = contexto(["familia"], { catequizandosApoderados: ["nino-1"] });
+  expect(puedeVerEstado(familia, nino)).toBe(true);
+  expect(puedeVerEvidencia(familia, nino)).toBe(false);
+  expect(puedeVerEstado(contexto(["familia"], { catequizandosApoderados: ["nino-2"] }), nino)).toBe(false);
+});
+
+test("RF-410: supervisión y catequista del grupo ven la evidencia", () => {
+  const delGrupo = contexto(["catequista"], { gruposAsignados: ["grupo-a"] });
+  for (const ctx of [contexto(["supervision"]), delGrupo, contexto(["coordinacion"])]) {
+    expect(puedeVerEstado(ctx, nino)).toBe(true);
+    expect(puedeVerEvidencia(ctx, nino)).toBe(true);
+  }
+  expect(puedeVerEvidencia(contexto(["administracion"]), nino)).toBe(false);
+});
+
+test("RF-408: la matriz reserva revisar, registrar en nombre y configurar el plazo a la coordinación", () => {
+  for (const accion of ["justificacion:revisar", "justificacion:registrar-en-nombre", "justificacion:configurar-plazo"] as const) {
+    expect(MATRIZ_PERMISOS[accion]).toEqual({ escritura: true, roles: { coordinacion: "ciclo" } });
+  }
 });
