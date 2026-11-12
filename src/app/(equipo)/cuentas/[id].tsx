@@ -1,4 +1,4 @@
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useCallback, useState } from "react";
 import { Alert, ScrollView, StyleSheet, Text, View } from "react-native";
 
@@ -16,9 +16,11 @@ const ETIQUETA_ROL: Record<string, string> = {
   supervision: "Supervisión",
 };
 
-export default function FichaCuenta({ id }: { id: string }) {
+/** Expo Router entrega el `id` como parámetro de ruta; la propiedad `id` queda para las pruebas. */
+export default function FichaCuenta({ id }: { id?: string }) {
   const { api } = useSesion();
-  const cuentaId = id ?? "";
+  const parametros = useLocalSearchParams<{ id?: string }>();
+  const cuentaId = id ?? parametros?.id ?? "";
   const cargar = useCallback(() => api.leerCuenta(cuentaId), [api, cuentaId]);
   const { datos, error, cargando, recargar } = useCarga(cargar);
   const [mensaje, setMensaje] = useState<string | null>(null);
