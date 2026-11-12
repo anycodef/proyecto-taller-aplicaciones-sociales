@@ -171,7 +171,7 @@
   - Depende de: T004-23, T004-07
   - Hecho cuando: pasan `contrato-justificaciones.test.ts › RF-408: revisar guarda revisada_por, revisada_en y su evento`, `RF-407: marcar sin efecto conserva la fila y registra el evento sin_efecto` y `RF-407: restaurar registra efecto_restaurado`. Cada escritura actualiza `actualizado_en`. `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T004-25** Implementar las consultas del repositorio (bandeja, perfil, familia y cambios)
+- [x] **T004-25** Implementar las consultas del repositorio (bandeja, perfil, familia y cambios)
   - RF: RF-403, RF-408, RF-410
   - Depende de: T004-24
   - Hecho cuando: pasan los tests de `contrato-justificaciones.test.ts`:

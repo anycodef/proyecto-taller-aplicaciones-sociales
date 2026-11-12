@@ -1,4 +1,4 @@
-import type { AusenciaRef, Justificacion } from "@/lib/justificaciones/tipos";
+import type { AusenciaRef, EstadoVisible, Justificacion } from "@/lib/justificaciones/tipos";
 import type { Tx } from "../../../compartido/bd/transaccion";
 
 export type EstadoEvidencia = "reservada" | "confirmada" | "eliminada";
@@ -47,4 +47,15 @@ export interface RepositorioJustificaciones {
   /** Devuelve los ids afectados; la justificación se conserva (RF-407). */
   marcarSinEfecto(tx: Tx, ausencia: Pick<AusenciaRef, "catequizandoId" | "sesionId">, en: Date): Promise<string[]>;
   restaurarEfecto(tx: Tx, ausencia: Pick<AusenciaRef, "catequizandoId" | "sesionId">): Promise<string[]>;
+  /** Pendientes con efecto del ciclo, agrupadas por lote para revisarlas juntas (RF-403, RF-408). */
+  bandeja(tx: Tx, cicloId: string): Promise<LoteBandeja[]>;
+  listarPorCatequizando(tx: Tx, catequizandoId: string): Promise<Justificacion[]>;
+  /** Todas las de sus hijos con vínculo vigente, también las del otro apoderado (supuesto A-14). */
+  listarPorApoderado(tx: Tx, apoderadoId: string): Promise<Justificacion[]>;
+  /** Para el pull de 003: solo estado, sin causa, motivo ni evidencia (D-408). Puede reentregar la última fila del cursor. */
+  cambiosDesde(tx: Tx, desde: Date, catequizandoIds?: readonly string[]): Promise<CambioEstado[]>;
 }
+
+export type JustificacionEnBandeja = Justificacion & { duplicada: boolean };
+export type LoteBandeja = { loteId: string; justificaciones: JustificacionEnBandeja[] };
+export type CambioEstado = Pick<AusenciaRef, "catequizandoId" | "sesionId" | "fecha" | "tipoSesion"> & { id: string; estadoVisible: EstadoVisible; actualizadoEn: string };

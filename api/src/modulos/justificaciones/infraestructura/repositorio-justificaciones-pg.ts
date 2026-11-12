@@ -1,6 +1,6 @@
 import { ErrorJustificacion, type AusenciaRef, type Justificacion } from "@/lib/justificaciones/tipos";
 import type { Tx } from "../../../compartido/bd/transaccion";
-import type { RepositorioJustificaciones } from "../dominio/puertos";
+import type { CambioEstado, LoteBandeja, RepositorioJustificaciones } from "../dominio/puertos";
 
 type Fila = {
   id: string; lote_id: string; ciclo_id: string; catequizando_id: string; sesion_id: string; tipo_sesion: Justificacion["tipoSesion"];
@@ -82,4 +82,41 @@ async function restaurarEfecto(tx: Tx, a: Ausencia): Promise<string[]> {
   return filas.rows.map(f => f.id);
 }
 
-export const repositorioJustificacionesPg: RepositorioJustificaciones = { insertarLote, obtener, guardarRevision, marcarSinEfecto, restaurarEfecto };
+const ORDEN = "ORDER BY j.fecha_sesion,j.catequizando_id,j.sesion_id,j.enviada_en";
+
+async function bandeja(tx: Tx, cicloId: string): Promise<LoteBandeja[]> {
+  const filas = await tx.query<Fila & { duplicada: boolean }>(`SELECT ${COLUMNAS_JUSTIFICACION},
+    EXISTS(SELECT 1 FROM justificacion o WHERE o.catequizando_id=j.catequizando_id AND o.sesion_id=j.sesion_id AND o.id<>j.id AND o.sin_efecto_desde IS NULL) AS duplicada
+    FROM justificacion j WHERE j.ciclo_id=$1 AND j.estado_revision='pendiente' AND j.sin_efecto_desde IS NULL ORDER BY j.enviada_en,j.lote_id,j.fecha_sesion,j.catequizando_id`, [cicloId]);
+  const lotes = new Map<string, LoteBandeja>();
+  for (const fila of filas.rows) {
+    const lote = lotes.get(fila.lote_id) ?? { loteId: fila.lote_id, justificaciones: [] };
+    lote.justificaciones.push({ ...aJustificacion(fila), duplicada: fila.duplicada });
+    lotes.set(fila.lote_id, lote);
+  }
+  return [...lotes.values()];
+}
+
+async function listarPorCatequizando(tx: Tx, catequizandoId: string): Promise<Justificacion[]> {
+  const filas = await tx.query<Fila>(`SELECT ${COLUMNAS_JUSTIFICACION} FROM justificacion j WHERE j.catequizando_id=$1 ${ORDEN}`, [catequizandoId]);
+  return filas.rows.map(aJustificacion);
+}
+
+async function listarPorApoderado(tx: Tx, apoderadoId: string): Promise<Justificacion[]> {
+  const filas = await tx.query<Fila>(`SELECT ${COLUMNAS_JUSTIFICACION} FROM justificacion j
+    WHERE j.catequizando_id IN (SELECT catequizando_id FROM vinculo_apoderado WHERE apoderado_id=$1 AND vigente_hasta IS NULL) ${ORDEN}`, [apoderadoId]);
+  return filas.rows.map(aJustificacion);
+}
+
+async function cambiosDesde(tx: Tx, desde: Date, catequizandoIds?: readonly string[]): Promise<CambioEstado[]> {
+  const filas = await tx.query<{ id: string; catequizando_id: string; sesion_id: string; fecha_sesion: string; tipo_sesion: CambioEstado["tipoSesion"]; estado_visible: CambioEstado["estadoVisible"]; actualizado_en: Date }>(
+    `SELECT id,catequizando_id,sesion_id,fecha_sesion::text AS fecha_sesion,tipo_sesion,
+      CASE WHEN sin_efecto_desde IS NOT NULL THEN 'sin_efecto' ELSE estado_revision END AS estado_visible,actualizado_en
+      FROM justificacion WHERE actualizado_en>$1 AND ($2::uuid[] IS NULL OR catequizando_id=ANY($2::uuid[])) ORDER BY actualizado_en,id`,
+    [desde, catequizandoIds ? [...catequizandoIds] : null]);
+  return filas.rows.map(f => ({ id: f.id, catequizandoId: f.catequizando_id, sesionId: f.sesion_id, fecha: f.fecha_sesion, tipoSesion: f.tipo_sesion, estadoVisible: f.estado_visible, actualizadoEn: f.actualizado_en.toISOString() }));
+}
+
+export const repositorioJustificacionesPg: RepositorioJustificaciones = {
+  insertarLote, obtener, guardarRevision, marcarSinEfecto, restaurarEfecto, bandeja, listarPorCatequizando, listarPorApoderado, cambiosDesde,
+};

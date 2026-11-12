@@ -147,3 +147,54 @@ test("RF-407: restaurar registra efecto_restaurado", async () => {
   expect((await sello(j.id)).getTime()).toBeGreaterThan(antes.getTime());
   expect((await tiposEvento(j.id)).map(e => e.tipo)).toEqual(["creada", "sin_efecto", "efecto_restaurado"]);
 });
+
+test("RF-408: las pendientes del ciclo salen agrupadas por lote", async () => {
+  const conjunto = expandirLote(lote(), enviadaEn);
+  await enTx(bd, tx => repo.insertarLote(tx, conjunto, s.cuentaId));
+  const { j: revisada } = await loteEnSesionNueva("2026-10-18");
+  await enTx(bd, tx => repo.guardarRevision(tx, revisar(revisada, "aprobada", s.cuentaId, "2026-11-03T15:00:00.000Z")));
+  const lotes = await enTx(bd, tx => repo.bandeja(tx, s.cicloId));
+  const delConjunto = lotes.find(l => l.loteId === conjunto[0].loteId);
+  expect(delConjunto?.justificaciones.map(j => j.catequizandoId).sort()).toEqual([s.catequizandoId, s.hermanoId].sort());
+  expect(lotes.some(l => l.loteId === revisada.loteId)).toBe(false);
+  expect(lotes.flatMap(l => l.justificaciones).every(j => j.estadoRevision === "pendiente" && !j.sinEfectoDesde)).toBe(true);
+  expect(new Set(lotes.map(l => l.loteId)).size).toBe(lotes.length);
+});
+
+test("RF-408: la consulta marca las ausencias con más de una justificación", async () => {
+  const { j: unica } = await loteEnSesionNueva("2026-10-11");
+  const { j: primera, ausencia } = await loteEnSesionNueva("2026-10-04");
+  const segundaEntrada = lote({ ausencias: [{ ...lote().ausencias[0], ...ausencia, fecha: "2026-10-04" }] });
+  const [segunda] = await enTx(bd, tx => repo.insertarLote(tx, expandirLote(segundaEntrada, enviadaEn), s.cuentaId));
+  const marcas = new Map((await enTx(bd, tx => repo.bandeja(tx, s.cicloId))).flatMap(l => l.justificaciones).map(j => [j.id, j.duplicada]));
+  expect(marcas.get(unica.id)).toBe(false);
+  expect(marcas.get(primera.id)).toBe(true);
+  expect(marcas.get(segunda.id)).toBe(true);
+});
+
+test("RF-410: listarPorApoderado devuelve solo las de sus hijos", async () => {
+  const [otroApoderado, otroNino, otraEvidencia] = [randomUUID(), randomUUID(), randomUUID()];
+  await bd.admin.query("INSERT INTO apoderado(id,nombres,apellidos,tipo_contacto,valor_contacto) VALUES($1,'Otro','Adulto','otro','prueba')", [otroApoderado]);
+  await bd.admin.query("INSERT INTO catequizando(id,nombres,apellidos,fecha_nacimiento,sexo,bautizado,creado_por) VALUES($1,'Luis','Prueba','2015-01-01','masculino',true,$2)", [otroNino, s.cuentaId]);
+  await bd.admin.query("INSERT INTO vinculo_apoderado(id,catequizando_id,apoderado_id,relacion) VALUES($1,$2,$3,'padre')", [randomUUID(), otroNino, otroApoderado]);
+  await bd.admin.query("INSERT INTO evidencia(id,ciclo_id,subida_por) VALUES($1,$2,$3)", [otraEvidencia, s.cicloId, s.cuentaId]);
+  const ajena = expandirLote(lote({ apoderadoId: otroApoderado, evidenciaId: otraEvidencia, ausencias: [{ ...lote().ausencias[0], catequizandoId: otroNino }] }), enviadaEn);
+  await enTx(bd, tx => repo.insertarLote(tx, ajena, s.cuentaId));
+  const propias = await enTx(bd, tx => repo.listarPorApoderado(tx, s.apoderadoId));
+  expect(propias.length).toBeGreaterThan(0);
+  expect(propias.every(j => [s.catequizandoId, s.hermanoId].includes(j.catequizandoId))).toBe(true);
+  expect((await enTx(bd, tx => repo.listarPorApoderado(tx, otroApoderado))).map(j => j.id)).toEqual(ajena.map(j => j.id));
+  expect((await enTx(bd, tx => repo.listarPorCatequizando(tx, otroNino))).map(j => j.id)).toEqual(ajena.map(j => j.id));
+});
+
+test("RF-410: cambiosDesde devuelve solo filas con actualizado_en posterior", async () => {
+  const desde = (await bd.app.query("SELECT clock_timestamp() AS ahora")).rows[0].ahora as Date;
+  const { j, ausencia } = await loteEnSesionNueva("2026-09-27");
+  await enTx(bd, tx => repo.marcarSinEfecto(tx, ausencia, new Date("2026-11-04T15:00:00.000Z")));
+  const cambios = await enTx(bd, tx => repo.cambiosDesde(tx, desde));
+  expect(cambios).toEqual([{ id: j.id, catequizandoId: s.catequizandoId, sesionId: ausencia.sesionId, fecha: "2026-09-27", tipoSesion: "misa", estadoVisible: "sin_efecto", actualizadoEn: expect.any(String) }]);
+  expect(Object.keys(cambios[0])).not.toEqual(expect.arrayContaining(["causa"]));
+  expect(await enTx(bd, tx => repo.cambiosDesde(tx, desde, [s.hermanoId]))).toEqual([]);
+  // El cursor en milisegundos puede reentregar la última fila (microsegundos en PostgreSQL); el pull es idempotente.
+  expect(await enTx(bd, tx => repo.cambiosDesde(tx, new Date(Date.parse(cambios[0].actualizadoEn) + 1)))).toEqual([]);
+});
