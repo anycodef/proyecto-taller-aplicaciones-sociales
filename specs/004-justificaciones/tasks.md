@@ -166,7 +166,7 @@
   - Depende de: T004-22, T004-12
   - Hecho cuando: pasan `contrato-justificaciones.test.ts › RF-403: reinsertar el mismo lote es idempotente`, `RF-403: si falla una inserción del lote no queda ninguna` y `RF-407: cada justificación insertada tiene su evento creada`. `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T004-24** Implementar en el repositorio la revisión, «sin efecto» y la restauración
+- [x] **T004-24** Implementar en el repositorio la revisión, «sin efecto» y la restauración
   - RF: RF-407, RF-408
   - Depende de: T004-23, T004-07
   - Hecho cuando: pasan `contrato-justificaciones.test.ts › RF-408: revisar guarda revisada_por, revisada_en y su evento`, `RF-407: marcar sin efecto conserva la fila y registra el evento sin_efecto` y `RF-407: restaurar registra efecto_restaurado`. Cada escritura actualiza `actualizado_en`. `npm test`, `npm run typecheck` y `npm run lint` pasan.

@@ -1,4 +1,4 @@
-import { ErrorJustificacion, type Justificacion } from "@/lib/justificaciones/tipos";
+import { ErrorJustificacion, type AusenciaRef, type Justificacion } from "@/lib/justificaciones/tipos";
 import type { Tx } from "../../../compartido/bd/transaccion";
 import type { RepositorioJustificaciones } from "../dominio/puertos";
 
@@ -55,4 +55,31 @@ async function insertarLote(tx: Tx, justificaciones: readonly Justificacion[], p
   return listarPorLote(tx, loteId);
 }
 
-export const repositorioJustificacionesPg: RepositorioJustificaciones = { insertarLote };
+async function obtener(tx: Tx, id: string): Promise<Justificacion | undefined> {
+  const filas = await tx.query<Fila>(`SELECT ${COLUMNAS_JUSTIFICACION} FROM justificacion j WHERE j.id=$1`, [id]);
+  return filas.rows[0] && aJustificacion(filas.rows[0]);
+}
+
+async function guardarRevision(tx: Tx, j: Justificacion): Promise<void> {
+  if (j.estadoRevision === "pendiente" || !j.revisadaPor || !j.revisadaEn) throw new ErrorJustificacion("revision_incompleta");
+  const actualizada = await tx.query(`UPDATE justificacion SET estado_revision=$2,revisada_por=$3,revisada_en=$4,motivo_rechazo=$5
+    WHERE id=$1 AND estado_revision='pendiente' AND sin_efecto_desde IS NULL`, [j.id, j.estadoRevision, j.revisadaPor, j.revisadaEn, j.motivoRechazo]);
+  if (!actualizada.rowCount) throw new ErrorJustificacion("no_pendiente");
+  await evento(tx, j.id, j.estadoRevision, j.revisadaPor);
+}
+
+type Ausencia = Pick<AusenciaRef, "catequizandoId" | "sesionId">;
+
+async function marcarSinEfecto(tx: Tx, a: Ausencia, en: Date): Promise<string[]> {
+  const filas = await tx.query<{ id: string }>("UPDATE justificacion SET sin_efecto_desde=$3 WHERE catequizando_id=$1 AND sesion_id=$2 AND sin_efecto_desde IS NULL RETURNING id", [a.catequizandoId, a.sesionId, en]);
+  for (const { id } of filas.rows) await evento(tx, id, "sin_efecto", null);
+  return filas.rows.map(f => f.id);
+}
+
+async function restaurarEfecto(tx: Tx, a: Ausencia): Promise<string[]> {
+  const filas = await tx.query<{ id: string }>("UPDATE justificacion SET sin_efecto_desde=NULL WHERE catequizando_id=$1 AND sesion_id=$2 AND sin_efecto_desde IS NOT NULL RETURNING id", [a.catequizandoId, a.sesionId]);
+  for (const { id } of filas.rows) await evento(tx, id, "efecto_restaurado", null);
+  return filas.rows.map(f => f.id);
+}
+
+export const repositorioJustificacionesPg: RepositorioJustificaciones = { insertarLote, obtener, guardarRevision, marcarSinEfecto, restaurarEfecto };

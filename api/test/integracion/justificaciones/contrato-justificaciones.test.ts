@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { dejarSinEfecto, revisar } from "@/lib/justificaciones/estados";
 import { expandirLote } from "@/lib/justificaciones/lote";
 import type { EntradaLote } from "@/lib/justificaciones/tipos";
 import { repositorioJustificacionesPg as repo } from "../../../src/modulos/justificaciones/infraestructura/repositorio-justificaciones-pg";
@@ -101,4 +102,48 @@ test("RF-407: cada justificación insertada tiene su evento creada", async () =>
   expect(guardadas.map(j => ({ ...j }))).toEqual(js.map(j => ({ ...j, enviadaEn, registradaEn: enviadaEn })));
   const eventos = await bd.app.query("SELECT justificacion_id,tipo,por FROM justificacion_evento WHERE justificacion_id=ANY($1::uuid[]) ORDER BY secuencia", [js.map(j => j.id)]);
   expect(eventos.rows).toEqual(js.map(j => ({ justificacion_id: j.id, tipo: "creada", por: s.cuentaId })));
+});
+
+const tiposEvento = async (id: string) => (await bd.app.query("SELECT tipo,por FROM justificacion_evento WHERE justificacion_id=$1 ORDER BY secuencia", [id])).rows;
+const sello = async (id: string) => (await bd.app.query("SELECT actualizado_en FROM justificacion WHERE id=$1", [id])).rows[0].actualizado_en as Date;
+/** Cada prueba usa su propia sesión para no cruzarse con otras justificaciones de la misma ausencia. */
+async function loteEnSesionNueva(fecha: string) {
+  const sesionId = randomUUID();
+  await bd.admin.query("INSERT INTO sesion(id,ciclo_id,fecha,tipo) VALUES($1,$2,$3,'misa')", [sesionId, s.cicloId, fecha]);
+  const entrada = lote({ ausencias: [{ ...lote().ausencias[0], sesionId, fecha }] });
+  const [j] = await enTx(bd, tx => repo.insertarLote(tx, expandirLote(entrada, enviadaEn), s.cuentaId));
+  return { j, ausencia: { catequizandoId: s.catequizandoId, sesionId } };
+}
+
+test("RF-408: revisar guarda revisada_por, revisada_en y su evento", async () => {
+  const { j } = await loteEnSesionNueva("2026-10-25");
+  const antes = await sello(j.id);
+  const revisada = revisar(j, "rechazada", s.cuentaId, "2026-11-03T15:00:00.000Z", "Foto ilegible");
+  await enTx(bd, tx => repo.guardarRevision(tx, revisada));
+  expect(await enTx(bd, tx => repo.obtener(tx, j.id))).toEqual(revisada);
+  expect((await sello(j.id)).getTime()).toBeGreaterThan(antes.getTime());
+  expect(await tiposEvento(j.id)).toEqual([{ tipo: "creada", por: s.cuentaId }, { tipo: "rechazada", por: s.cuentaId }]);
+  await expect(enTx(bd, tx => repo.guardarRevision(tx, revisar(j, "aprobada", s.cuentaId, "2026-11-03T16:00:00.000Z")))).rejects.toThrow("no_pendiente");
+});
+
+test("RF-407: marcar sin efecto conserva la fila y registra el evento sin_efecto", async () => {
+  const { j, ausencia } = await loteEnSesionNueva("2026-11-08");
+  const antes = await sello(j.id);
+  const en = new Date("2026-11-09T14:00:00.000Z");
+  expect(await enTx(bd, tx => repo.marcarSinEfecto(tx, ausencia, en))).toEqual([j.id]);
+  expect(await enTx(bd, tx => repo.marcarSinEfecto(tx, ausencia, en))).toEqual([]);
+  expect(await enTx(bd, tx => repo.obtener(tx, j.id))).toEqual(dejarSinEfecto(j, en.toISOString()));
+  expect((await sello(j.id)).getTime()).toBeGreaterThan(antes.getTime());
+  expect(await tiposEvento(j.id)).toEqual([{ tipo: "creada", por: s.cuentaId }, { tipo: "sin_efecto", por: null }]);
+  await expect(enTx(bd, tx => repo.guardarRevision(tx, revisar(j, "aprobada", s.cuentaId, "2026-11-10T16:00:00.000Z")))).rejects.toThrow("no_pendiente");
+});
+
+test("RF-407: restaurar registra efecto_restaurado", async () => {
+  const { j, ausencia } = await loteEnSesionNueva("2026-11-15");
+  await enTx(bd, tx => repo.marcarSinEfecto(tx, ausencia, new Date("2026-11-16T14:00:00.000Z")));
+  const antes = await sello(j.id);
+  expect(await enTx(bd, tx => repo.restaurarEfecto(tx, ausencia))).toEqual([j.id]);
+  expect(await enTx(bd, tx => repo.obtener(tx, j.id))).toEqual(j);
+  expect((await sello(j.id)).getTime()).toBeGreaterThan(antes.getTime());
+  expect((await tiposEvento(j.id)).map(e => e.tipo)).toEqual(["creada", "sin_efecto", "efecto_restaurado"]);
 });

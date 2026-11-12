@@ -1,4 +1,4 @@
-import type { Justificacion } from "@/lib/justificaciones/tipos";
+import type { AusenciaRef, Justificacion } from "@/lib/justificaciones/tipos";
 import type { Tx } from "../../../compartido/bd/transaccion";
 
 export type EstadoEvidencia = "reservada" | "confirmada" | "eliminada";
@@ -41,4 +41,10 @@ export interface AlmacenEvidencias {
 export interface RepositorioJustificaciones {
   /** Idempotente por id de justificación: reenviar el lote devuelve lo ya guardado (D-413). */
   insertarLote(tx: Tx, justificaciones: readonly Justificacion[], por: string | null): Promise<Justificacion[]>;
+  obtener(tx: Tx, id: string): Promise<Justificacion | undefined>;
+  /** Persiste el resultado de `revisar` del dominio; falla si ya no estaba pendiente. */
+  guardarRevision(tx: Tx, revisada: Justificacion): Promise<void>;
+  /** Devuelve los ids afectados; la justificación se conserva (RF-407). */
+  marcarSinEfecto(tx: Tx, ausencia: Pick<AusenciaRef, "catequizandoId" | "sesionId">, en: Date): Promise<string[]>;
+  restaurarEfecto(tx: Tx, ausencia: Pick<AusenciaRef, "catequizandoId" | "sesionId">): Promise<string[]>;
 }
