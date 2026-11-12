@@ -1,9 +1,10 @@
-import { fireEvent, screen, waitFor } from "@testing-library/react-native";
+import { act, fireEvent, screen, waitFor } from "@testing-library/react-native";
 import NetInfo from "@react-native-community/netinfo";
 
 import BandejaJustificaciones from "@/app/(equipo)/coordinacion/justificaciones/index";
 import PlazoJustificacion from "@/app/(equipo)/coordinacion/justificaciones/plazo";
 import { AVISO_SIN_CONEXION } from "@/lib/justificaciones/presentacion";
+import { marcarBandejaDesactualizada } from "@/plataforma/justificaciones/bandeja-vigente";
 
 import { loteEnBandeja, montarComoCoordinacion } from "./soporte/coordinacion";
 
@@ -73,4 +74,18 @@ test("RF-408: supervisión ve la bandeja sin acciones de revisión", async () =>
   expect(await screen.findByText("Ana Quispe · domingo 8 de noviembre · Misa")).toBeTruthy();
   expect(screen.queryByText(/Aprobar seleccionadas/)).toBeNull();
   expect(screen.queryByText("Registrar una justificación")).toBeNull();
+});
+
+test("RF-408: al volver del detalle tras revisar, la bandeja se recarga y ya no muestra el lote", async () => {
+  const respuestas: Record<string, unknown> = { "GET /justificaciones/bandeja": { cicloId: "c-1", lotes: [loteEnBandeja] } };
+  const { cliente } = montarComoCoordinacion(<BandejaJustificaciones />, respuestas);
+  expect(await screen.findByText("Ana Quispe · domingo 8 de noviembre")).toBeTruthy();
+
+  // El detalle revisó el lote completo y volvió con router.back(): la bandeja sigue montada.
+  respuestas["GET /justificaciones/bandeja"] = { cicloId: "c-1", lotes: [] };
+  act(() => marcarBandejaDesactualizada());
+
+  expect(await screen.findByText("No hay justificaciones pendientes.")).toBeTruthy();
+  expect(screen.queryByText("Ana Quispe · domingo 8 de noviembre")).toBeNull();
+  expect(cliente.llamadas.filter((l) => l.ruta === "/justificaciones/bandeja")).toHaveLength(2);
 });

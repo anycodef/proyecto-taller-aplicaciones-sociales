@@ -13,6 +13,7 @@ import { MAXIMO_FOTOS } from "@/lib/justificaciones/evidencia";
 import type { FilaAusencias } from "@/lib/justificaciones/justificables";
 import { AVISO_SIN_CONEXION, etiquetaFecha, etiquetaSesiones } from "@/lib/justificaciones/presentacion";
 import type { AusenciaRef, Causa } from "@/lib/justificaciones/tipos";
+import { marcarBandejaDesactualizada } from "@/plataforma/justificaciones/bandeja-vigente";
 import type { ImagenLocal } from "@/plataforma/justificaciones/comprimir-foto";
 import { crearBorrador, enviarJustificacion, ErrorEnvio, type Borrador } from "@/plataforma/justificaciones/enviar-justificacion";
 import { useConexion } from "@/plataforma/justificaciones/usar-conexion";
@@ -73,6 +74,7 @@ export function FormularioJustificacion({ titulo, filas, nombres, marcadasAlInic
     try {
       const { lote } = await enviarJustificacion({ borrador: borrador.current, causa, ausencias: elegidas.map((a) => ({ ...a, anticipada })), fotos, ...(apoderadoId ? { apoderadoId } : {}) }, { cliente: api });
       const resumen = lote.justificaciones.map((j) => `${nombres.get(j.catequizandoId) ?? "Su hijo"} · ${etiquetaFecha(j.fecha)} · ${etiquetaSesiones([j])}`);
+      marcarBandejaDesactualizada();
       if (rutaEnviada === "/familia/enviada") router.replace({ pathname: "/familia/enviada", params: { resumen: JSON.stringify(resumen) } });
       else router.replace(rutaEnviada);
     } catch (fallo) {

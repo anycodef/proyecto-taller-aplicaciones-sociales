@@ -8,6 +8,7 @@ import { ETIQUETAS_CAUSA } from "@/lib/justificaciones/causas";
 import { AVISO_SIN_CONEXION, etiquetaFecha, etiquetaSesiones } from "@/lib/justificaciones/presentacion";
 import { rolesEfectivos } from "@/lib/seguridad/contexto-acceso";
 import { useCarga } from "@/plataforma/api/usar-carga";
+import { useVersionBandeja } from "@/plataforma/justificaciones/bandeja-vigente";
 import { useApiJustificaciones } from "@/plataforma/justificaciones/usar-api";
 import { useConexion } from "@/plataforma/justificaciones/usar-conexion";
 import { useSesion } from "@/plataforma/seguridad/contexto-sesion";
@@ -19,7 +20,10 @@ export default function BandejaJustificaciones() {
   const { contexto } = useSesion();
   const puedeRevisar = contexto ? rolesEfectivos(contexto).includes("coordinacion") : false;
   const conectado = useConexion();
-  const cargar = useCallback(() => api.bandeja(), [api]);
+  const version = useVersionBandeja();
+  // version no se usa dentro, pero al cambiar crea otro cargar y useCarga vuelve a pedir la bandeja.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const cargar = useCallback(() => api.bandeja(), [api, version]);
   const { datos, error, cargando, recargar } = useCarga(cargar, conectado === true);
   const [seleccionadas, setSeleccionadas] = useState<string[]>([]);
   const [aprobando, setAprobando] = useState(false);

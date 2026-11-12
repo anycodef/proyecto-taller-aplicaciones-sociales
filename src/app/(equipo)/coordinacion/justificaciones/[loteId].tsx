@@ -8,6 +8,7 @@ import { ETIQUETAS_CAUSA } from "@/lib/justificaciones/causas";
 import { MOTIVO_RECHAZO_MAXIMO } from "@/lib/justificaciones/estados";
 import { AVISO_SIN_CONEXION, etiquetaFecha, etiquetaSesiones } from "@/lib/justificaciones/presentacion";
 import { useCarga } from "@/plataforma/api/usar-carga";
+import { marcarBandejaDesactualizada } from "@/plataforma/justificaciones/bandeja-vigente";
 import { useApiJustificaciones } from "@/plataforma/justificaciones/usar-api";
 import { useConexion } from "@/plataforma/justificaciones/usar-conexion";
 import { colores, espacio, tipografia } from "@/tema";
@@ -31,6 +32,7 @@ export default function DetalleLote() {
     try {
       await api.revisar(ids, decision, decision === "rechazada" ? motivo.trim() : undefined);
       setMotivo("");
+      marcarBandejaDesactualizada();
       if (lote && ids.length === lote.justificaciones.length) router.back();
       else recargar();
     } catch {

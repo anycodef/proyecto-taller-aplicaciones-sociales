@@ -1,0 +1,48 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-12",
+  "agente": "Claude Code",
+  "modelo": "claude-opus-5-5",
+  "rama": "feat/004-justificaciones",
+  "tarea": "fix-bandeja-recarga",
+  "solicitud": "Tras rechazar un lote, la bandeja seguía mostrándolo con sus casillas y el botón de aprobar.",
+  "alcance": [
+    "src/plataforma/justificaciones/bandeja-vigente.ts",
+    "src/app/(equipo)/coordinacion/justificaciones/index.tsx",
+    "src/app/(equipo)/coordinacion/justificaciones/[loteId].tsx",
+    "src/components/justificaciones/formulario-justificacion.tsx",
+    "src/__tests__/coordinacion-plazo-bandeja.test.tsx",
+    "docs/agent-trace/justificaciones-fix-bandeja-recarga.json"
+  ],
+  "criterio": "Al volver del detalle tras revisar, o tras registrar en nombre de un apoderado, la bandeja vuelve a pedirse y no muestra lo ya revisado.",
+  "decisiones": [
+    "Señal en memoria con useSyncExternalStore en lugar de useFocusEffect: las pantallas se prueban sin navegador y no hace falta dependencia nueva.",
+    "El servidor ya filtraba bien (estado_revision='pendiente'); el fallo era solo de datos viejos en el cliente."
+  ],
+  "comprobaciones": [
+    {
+      "comando": "consulta a PostgreSQL tras la prueba manual",
+      "resultado": "Las 4 justificaciones del lote estaban en rechazada; la bandeja mostrada era la cargada antes de revisar."
+    },
+    {
+      "comando": "npm run test:app",
+      "resultado": "71 suites, 261 tests pasan; nuevo test RF-408 de recarga."
+    },
+    {
+      "comando": "npm run typecheck",
+      "resultado": "Pasa en raíz y API."
+    },
+    {
+      "comando": "npm run lint",
+      "resultado": "Pasa sin errores."
+    },
+    {
+      "comando": "node scripts/verificar-cobertura-rf.mjs --bloquear 004",
+      "resultado": "Salida 0."
+    }
+  ],
+  "limites": [
+    "La API no cambia; su suite conserva los 2 fallos de asistencia-bd de 003 por desfase de reloj."
+  ],
+  "notas": "Hallado al probar en el emulador con la cuenta de coordinación."
+}
