@@ -60,6 +60,8 @@ export interface RepositorioJustificaciones {
   /** Pendientes con efecto del ciclo, agrupadas por lote para revisarlas juntas (RF-403, RF-408). */
   bandeja(tx: Tx, cicloId: string): Promise<LoteBandeja[]>;
   listarPorCatequizando(tx: Tx, catequizandoId: string): Promise<Justificacion[]>;
+  /** Para las consultas en proceso de 003, 006 y 007 (D-414). */
+  listarPorCiclo(tx: Tx, cicloId: string): Promise<Justificacion[]>;
   /** Todas las de sus hijos con vínculo vigente, también las del otro apoderado (supuesto A-14). */
   listarPorApoderado(tx: Tx, apoderadoId: string): Promise<Justificacion[]>;
   /** Para el pull de 003: solo estado, sin causa, motivo ni evidencia (D-408). Puede reentregar la última fila del cursor. */

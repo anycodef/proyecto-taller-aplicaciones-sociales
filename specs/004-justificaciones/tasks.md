@@ -460,7 +460,7 @@
   - Depende de: T004-63, T004-55, T004-57, T002 (Fase 3: `ProveedorResumenPerfil`)
   - Hecho cuando: pasan `RF-410: el perfil muestra pendiente, aprobada, rechazada o sin efecto sin conexión` y `RNF-405: el detalle y la evidencia piden conexión`. `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T004-65** Implementar `ConsultaJustificaciones` y el adaptador real de `FuenteJustificacionesAprobadas` para 003
+- [x] **T004-65** Implementar `ConsultaJustificaciones` y el adaptador real de `FuenteJustificacionesAprobadas` para 003
   - RF: RF-409
   - Depende de: T004-13, T004-25, T004-26, T003 (Fase 2: adaptador real de justificaciones aprobadas)
   - Hecho cuando: pasan los tests `RF-409: con una aprobada de esa fecha faltasDelCiclo marca la falta como justificada` y `RF-409: la consulta expone diasPlazo y estadoParaRiesgo`. El adaptador vacío de 003 queda reemplazado. `npm test`, `npm run typecheck` y `npm run lint` pasan.
