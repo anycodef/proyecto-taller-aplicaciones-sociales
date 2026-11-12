@@ -1,0 +1,22 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-12",
+  "agente": "OpenCode",
+  "modelo": "minimax-m3.1-flash-free",
+  "tarea": "T003-94",
+  "solicitud": "Paso 4 de la demo: test del guion completo con 0 duplicados en el servidor",
+  "commitPrevisto": "feat(demo): verificar el guion completo contra la API local",
+  "alcance": [
+    "api/scripts/verificar-demo.ts",
+    "api/package.json",
+    "package.json"
+  ],
+  "criterio": "T003-94: el guion completo llega integro al servidor con 0 duplicados: activar el enlace, bajar la nomina, confirmar la lista de catequesis con una ausencia y enviarla dos veces.",
+  "comprobaciones": ["npm run verificar-demo", "npm run typecheck", "npm run lint"],
+  "resultados": {
+    "guion": "1. Enlace activado: Catequista demo (catequista) · 2. Nomina bajada: 1 grupo, 8 ninos, 106 sesiones · 3. Lista preparada: 7 presentes, 1 ausente, 8 marcas · 4. Primer envio: aceptados=9 rechazados=0 · 5. Reenvio del mismo lote: aceptados=9 rechazados=0 · 6. En el servidor: 8 marcas, 1 lista, 8 ninos distintos · Guion completo sin duplicados en el servidor",
+    "typecheck": "Pasa raiz y API",
+    "lint": "Pasa sin errores ni advertencias"
+  },
+  "notas": "El script usa las mismas funciones de dominio que el celular (confirmarLista, idMarcaAsistencia, idListaAsistencia y prepararLote) y el mismo protocolo pull/push, contra la API local real y la base de la demo. Es el ensayo automatico del guion: sirve para comprobar la maquina antes de la exposicion. No cubre la parte del telefono, que no se puede automatizar aqui."
+}

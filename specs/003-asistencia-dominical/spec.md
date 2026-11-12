@@ -25,6 +25,13 @@ RF-307/RNF-306: ignorar metadata local `_status`/`_changed` en toda fila created
 | `expo-camera` | QR continuo con linterna; evita escáner adicional |
 | `expo-dev-client` | Build nativo para JSI/nueva arquitectura; Expo Go no acredita compatibilidad |
 | `expo-sqlite` | Alternativa condicional si la prueba descarta WatermelonDB; no instalación automática |
+| `expo-file-system` | Archivo del almacén local mientras la prueba técnica no decide la base; evita trocear la carga en SecureStore, que es para credenciales |
+
+Mientras la prueba técnica de la fase 0 (T003-05) no decida entre WatermelonDB y
+el plan B, el cliente guarda la asistencia local en un archivo JSON con el mismo
+protocolo pull/push ya definido. El dominio de la asistencia y los contratos
+HTTP no cambian con la base: el id determinista de la marca y el `ON CONFLICT`
+del servidor son los que garantizan que reenviar no duplique.
 
 Plugins de configuración/decoradores necesarios se identificarán por paquete y versión en `prueba-tecnica.md` y se justificarán antes de instalarlos. No se inventan versiones compatibles ni resultados de builds. Herramientas API/Jest se justifican en 001.
 

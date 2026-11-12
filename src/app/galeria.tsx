@@ -19,6 +19,7 @@ import { SelectorCausa } from '@/components/justificaciones/selector-causa';
 import { ResumenJustificaciones } from '@/components/justificaciones/resumen-justificaciones';
 import { VisorEvidencia } from '@/components/justificaciones/visor-evidencia';
 import { CAUSAS, ETIQUETAS_CAUSA } from '@/lib/justificaciones/causas';
+import { ConfirmacionEscaneo } from '@/components/asistencia/confirmacion-escaneo';
 import { colores, espacio, tipografia } from '@/tema';
 import { useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
@@ -184,6 +185,13 @@ export default function Galeria() {
           emision={1}
           codigoCarne="SGC1:3f2504e0-4f89-41d3-9a0c-0305e82c3301:1"
         />
+      </Seccion>
+
+      <Seccion titulo="Confirmación de escaneo">
+        <ConfirmacionEscaneo estado="registrado" nombre="Sebastián André Ramírez Flores" hora="8:12" />
+        <ConfirmacionEscaneo estado="otro_grupo" />
+        <ConfirmacionEscaneo estado="ya_registrado" />
+        <ConfirmacionEscaneo estado="invalido" />
       </Seccion>
     </ScrollView>
   );

@@ -1,0 +1,29 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-11",
+  "agente": "OpenCode",
+  "modelo": "minimax-m3.1-flash-free",
+  "tarea": "T003-82",
+  "solicitud": "Corregir el bug de la sesion: lista/[grupoId].tsx debe elegir la sesion por fecha, tipo y ciclo, y aceptar ?sesionId, con test que falle antes del arreglo",
+  "commitPrevisto": "fix(asistencia): elegir la sesion por fecha, tipo y ciclo en la lista",
+  "alcance": [
+    "src/lib/asistencia/sesiones.ts",
+    "src/lib/asistencia/reloj.ts",
+    "src/lib/asistencia/__tests__/sesiones.test.ts",
+    "src/app/(equipo)/asistencia/lista/[grupoId].tsx",
+    "src/plataforma/asistencia/use-instante.ts",
+    "src/__tests__/flujo-asistencia.test.tsx"
+  ],
+  "criterio": "T003-82: la lista se pasa sobre la sesion de catequesis del ciclo del grupo y de la fecha de hoy, nunca sobre la primera sesion descargada; con ?sesionId se registra sobre esa sesion.",
+  "comprobaciones": ["npm test", "npm run typecheck", "npm run lint"],
+  "resultados": {
+    "tests": "Cliente: 37 suites y 123 tests en verde",
+    "typecheck": "Pasa raiz y API",
+    "lint": "Pasa sin errores ni advertencias"
+  },
+  "evidencia": {
+    "antes": "npx jest src/lib/asistencia/__tests__/sesiones.test.ts src/__tests__/flujo-asistencia.test.tsx -> FAIL: elegirSesion y aSesion no existen; la pantalla registro la marca en la sesion de misa (33333333) en vez de la de catequesis (44444444). 4 de 6 tests de la pantalla en rojo.",
+    "despues": "Los mismos archivos -> PASS, 10 tests en verde. Suite completa del cliente: 37 suites y 123 tests en verde."
+  },
+  "notas": "La eleccion vive en el dominio: elegirSesion(sesiones, {cicloId, fecha, tipo, sesionId}) y el traductor aSesion de la fila local. La fecha es la de Lima del celular; el reloj se lee con useSyncExternalStore porque el lint de React Compiler prohibe leerlo durante el render. La sesion explicita por ?sesionId solo se acepta si es del mismo ciclo. Sin sesion la pantalla avisa que hoy no hay catequesis y no deja confirmar."
+}

@@ -1,0 +1,30 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-11",
+  "agente": "OpenCode",
+  "modelo": "minimax-m3.1-flash-free",
+  "tarea": "T003-85",
+  "solicitud": "Construir la pantalla APP-33, una por commit, despues de APP-27",
+  "commitPrevisto": "feat(asistencia): pantalla de corregir asistencia",
+  "alcance": [
+    "src/lib/asistencia/sesiones.ts",
+    "src/lib/asistencia/pendientes.ts",
+    "src/lib/asistencia/repositorio-asistencia.ts",
+    "src/plataforma/asistencia/repositorio-local.ts",
+    "src/plataforma/asistencia/sincronizador.ts",
+    "src/lib/sincronizacion/almacen-local.ts",
+    "src/app/(equipo)/asistencia/correccion/[sesionId]/[catequizandoId].tsx",
+    "src/app/(equipo)/_layout.tsx",
+    "src/app/navegacion.tsx",
+    "src/__tests__/correccion.test.tsx",
+    "src/lib/asistencia/__tests__/pendientes.test.ts"
+  ],
+  "criterio": "T003-85: la pantalla muestra el valor actual y el anterior; la pantalla exige motivo a la coordinacion despues del fin del domingo; otro catequista no ve la accion de corregir.",
+  "comprobaciones": ["npm test", "npm run typecheck", "npm run lint"],
+  "resultados": {
+    "tests": "Cliente: 41 suites y 142 tests en verde. API: 210 de 211 en verde; el unico fallo es el test de Azurite, que necesita el contenedor y el motor de Docker no arranca en esta maquina (mismo estado que antes del cambio).",
+    "typecheck": "Pasa raiz y API",
+    "lint": "Pasa sin errores ni advertencias"
+  },
+  "notas": "Las correcciones ya son una tercera familia de pendientes: se guardan con id determinista (idCorreccion, que incluye la hora para que una correccion posterior sea otra fila) y viajan en el lote como correcciones_asistencia, que el servidor ya esperaba. El aviso de justificacion aprobada del mockup queda pendiente de la spec 004: sin ella no hay dato local que mostrar. En el celular la marca todavia no la acepto el servidor, asi que para ver el valor actual cuenta como registro."
+}

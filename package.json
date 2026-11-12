@@ -15,6 +15,8 @@
     "test:rapido": "npm run test:app && npm --prefix api run test:rapido",
     "test:api": "npm --prefix api test",
     "migrar": "npm --prefix api run migrar",
+    "sembrar-demo": "npm --prefix api run sembrar:demo",
+    "verificar-demo": "npm --prefix api run verificar:demo",
     "verificar:migraciones": "node api/scripts/verificar-migraciones.mjs",
     "verificar:cobertura": "node scripts/verificar-cobertura-rf.mjs",
     "adr:new": "npx --yes log4brains@1.1.0 adr new",

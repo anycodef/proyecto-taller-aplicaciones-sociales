@@ -1,0 +1,49 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-11",
+  "agente": "Claude Code",
+  "modelo": "claude-opus-5-5",
+  "rama": "despliegue/azure-prod",
+  "base": "62ebef1",
+  "spec": "specs/012-despliegue-y-recorrido",
+  "tareas": ["T012-01", "T012-02", "T012-03", "T012-04", "T012-05", "T012-06", "T012-07"],
+  "solicitud": "Tomar la spec 001 como base para subir la API y la web a Azure y configurar la base de datos, con seguridad y monitoreo; verificar que una caída de la API se detecta y avisa; conectar las pantallas de 003, 004 y 007 conforme estén listas. Avanzar todo y dejar instrucciones claras para el despliegue, que requiere la cuenta del usuario.",
+  "alcance": [
+    "specs/012-despliegue-y-recorrido/",
+    ".github/workflows/ci.yml",
+    ".github/workflows/despliegue.yml",
+    ".github/workflows/despliegue-web.yml",
+    "api/package.json",
+    "infra/README.md",
+    "infra/scripts/preparar-azure.sh",
+    "infra/scripts/verificar-despliegue.mjs",
+    "infra/scripts/ensayo-caida.mjs",
+    "api/pruebas/infra/despliegue.test.mjs",
+    "docs/despliegue-azure.md",
+    "src/lib/navegacion/modulos.ts",
+    "src/lib/navegacion/__tests__/modulos.test.ts",
+    "src/app/(equipo)/coordinacion.tsx",
+    "src/app/(familia)/familia.tsx",
+    "src/components/pantalla-rol.tsx",
+    "docs/agent-trace/despliegue-azure.json"
+  ],
+  "cambios": [
+    "Spec 012 creada a pedido del usuario: cubre lo que faltaba para ejecutar y verificar la infraestructura de la spec 001 y conectar pantallas, sin cambiar arquitectura, modelo de datos ni dependencias.",
+    "CI de main reparado: el lint revisaba tarea3 sin sus dependencias (47 errores reproducidos en una copia limpia de main) y el lint de api se lanzaba desde api/ sin coincidir los globs (10 errores, H-01).",
+    "Job web en ci.yml que exporta Expo para web con URL_API_PUBLICA y CLAVE_APIM_WEB y sube frontend-web; despliegue-web.yml acepta solo artefactos de ci.yml en main.",
+    "Scripts de preparación única (identidad administrada con credencial federada solo para environment:prod, roles sin Owner y entorno prod de GitHub), verificación posterior de seguridad y ensayo de caída con evidencia UTC.",
+    "Guía docs/despliegue-azure.md con pasos, comprobaciones, reversión y costos.",
+    "Registro de módulos 003/004/007 por panel; coordinación y familia lo pintan. Hoy solo 003 Pasar lista está conectado; 004 y 007 se anuncian como próximos porque sus pantallas no existen en ninguna rama."
+  ],
+  "verificacion": {
+    "typecheck": "PASÓ: npm run typecheck (raíz y API), código 0.",
+    "lint": "PASÓ: npm run lint y npm run lint --prefix api, código 0.",
+    "infraestructura": "PASÓ: node --test plantilla.test.mjs y despliegue.test.mjs con Bicep 0.48.1, 21/21.",
+    "workflows": "PASÓ: actionlint 1.7.7 sin errores; shellcheck 0.10.0 sin avisos en preparar-azure.sh.",
+    "web": "PASÓ: npx expo export --platform web genera index.html y staticwebapp.config.json, y la URL de la API queda incrustada.",
+    "otros": "PASÓ: verificar-openapi.mjs, npm run build --prefix api y git diff --check.",
+    "npmTest": "NO PASÓ COMPLETO: cliente 32/32 suites y 112/112 tests; la API se detuvo en globalSetup por falta de BD_PRUEBAS_URL (Docker sin daemon). npm run test:rapido: cliente 112/112, API 139/139. No se afirma la ejecución de integración.",
+    "pendienteExterno": "T012-08 (despliegue real), T012-09 (ensayo de caída en Azure) y T012-10 (recorrido completo) requieren la cuenta del usuario y las pantallas de 004 y 007. Las pruebas locales usan servidores y dobles de az/gh y no acreditan un despliegue."
+  },
+  "tareasMarcadasCompletas": false
+}

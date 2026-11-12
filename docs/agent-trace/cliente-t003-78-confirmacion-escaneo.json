@@ -1,0 +1,22 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-11",
+  "agente": "OpenCode",
+  "modelo": "minimax-m3.1-flash-free",
+  "tarea": "T003-78",
+  "solicitud": "Construir las pantallas APP-23 a APP-26, una por commit, empezando por el componente de confirmacion de escaneo",
+  "commitPrevisto": "feat(asistencia): componente de confirmacion de escaneo",
+  "alcance": [
+    "src/components/asistencia/confirmacion-escaneo.tsx",
+    "src/__tests__/confirmacion-escaneo.test.tsx",
+    "src/app/galeria.tsx"
+  ],
+  "criterio": "T003-78: escanear a un nino de otro grupo muestra «Registrado» sin su nombre; un nino de sus grupos muestra su nombre en un banner verde a pantalla completa; muestra «Ya estaba registrado»; muestra «Carné no valido».",
+  "comprobaciones": ["npm test", "npm run typecheck", "npm run lint"],
+  "resultados": {
+    "tests": "Cliente: 39 suites y 136 tests en verde",
+    "typecheck": "Pasa raiz y API",
+    "lint": "Pasa sin errores ni advertencias"
+  },
+  "notas": "El componente cubre los cuatro estados de los mockups APP-23 a APP-26: con nombre (verde), sin nombre (oscuro), ya registrado (ambar) y carné no valido (rojo). Los colores salen de src/tema, no del mockup. Queda anadido a la galeria, como pide AGENTS.md. La pantalla de escaneo (APP-20) queda pendiente de la aprobacion de expo-camera: el componente no depende de esa dependencia y la usara cuando se apruebe."
+}

@@ -1,0 +1,10 @@
+# Use this workspace to collaborate
+workspace:
+  id: 8b9a08d9-0cf0-4a07-8a24-0e199f98bab7
+
+localResources:
+  specs:
+    - ../api/openapi.json
+    - ../tarea3/contratos/schema.graphql
+    - ../tarea3/contratos/sigecat.proto
+    - ../tarea3/servicio-actualizacion/salud.proto
