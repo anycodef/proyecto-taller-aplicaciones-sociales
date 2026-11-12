@@ -298,12 +298,12 @@
   - Depende de: T004-16, T004-39
   - Hecho cuando: pasan los tests con el manipulador simulado `RNF-402: comprime de forma iterativa hasta quedar bajo 300 KB`, `RNF-402: falla con aviso tras 5 intentos` y `RNF-404: borra los archivos intermedios`. `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T004-42** Implementar el camino feliz de `enviar-justificacion.ts`
+- [x] **T004-42** Implementar el camino feliz de `enviar-justificacion.ts`
   - RF: RF-402, RF-403
   - Depende de: T004-40, T004-41, T001 (F0-1: `expo-crypto`, `randomUUID`)
   - Hecho cuando: pasan los tests `RF-402: reserva, sube cada foto con x-ms-blob-type BlockBlob y crea el lote` y `RF-403: un reintento manual reutiliza evidenciaId, loteId y los ids de justificación`. `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T004-43** Manejar en `enviar-justificacion.ts` la falta de conexión, los fallos y la limpieza de temporales
+- [x] **T004-43** Manejar en `enviar-justificacion.ts` la falta de conexión, los fallos y la limpieza de temporales
   - RF: RNF-404
   - Depende de: T004-42, T003 (Fase 1: `@react-native-community/netinfo` instalada y justificada)
   - Hecho cuando: pasan los tests:
