@@ -18,6 +18,8 @@ export type Evidencia = {
 export const HORAS_RESERVA_HUERFANA = 24;
 export const VENTANA_LIMITE_RESERVAS_MS = 60 * 60 * 1000;
 
+/** Contenedor Blob privado de las evidencias (plan 004, §3.3). */
+export const CONTENEDOR_EVIDENCIAS = "evidencias";
 export const nombreBlob = (cicloId: string, evidenciaId: string, orden: number): string => `${cicloId}/${evidenciaId}/${orden}.jpg`;
 
 export interface RepositorioEvidencias {

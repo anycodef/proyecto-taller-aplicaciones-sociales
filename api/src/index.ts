@@ -8,6 +8,7 @@ import { registrarProveedorResumen, participanteRetencion } from "./modulos/cate
 import { registrarParticipanteRetencion, participanteSeguridad } from "./modulos/seguridad";
 import { participanteRetencionAsistencia, consultarResumenAsistencia } from "./modulos/asistencia";
 import { proveedorAvisos, participanteRetencionAvisos } from "./modulos/avisos";
+import { participanteRetencionJustificaciones } from "./modulos/justificaciones";
 import { registrarProveedor } from "./modulos/sincronizacion/aplicacion/registro-proveedores";
 import { registrarCiclos } from "./modulos/ciclos";
 import { registrarActividades } from "./modulos/actividades";
@@ -24,6 +25,7 @@ registrarParticipanteRetencion(participanteRetencionAsistencia);
 registrarParticipanteRetencion(participanteRetencion);
 registrarParticipanteRetencion(participanteSeguridad);
 registrarParticipanteRetencion(participanteRetencionAvisos);
+registrarParticipanteRetencion(participanteRetencionJustificaciones);
 registrarProveedor(proveedorAvisos);
 registrarEstado();
 registrarSeguridad();
