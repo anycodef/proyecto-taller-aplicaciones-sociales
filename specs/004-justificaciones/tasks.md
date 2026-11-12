@@ -288,7 +288,7 @@
   - Depende de: T004-02
   - Hecho cuando: `expo-image-picker`, `expo-image-manipulator`, `expo-file-system` y `expo-image` están en `package.json` con versiones del SDK 57. `npx expo install --check` no da advertencias y `npx expo config --type public` muestra el plugin de `expo-image-picker` con el texto de permiso de cámara en español. Antes se consultó https://docs.expo.dev/versions/v57.0.0/. `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T004-40** Implementar `cliente-justificaciones.ts` sobre el cliente HTTP de 001
+- [x] **T004-40** Implementar `cliente-justificaciones.ts` sobre el cliente HTTP de 001
   - RF: RF-401, RF-402, RF-404, RF-410
   - Depende de: T004-32, T004-33, T004-37, T004-38, T001 (F1: `src/plataforma/api/cliente.ts`)
   - Hecho cuando: pasan los tests con `fetch` simulado `RF-401: pide las ausencias justificables con la sesión de familia` y `RF-402: envía la reserva y el lote con los cuerpos esperados`. El módulo no escribe en ningún almacenamiento. `npm test`, `npm run typecheck` y `npm run lint` pasan.
