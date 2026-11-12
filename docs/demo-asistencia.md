@@ -95,11 +95,16 @@ Crea `api/local.settings.json` (no se versiona) con este contenido:
 cd D:\Documents\proyecto-taller-aplicaciones-sociales
 npm --prefix api run build
 cd api
-func start --address 0.0.0.0 --port 7071 --functions activarEquipo renovarSesion yo sincronizacionPull sincronizacionPush
+func start --address 0.0.0.0 --port 7071 --cors * --functions activarEquipo renovarSesion yo sincronizacionPull sincronizacionPush
 ```
 
 - `--address 0.0.0.0` hace que la API escuche en **todas las interfaces**, para
   que el celular la alcance por `192.168.1.77`.
+- `--cors *` es **imprescindible para el navegador**: sin él, el preflight
+  `OPTIONS` responde 404 y el navegador no puede llamar a la API. En el
+  celular (Expo Go) no hace falta, pero con la misma orden funciona en los dos.
+  Ojo: una lista de orígenes separada por comas hace que el host no arranque;
+  usa `*`.
 - `--functions ...` carga **solo las cinco rutas de la demo**. Es la decisión
   tomada para esta demo: los temporizadores del servidor exigen
   `AzureWebJobsStorage` (Azurite) y, sin contenedor y sin Azurite por npm, el
@@ -161,15 +166,56 @@ Vuelve a sembrar después del ensayo (para dejar la sesión limpia).
 ```powershell
 cd D:\Documents\proyecto-taller-aplicaciones-sociales
 $env:EXPO_PUBLIC_URL_API="http://192.168.1.77:7071/api"
-npx expo start --lan
+npm start -- --lan
 ```
 
+- Usa `npm start` y **no** `npx expo start`: `npx` puede traer un CLI más nuevo que
+  actualiza las dependencias del proyecto (la última vez subió el árbol a Expo 58)
+  y rompe la demo. `npm start` usa el CLI ya instalado.
 - `EXPO_PUBLIC_URL_API` es la dirección de la API **tal como la ve el celular**
   (por la IP de la red local, no `localhost`).
 - Metro **inyecta** esa variable al empaquetar: si la cambias, reinicia Metro con
-  `npx expo start --lan -c`.
+  `npm start -- --lan -c`.
 - Escanea el código QR con el celular (Expo Go) o escribe a mano
   `exp://192.168.1.77:8081`.
+
+### 3.7 Revisar y mostrar las pantallas en el navegador (opcional)
+
+```powershell
+$env:EXPO_PUBLIC_URL_API="http://127.0.0.1:7071/api"
+npm start -- --web
+```
+
+Abre `http://localhost:8081/navegacion` (el índice de pantallas, solo en
+desarrollo).
+
+**Por qué desde el índice casi todo te devuelve al Inicio**: las pantallas del
+equipo y de la familia están detrás del control de acceso
+(`Stack.Protected` en `src/app/_layout.tsx` y `src/app/(equipo)/_layout.tsx`).
+Sin una cuenta activada y con PIN, esos grupos no existen en el navegador de
+rutas y cualquier enlace dentro de ellos vuelve al índice. Solo son públicas
+las pantallas de acceso (activar cuenta, fijar PIN, desbloqueo, acceso denegado).
+
+Para verlas, **activa antes la cuenta de demo en el navegador**:
+
+1. Abre `http://localhost:8081/acceso/equipo#t=<token>` (el token está en el
+   bloque `demo` de `npm run sembrar-demo`, en el campo `enlace`).
+2. Fija un PIN de 4 dígitos.
+3. Ya entras al menú **Pasar lista** y a las pantallas de asistencia.
+4. Para simular "sin conexión" en el navegador: DevTools → Network → **Offline**.
+
+En el navegador el estado local va al almacenamiento local del navegador
+(`expo-file-system` y `expo-secure-store` no tienen implementación real en web),
+así que el mismo guion se puede enseñar sharing pantalla, sin necesidad de
+tMirror el celular.
+
+Verificado en el navegador el 2026-11-12: activar el enlace, fijar el PIN,
+bajar la nomina, marcar un nio ausente, confirmar la lista y enviarla. El
+servidor queda con **8 marcas (7 presentes y 1 ausente) y 1 lista, sin
+duplicados**, y el navegador queda con la cola de pendientes vacia.
+
+> Si el navegador se queda en "Abriendo tu enlace..." o da error de red, mira
+> la consola: casi siempre es que la API se levanto sin `--cors *`.
 
 ---
 

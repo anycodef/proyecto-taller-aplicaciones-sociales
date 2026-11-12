@@ -2,6 +2,7 @@ import type { ClienteHttp } from "@/plataforma/api/cliente";
 import { crearAlmacenSesion, type AlmacenSeguro } from "@/plataforma/seguridad/almacen-seguro";
 
 import { crearGestorSesion, type RespuestaActivacionServidor } from "../sesion";
+import { contextoDeSesion } from "../contexto-sesion";
 
 type Peticion = { metodo: string; ruta: string; cuerpo?: unknown };
 
@@ -86,6 +87,16 @@ test("RF-111: la credencial se guarda en SecureStore solo después de fijar el P
   expect(guardada?.tokenRenovacion).toBe("token-de-renovacion");
   expect(guardada?.bloqueada).toBe(false);
   expect(sesion.contexto.rolesPropios).toEqual(["catequista"]);
+});
+test("RF-307: el dispositivo queda en la sesion guardada para poder registrar la asistencia", async () => {
+  const { almacen, gestor } = preparar();
+
+  const activacion = await gestor.activarEquipo("token-del-enlace");
+  await gestor.fijarPin(activacion, "1234");
+
+  const guardada = await almacen.leerSesion("cuenta-1");
+  expect(guardada?.dispositivoId).toBe("dispositivo-1");
+  expect(contextoDeSesion(guardada!).dispositivoId).toBe("dispositivo-1");
 });
 
 test("RF-111: el PIN nunca se envía al servidor", async () => {
