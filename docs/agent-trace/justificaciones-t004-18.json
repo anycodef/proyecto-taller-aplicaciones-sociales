@@ -1,0 +1,41 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-11",
+  "agente": "Claude Code",
+  "modelo": "claude-opus-5-5",
+  "rama": "feat/004-justificaciones",
+  "tarea": "T004-18",
+  "solicitud": "Crear la migración del plazo de justificación por ciclo.",
+  "alcance": [
+    "api/migraciones/0401_justificaciones_plazo_ciclo.sql",
+    "api/test/integracion/justificaciones/soporte.ts",
+    "api/test/integracion/justificaciones/contrato-plazo.test.ts",
+    "src/lib/seguridad/catalogo-datos.ts",
+    "specs/004-justificaciones/tasks.md",
+    "docs/agent-trace/justificaciones-t004-18.json"
+  ],
+  "criterio": "La migración se aplica limpia sobre un esquema vacío en Docker y pasa contrato-plazo.test.ts › RF-405: dias_plazo fuera de 1 a 60 es rechazado por la restricción.",
+  "decisiones": [
+    "Tabla en singular (justificacion_plazo) por la regla de AGENTS.md de tablas PostgreSQL singulares; el plan la nombraba en plural.",
+    "Bloque 04xx para las migraciones de 004 (supuesto A-10).",
+    "Las columnas nuevas se registran en catalogo-datos.ts porque RF-107 exige finalidad para cada columna física."
+  ],
+  "comprobaciones": [
+    {
+      "comando": "npx jest --selectProjects integracion --testPathPattern \"justificaciones|catalogo\" (api, PostgreSQL 16 en Docker)",
+      "resultado": "Pasa: 5 tests (contrato-plazo y catálogo RF-107)."
+    },
+    {
+      "comando": "npm run typecheck",
+      "resultado": "Pasa en raíz y API."
+    },
+    {
+      "comando": "npm run lint",
+      "resultado": "Pasa sin errores."
+    }
+  ],
+  "limites": [
+    "La suite completa npm test (cliente y API con PostgreSQL) se ejecuta al cerrar la fase."
+  ],
+  "notas": "Migración nueva en el bloque 04xx (supuesto A-10); ninguna migración aplicada se editó."
+}

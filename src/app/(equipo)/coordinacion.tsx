@@ -3,8 +3,6 @@ import { ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { FilaNavegacion } from "@/components/ui";
 import { Pendiente } from "@/components/pendiente";
-import { modulosDelPanel } from "@/lib/navegacion/modulos";
-import { useSesion } from "@/plataforma/seguridad/contexto-sesion";
 import { colores, espacio, tipografia } from "@/tema";
 
 const OPCIONES: { titulo: string; subtitulo: string; ruta: Href }[] = [
@@ -12,14 +10,10 @@ const OPCIONES: { titulo: string; subtitulo: string; ruta: Href }[] = [
   { titulo: "Delegaciones", subtitulo: "Continuidad del equipo dominical", ruta: "/delegaciones" },
   { titulo: "Auditoría", subtitulo: "Quién consultó qué", ruta: "/auditoria" },
   { titulo: "Avisos del sistema", subtitulo: "Alertas para la coordinación", ruta: "/avisos-sistema" },
-  { titulo: "Grupos", subtitulo: "Grupos del ciclo y conteo de niños", ruta: "/coordinacion/grupos" as Href },
   { titulo: "Pasar lista", subtitulo: "Vista del catequista", ruta: "/asistencia" },
 ];
 
 export default function Coordinacion() {
-  const { rolesEfectivos } = useSesion();
-  const modulos = modulosDelPanel("coordinacion", rolesEfectivos);
-
   return (
     <ScrollView contentContainerStyle={estilos.contenido}>
       <Text style={[tipografia.titulo, estilos.titulo]}>Panel del ciclo</Text>
@@ -36,21 +30,14 @@ export default function Coordinacion() {
             alPresionar={() => router.push(opcion.ruta)}
           />
         ))}
-        {modulos.conectados.map((modulo) => (
-          <FilaNavegacion
-            key={modulo.id}
-            titulo={modulo.titulo}
-            subtitulo={modulo.subtitulo}
-            alPresionar={() => router.push(modulo.ruta as Href)}
-          />
-        ))}
       </View>
 
       <Text style={[tipografia.encabezado, estilos.titulo]}>Próximamente</Text>
       <Pendiente
         items={[
           "Asistencia consolidada por grupo contra el mínimo del ciclo",
-          ...modulos.proximamente.map((modulo) => `${modulo.titulo}: ${modulo.subtitulo.toLowerCase()}`),
+          "Bandeja de justificaciones con su evidencia",
+          "Catequizandos con señal de riesgo de deserción",
           "Alta de grupos, catequistas e inscripciones con consentimiento",
         ]}
       />

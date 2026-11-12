@@ -1,0 +1,40 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-11",
+  "agente": "Claude Code",
+  "modelo": "claude-opus-5-5",
+  "rama": "feat/004-justificaciones",
+  "tarea": "T004-20",
+  "solicitud": "Crear la migración de justificacion y justificacion_evento.",
+  "alcance": [
+    "api/migraciones/0403_justificaciones_base.sql",
+    "api/test/integracion/justificaciones/contrato-justificaciones.test.ts",
+    "src/lib/seguridad/catalogo-datos.ts",
+    "specs/004-justificaciones/tasks.md",
+    "docs/agent-trace/justificaciones-t004-20.json"
+  ],
+  "criterio": "Pasan contrato-justificaciones.test.ts › RF-406, RF-408 (motivo, revisor, duplicadas) y RF-404.",
+  "decisiones": [
+    "enviada_por referencia apoderado y no cuenta: la coordinación registra en nombre de apoderados sin cuenta.",
+    "causa y motivo_rechazo se catalogan como restringidos: pueden revelar salud.",
+    "justificacion_evento reutiliza impedir_mutacion_inmutable de 0102, que solo permite borrar en contexto de retención."
+  ],
+  "comprobaciones": [
+    {
+      "comando": "npx jest --selectProjects integracion --testPathPattern \"justificaciones|catalogo\" (api, PostgreSQL 16 en Docker)",
+      "resultado": "Pasa: 13 tests (contratos de 004 y catálogo RF-107)."
+    },
+    {
+      "comando": "npm run typecheck",
+      "resultado": "Pasa en raíz y API."
+    },
+    {
+      "comando": "npm run lint",
+      "resultado": "Pasa sin errores."
+    }
+  ],
+  "limites": [
+    "La suite completa npm test (cliente y API con PostgreSQL) se ejecuta al cerrar la fase."
+  ],
+  "notas": "Migración nueva en el bloque 04xx; ninguna migración aplicada se editó."
+}

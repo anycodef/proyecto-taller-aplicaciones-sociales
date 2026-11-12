@@ -32,7 +32,7 @@ test("RNF-106 RF-101 RF-106 RF-201 RF-307: el arranque real registra 68 bindings
     const contratos = Object.entries(documento.paths).flatMap(([ruta, operaciones]) => Object.keys(operaciones).filter(metodo => metodos.has(metodo)).map(metodo => `${metodo.toUpperCase()} ${ruta}`)).sort();
     const bindings = http.flatMap(([, opciones]) => opciones.methods!.map(metodo => `${metodo} /${opciones.route}`)).sort();
     expect(bindings).toEqual(contratos);
-    expect(orden).toEqual(["asistencia", "catequizandos", "seguridad", "avisos"]);
+    expect(orden).toEqual(["asistencia", "catequizandos", "seguridad", "avisos", "justificaciones"]);
     expect(resumen).toHaveBeenCalledWith(expect.objectContaining({ nombre: "resumenAsistencia", consultar: expect.any(Function) }));
     const timers = jest.mocked(app.timer).mock.calls as [string, TimerFunctionOptions][];
     expect(timers.map(([nombre]) => nombre).sort()).toEqual(["borradosPendientes", "depurarMetadatos", "generarSesionesDominicales", "precalentarDomingo", "purgaAuditoria", "retencionDiaria"]);

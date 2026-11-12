@@ -33,49 +33,49 @@
   - Depende de: T004-01
   - Hecho cuando: la sección «Dependencias» de `spec.md` incluye `expo-image-picker` (cámara y galería, también en web), `expo-image-manipulator` (D-403), `expo-file-system` (borrar temporales, RNF-404) y `expo-image` con `cachePolicy="none"` (D-410). Cada una tiene su enlace a la documentación del SDK 57 y la alternativa descartada, y el equipo la aprueba en un PR revisado. `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T004-03** Registrar el ADR «Evidencias solo en línea» y corregir el C4
+- [x] **T004-03** Registrar el ADR «Evidencias solo en línea» y corregir el C4
   - RF: RNF-404, RNF-405, RNF-402
   - Depende de: T001 (F0-2: Jest y scripts)
   - Hecho cuando: hay un ADR nuevo en `docs/adr/`, creado con `npm run adr:new`, que recoge D-401 y D-403 y reemplaza lo que decía sobre fotos `20260914-estrategia-de-sincronizacion-offline-first.md` (A-08). En `docs/diagrams/arquitectura-c4.dsl` ya no aparece «Almacena justificante temporal» y la compresión figura en el cliente. `npm run adr:build` termina sin errores. `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
 ## Fase 1 — Dominio puro (`src/lib/justificaciones/`)
 
-- [ ] **T004-04** Crear `tipos.ts` y `causas.ts` con la lista cerrada de causas **[Supuesto A-02, A-03]**
+- [x] **T004-04** Crear `tipos.ts` y `causas.ts` con la lista cerrada de causas **[Supuesto A-02, A-03]**
   - RF: RF-402, RF-404
   - Depende de: T001 (F0-2: regla ESLint que prohíbe importar React, React Native y Expo en `src/lib`)
   - Hecho cuando: pasan `causas.test.ts › RF-402: la lista de causas es exactamente salud_nino, familiar_directo y evento_escolar`, `RF-402: rechaza una causa fuera de la lista (viaje)` y `RF-404: solo evento_escolar permite justificación anticipada`. La etiqueta visible de `familiar_directo` es «Enfermedad o fallecimiento de un familiar directo». `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T004-05** Implementar `plazo.ts` (fecha límite y vigencia) **[Supuesto A-11, A-12]**
+- [x] **T004-05** Implementar `plazo.ts` (fecha límite y vigencia) **[Supuesto A-11, A-12]**
   - RF: RF-405
   - Depende de: T004-04
   - Hecho cuando: pasan `plazo.test.ts › RF-405: el plazo vence al final del día calendario en America/Lima`, `RF-405: un minuto después del límite el plazo ya no está vigente`, `RF-405: rechaza un plazo fuera de 1 a 60 días` y `RF-405: el plazo por defecto es 7 días`. La hora `ahora` llega como parámetro y no se agrega ninguna dependencia. `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T004-06** Implementar `revisar` y `estadoVisible` en `estados.ts` **[Supuesto A-05]**
+- [x] **T004-06** Implementar `revisar` y `estadoVisible` en `estados.ts` **[Supuesto A-05]**
   - RF: RF-408, RF-410
   - Depende de: T004-04
   - Hecho cuando: pasan `estados.test.ts › RF-408: solo se revisa una justificación pendiente`, `RF-408: rechazar sin motivo lanza error`, `RF-408: la revisión registra quién y cuándo` y `RF-410: estadoVisible devuelve pendiente, aprobada, rechazada o sin_efecto`. Aprobar y rechazar son estados finales (A-05). `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T004-07** Implementar `dejarSinEfecto` y `restaurarEfecto` en `estados.ts`
+- [x] **T004-07** Implementar `dejarSinEfecto` y `restaurarEfecto` en `estados.ts`
   - RF: RF-407
   - Depende de: T004-06
   - Hecho cuando: pasan `estados.test.ts › RF-407: corregida a presente queda sin efecto y se conserva` y `RF-407: si la ausencia vuelve a ausente se restaura el efecto`, y el estado de revisión no cambia en ninguno de los dos casos. `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T004-08** Implementar `ausenciasJustificables` en `justificables.ts`
+- [x] **T004-08** Implementar `ausenciasJustificables` en `justificables.ts`
   - RF: RF-401, RF-405, RF-408
   - Depende de: T004-05, T004-06
   - Hecho cuando: pasan `justificables.test.ts › RF-401: misa, catequesis y actividad obligatoria son justificables`, `RF-405: una ausencia con plazo vencido ya no es justificable`, `RF-401: no ofrece una ausencia con justificación pendiente o aprobada` y `RF-408: una rechazada con plazo vigente vuelve a ofrecerse`. `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T004-09** Implementar `agruparPorDomingo` y `sesionesAnticipables` **[Supuesto A-03, A-13]**
+- [x] **T004-09** Implementar `agruparPorDomingo` y `sesionesAnticipables` **[Supuesto A-03, A-13]**
   - RF: RF-401, RF-404
   - Depende de: T004-08
   - Hecho cuando: pasan `justificables.test.ts › RF-401: misa y catequesis del mismo domingo se muestran en una fila`, `RF-404: ofrece las sesiones futuras del ciclo que no tienen justificación` y `RF-404: no ofrece como anticipables sesiones pasadas ni de otro ciclo`. `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T004-10** Implementar `evidencia.ts` (validación de metadatos) **[Supuesto A-06]**
+- [x] **T004-10** Implementar `evidencia.ts` (validación de metadatos) **[Supuesto A-06]**
   - RF: RF-402, RNF-402, RNF-403
   - Depende de: T004-04
   - Hecho cuando: pasan `evidencia.test.ts › RNF-402: rechaza un archivo de más de 307 200 bytes`, `RNF-403: rechaza un content-type distinto de image/jpeg` y `RF-402: exige entre 1 y 3 fotos`. `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T004-11** Implementar `validarLote` en `lote.ts` **[Supuesto A-04]**
+- [x] **T004-11** Implementar `validarLote` en `lote.ts` **[Supuesto A-04]**
   - RF: RF-402, RF-403, RF-404, RF-405, RF-406
   - Depende de: T004-08, T004-09, T004-10
   - Hecho cuando: pasan los tests de `lote.test.ts`:
@@ -87,12 +87,12 @@
 
     `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T004-12** Implementar `expandirLote` en `lote.ts`
+- [x] **T004-12** Implementar `expandirLote` en `lote.ts`
   - RF: RF-403, RF-406, RF-407
   - Depende de: T004-11
   - Hecho cuando: pasan `lote.test.ts › RF-403: un lote de tres fechas crea tres justificaciones con la misma evidencia`, `RF-403: una evidencia, una justificación por niño (hermanos)`, `RF-406: el canal coordinación lleva registrada_por y registrada_en` y `RF-407: cada justificación queda ligada a niño, sesión, fecha y tipo`. `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T004-13** Implementar `efectos.ts` para los consumidores de 003, 006 y 007 **[Supuesto A-13]**
+- [x] **T004-13** Implementar `efectos.ts` para los consumidores de 003, 006 y 007 **[Supuesto A-13]**
   - RF: RF-409
   - Depende de: T004-07
   - Hecho cuando: pasan los tests de `efectos.test.ts`:
@@ -103,12 +103,12 @@
 
     `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T004-14** Implementar `puedeJustificar`, `puedeRegistrarEnNombre` y `puedeRevisar` en `permisos.ts`
+- [x] **T004-14** Implementar `puedeJustificar`, `puedeRegistrarEnNombre` y `puedeRevisar` en `permisos.ts`
   - RF: RF-401, RF-406, RF-408
   - Depende de: T004-04, T001 (F1: `contexto-acceso` y `matriz-permisos`), T001 (F2: delegación `0103`)
   - Hecho cuando: pasan `permisos.test.ts › RF-408: solo la coordinación o un delegado vigente puede revisar`, `RF-408: supervisión no puede revisar`, `RF-408: un delegado con la delegación vencida no puede revisar`, `RF-406: solo la coordinación o un delegado registra en nombre de un apoderado` y `RF-401: un apoderado solo justifica a sus hijos`. `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T004-15** Implementar `puedeVerEstado` y `puedeVerEvidencia` y agregar las filas de 004 a la matriz de 001
+- [x] **T004-15** Implementar `puedeVerEstado` y `puedeVerEvidencia` y agregar las filas de 004 a la matriz de 001
   - RF: RF-410, RNF-403
   - Depende de: T004-14
   - Hecho cuando: `matriz-permisos.ts` tiene `justificacion:revisar`, `justificacion:registrar-en-nombre` y `justificacion:configurar-plazo`, y `justificacion:leer` y `evidencia:leer` con los alcances del plan. Pasan los tests de `permisos.test.ts`:
@@ -118,34 +118,34 @@
 
     `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T004-16** Implementar `compresion.ts` (plan iterativo de compresión)
+- [x] **T004-16** Implementar `compresion.ts` (plan iterativo de compresión)
   - RF: RNF-402
   - Depende de: T004-10
   - Hecho cuando: pasan `compresion.test.ts › RNF-402: el plan inicial limita el lado mayor a 1600 px con calidad 0,7`, `RNF-402: siguienteIntento baja la calidad a 0,55 y 0,4 y luego el lado a 1280 y 1024` y `RNF-402: el plan de compresión termina bajo 300 KB o falla en 5 intentos`. `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T004-17** Retirar `Justificacion` y `ResultadoOcr` de `src/lib/domain/modelo.ts`
+- [x] **T004-17** Retirar `Justificacion` y `ResultadoOcr` de `src/lib/domain/modelo.ts`
   - RF: RF-407
   - Depende de: T004-04
   - Hecho cuando: `modelo.ts` reexporta los tipos de `src/lib/justificaciones/tipos.ts`, la búsqueda de `ResultadoOcr` en `src/` no encuentra nada y ningún import queda roto. `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
 ## Fase 2 — Migraciones y repositorios PostgreSQL
 
-- [ ] **T004-18** Crear la migración `NNNN_justificaciones_plazo_ciclo.sql`
+- [x] **T004-18** Crear la migración `NNNN_justificaciones_plazo_ciclo.sql`
   - RF: RF-405
   - Depende de: T004-05, T008 (Fase 0: M1, tabla `ciclo`), T001 (F0-3: runner de migraciones y `docker-compose.yml`), T001 (F0-6: skill `nueva-migracion`)
   - Hecho cuando: la migración crea `justificacion_plazos` y se aplica limpia sobre una base vacía en Docker. Pasa `contrato-plazo.test.ts › RF-405: dias_plazo fuera de 1 a 60 es rechazado por la restricción`. `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T004-19** Crear la migración `NNNN_justificaciones_evidencias.sql` (`evidencias` y `evidencia_archivos`) **[Supuesto A-06]**
+- [x] **T004-19** Crear la migración `NNNN_justificaciones_evidencias.sql` (`evidencias` y `evidencia_archivos`) **[Supuesto A-06]**
   - RF: RF-402, RF-407, RNF-402, RNF-403
   - Depende de: T004-18
   - Hecho cuando: pasan `contrato-evidencias.test.ts › RNF-402: evidencia_archivos rechaza bytes mayores de 307200`, `RF-402: orden fuera de 1 a 3 es rechazado` y `RNF-403: una evidencia nace en estado reservada`. `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T004-20** Crear la migración `NNNN_justificaciones_base.sql` (`justificaciones` y `justificacion_eventos`)
+- [x] **T004-20** Crear la migración `NNNN_justificaciones_base.sql` (`justificaciones` y `justificacion_eventos`)
   - RF: RF-403, RF-406, RF-407, RF-408
   - Depende de: T004-19, T002 (Fase 1: migraciones M-201 a M-204 de catequizandos), T003 (Fase 1: migración `0302_sesiones.sql`)
   - Hecho cuando: pasan `contrato-justificaciones.test.ts › RF-406: el canal coordinación exige registrada_por`, `RF-408: rechazada exige motivo_rechazo`, `RF-408: una revisada exige revisada_por` y `RF-408: dos justificaciones de la misma ausencia se aceptan` (no hay unicidad por niño y sesión). `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T004-21** Crear la migración `NNNN_justificaciones_sin_borrado.sql`
+- [x] **T004-21** Crear la migración `NNNN_justificaciones_sin_borrado.sql`
   - RF: RF-407
   - Depende de: T004-20
   - Hecho cuando: pasan los tests de `contrato-sin-borrado.test.ts`:
@@ -156,22 +156,22 @@
 
     `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T004-22** Definir los puertos de dominio e implementar `repositorio-evidencias-pg.ts`
+- [x] **T004-22** Definir los puertos de dominio e implementar `repositorio-evidencias-pg.ts`
   - RF: RF-402, RNF-403
   - Depende de: T004-21
   - Hecho cuando: `dominio/puertos.ts` declara `RepositorioJustificaciones`, `RepositorioEvidencias` y `AlmacenEvidencias`. Pasan los tests de contrato `RNF-403: reservar y confirmar una evidencia con sus archivos`, `RNF-403: listarHuerfanas devuelve solo las reservas no confirmadas de más de 24 h` y `RNF-403: cuenta las reservas de una cuenta en la última hora`. `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T004-23** Implementar `insertarLote` idempotente en `repositorio-justificaciones-pg.ts`
+- [x] **T004-23** Implementar `insertarLote` idempotente en `repositorio-justificaciones-pg.ts`
   - RF: RF-403, RF-406, RF-407
   - Depende de: T004-22, T004-12
   - Hecho cuando: pasan `contrato-justificaciones.test.ts › RF-403: reinsertar el mismo lote es idempotente`, `RF-403: si falla una inserción del lote no queda ninguna` y `RF-407: cada justificación insertada tiene su evento creada`. `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T004-24** Implementar en el repositorio la revisión, «sin efecto» y la restauración
+- [x] **T004-24** Implementar en el repositorio la revisión, «sin efecto» y la restauración
   - RF: RF-407, RF-408
   - Depende de: T004-23, T004-07
   - Hecho cuando: pasan `contrato-justificaciones.test.ts › RF-408: revisar guarda revisada_por, revisada_en y su evento`, `RF-407: marcar sin efecto conserva la fila y registra el evento sin_efecto` y `RF-407: restaurar registra efecto_restaurado`. Cada escritura actualiza `actualizado_en`. `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T004-25** Implementar las consultas del repositorio (bandeja, perfil, familia y cambios)
+- [x] **T004-25** Implementar las consultas del repositorio (bandeja, perfil, familia y cambios)
   - RF: RF-403, RF-408, RF-410
   - Depende de: T004-24
   - Hecho cuando: pasan los tests de `contrato-justificaciones.test.ts`:
@@ -182,7 +182,7 @@
 
     `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T004-26** Implementar `obtenerPlazo` y `definirPlazo` en el repositorio **[Supuesto A-11]**
+- [x] **T004-26** Implementar `obtenerPlazo` y `definirPlazo` en el repositorio **[Supuesto A-11]**
   - RF: RF-405
   - Depende de: T004-18, T004-22
   - Hecho cuando: pasan `contrato-plazo.test.ts › RF-405: obtenerPlazo devuelve 7 si el ciclo no lo definió` y `RF-405: definirPlazo guarda definido_por y definido_en`. `npm test`, `npm run typecheck` y `npm run lint` pasan.

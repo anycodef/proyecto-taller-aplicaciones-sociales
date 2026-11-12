@@ -45,6 +45,13 @@ const grupos: readonly GrupoCatalogo[] = [
   ["evento_asistencia", "operativo", "operacion", ["tipo", "fecha"]],
   ["actividad_obligatoria", "operativo", "operacion", ["nombre", "tipo", "fecha", "estado"]],
   ["cambio_actividad", "operativo", "operacion", ["campo", "valor_anterior", "valor_nuevo"]],
+  ["justificacion_plazo", "operativo", "operacion", ["dias_plazo"]],
+  ["evidencia", "operativo", "operacion", ["estado", "motivo_eliminacion"]],
+  ["evidencia_archivo", "restringido", "operacion", ["blob_nombre"]],
+  ["evidencia_archivo", "operativo", "operacion", ["orden", "bytes", "content_type"]],
+  ["justificacion", "restringido", "operacion", ["causa", "motivo_rechazo"]],
+  ["justificacion", "operativo", "operacion", ["tipo_sesion", "fecha_sesion", "anticipada", "canal", "estado_revision"]],
+  ["justificacion_evento", "operativo", "operacion", ["tipo", "detalle"]],
 ];
 
 export const CATALOGO: readonly EntradaCatalogo[] = Object.freeze(grupos.flatMap(([entidad, clasificacion, finalidad, campos]) => campos.map(campo => Object.freeze({ entidad, campo, clasificacion, finalidad }))));
@@ -92,6 +99,11 @@ export const COLUMNAS_TECNICAS = listasCerradas({
   evento_asistencia: ["secuencia", "ciclo_id", "catequizando_id", "creado_en", "estadistico_id"],
   actividad_obligatoria: ["id", "ciclo_id", "creado_por", "actualizado_en", "eliminado_en", "cuenta_id", "credencial_id", "dispositivo_id", "huella_creacion"],
   cambio_actividad: ["id", "ciclo_id", "actividad_id", "cambiado_por", "cambiado_en"],
+  justificacion_plazo: ["ciclo_id", "definido_por", "definido_en"],
+  evidencia: ["id", "ciclo_id", "subida_por", "reservada_en", "confirmada_en", "eliminada_en"],
+  evidencia_archivo: ["evidencia_id"],
+  justificacion: ["id", "lote_id", "ciclo_id", "catequizando_id", "sesion_id", "evidencia_id", "enviada_por", "enviada_en", "registrada_por", "registrada_en", "revisada_por", "revisada_en", "sin_efecto_desde", "actualizado_en"],
+  justificacion_evento: ["secuencia", "justificacion_id", "por", "en"],
   contador_limite: ["cuenta_id", "operacion", "ventana", "cantidad"],
   contador_busqueda_apoderado: ["cuenta_id", "ventana", "cantidad"],
   bitacora_sincronizacion: ["id", "cuenta_id", "dispositivo_id", "operacion", "recibido_en", "duracion_ms", "bytes_entrada", "bytes_salida", "aceptados", "rechazados", "descartados_cierre", "version_esquema"],

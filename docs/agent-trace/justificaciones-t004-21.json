@@ -1,0 +1,39 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-11",
+  "agente": "Claude Code",
+  "modelo": "claude-opus-5-5",
+  "rama": "feat/004-justificaciones",
+  "tarea": "T004-21",
+  "solicitud": "Crear la migración sin borrado (RF-407).",
+  "alcance": [
+    "api/migraciones/0404_justificaciones_sin_borrado.sql",
+    "api/test/integracion/justificaciones/contrato-sin-borrado.test.ts",
+    "specs/004-justificaciones/tasks.md",
+    "docs/agent-trace/justificaciones-t004-21.json"
+  ],
+  "criterio": "Pasan los cuatro tests de contrato-sin-borrado.test.ts y uno adicional que confirma que el contexto de retención sí puede borrar.",
+  "decisiones": [
+    "Los eventos ya eran inmutables por 0403; aquí solo se retira DELETE al rol de la aplicación.",
+    "El trigger de transición distingue a la función por current_user: corre como su dueño (SECURITY DEFINER), no como sigecat_api.",
+    "Una evidencia eliminada es estado final."
+  ],
+  "comprobaciones": [
+    {
+      "comando": "npx jest --selectProjects integracion --testPathPattern \"justificaciones|catalogo\" (api, PostgreSQL 16 en Docker)",
+      "resultado": "Pasa: 18 tests (contratos de 004 y catálogo RF-107)."
+    },
+    {
+      "comando": "npm run typecheck",
+      "resultado": "Pasa en raíz y API."
+    },
+    {
+      "comando": "npm run lint",
+      "resultado": "Pasa sin errores."
+    }
+  ],
+  "limites": [
+    "La suite completa npm test (cliente y API con PostgreSQL) se ejecuta al cerrar la fase."
+  ],
+  "notas": "Migración nueva en el bloque 04xx; ninguna migración aplicada se editó."
+}

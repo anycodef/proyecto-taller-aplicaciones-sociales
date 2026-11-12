@@ -1,0 +1,40 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-11",
+  "agente": "Claude Code",
+  "modelo": "claude-opus-5-5",
+  "rama": "feat/004-justificaciones",
+  "tarea": "T004-19",
+  "solicitud": "Crear la migración de evidencias y evidencia_archivo (supuesto A-06).",
+  "alcance": [
+    "api/migraciones/0402_justificaciones_evidencias.sql",
+    "api/test/integracion/justificaciones/contrato-evidencias.test.ts",
+    "src/lib/seguridad/catalogo-datos.ts",
+    "specs/004-justificaciones/tasks.md",
+    "docs/agent-trace/justificaciones-t004-19.json"
+  ],
+  "criterio": "Pasan contrato-evidencias.test.ts › RNF-402 (bytes), RF-402 (orden) y RNF-403 (nace reservada).",
+  "decisiones": [
+    "Tablas en singular por la regla de AGENTS.md.",
+    "blob_nombre se cataloga como restringido: apunta a la evidencia.",
+    "El trigger de ciclo solo aplica a INSERT para que el borrado por consentimiento funcione en ciclos cerrados."
+  ],
+  "comprobaciones": [
+    {
+      "comando": "npx jest --selectProjects integracion --testPathPattern \"justificaciones|catalogo\" (api, PostgreSQL 16 en Docker)",
+      "resultado": "Pasa: 8 tests (contratos de 004 y catálogo RF-107)."
+    },
+    {
+      "comando": "npm run typecheck",
+      "resultado": "Pasa en raíz y API."
+    },
+    {
+      "comando": "npm run lint",
+      "resultado": "Pasa sin errores."
+    }
+  ],
+  "limites": [
+    "La suite completa npm test (cliente y API con PostgreSQL) se ejecuta al cerrar la fase."
+  ],
+  "notas": "Migración nueva en el bloque 04xx; ninguna migración aplicada se editó."
+}
