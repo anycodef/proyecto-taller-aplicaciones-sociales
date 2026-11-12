@@ -13,6 +13,7 @@ import { PuntosPin, TecladoPin } from '@/components/seguridad/teclado-pin';
 import { CompartirEnlace } from '@/components/seguridad/compartir-enlace';
 import { ComponenteConsentimiento } from '@/components/seguridad/consentimiento';
 import { TarjetaCarne } from '@/components/catequizandos/tarjeta-carne';
+import { ConfirmacionEscaneo } from '@/components/asistencia/confirmacion-escaneo';
 import { colores, espacio, tipografia } from '@/tema';
 import { useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
@@ -137,6 +138,13 @@ export default function Galeria() {
           emision={1}
           codigoCarne="SGC1:3f2504e0-4f89-41d3-9a0c-0305e82c3301:1"
         />
+      </Seccion>
+
+      <Seccion titulo="Confirmación de escaneo">
+        <ConfirmacionEscaneo estado="registrado" nombre="Sebastián André Ramírez Flores" hora="8:12" />
+        <ConfirmacionEscaneo estado="otro_grupo" />
+        <ConfirmacionEscaneo estado="ya_registrado" />
+        <ConfirmacionEscaneo estado="invalido" />
       </Seccion>
     </ScrollView>
   );

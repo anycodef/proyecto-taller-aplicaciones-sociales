@@ -1,0 +1,20 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-11",
+  "agente": "OpenCode",
+  "modelo": "minimax-m3.1-flash-free",
+  "tarea": "T003-82",
+  "solicitud": "Actualizar el catalogo con las pantallas de asistencia: APP-37 y las rutas de las pantallas construidas",
+  "commitPrevisto": "docs(catalogo): anotar las pantallas de asistencia y sus imagenes",
+  "alcance": [
+    "docs/mockups/catalogo-pantallas.md"
+  ],
+  "criterio": "El catalogo es la tabla maestra: cada pantalla de la spec 003 dice su archivo de imagen y su ruta.",
+  "comprobaciones": ["npm test", "npm run typecheck", "npm run lint"],
+  "resultados": {
+    "tests": "Cliente: 41 suites y 142 tests en verde",
+    "typecheck": "Pasa raiz y API",
+    "lint": "Pasa sin errores ni advertencias"
+  },
+  "notas": "Se comprueban una por una las imagenes del tramo APP-20 a APP-37: los archivos van un numero por encima del identificador (APP-20 esta en app/app-21.png y APP-37 en app/app-38.png), porque en ese tramo se inserto una pantalla nueva. Cada fila dice ahora su archivo y su ruta. Se reporta la contradiccion con la regla general del README, que dice que la imagen lleva el identificador."
+}

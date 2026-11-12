@@ -1,0 +1,20 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-12",
+  "agente": "OpenCode",
+  "modelo": "minimax-m3.1-flash-free",
+  "tarea": "T003-72",
+  "solicitud": "Correccion del test de integracion de la siembra al cambiar su contrato",
+  "commitPrevisto": "test(demo): actualizar el contrato de la siembra de demo",
+  "alcance": [
+    "api/test/integracion/base/demo-bd.test.ts"
+  ],
+  "criterio": "La siembra devuelve el bloque de demo ademas de los enlaces, crea ocho ninos y una sesion de catequesis de hoy con ventana de todo el dia.",
+  "comprobaciones": ["npm --prefix api test", "npm run typecheck", "npm run lint"],
+  "resultados": {
+    "tests": "API: 210 de 211 en verde; el unico fallo es el test de Azurite, que necesita el contenedor y el motor de Docker no arranca en esta maquina (mismo estado que antes de estos cambios)",
+    "typecheck": "Pasa raiz y API",
+    "lint": "Pasa sin errores ni advertencias"
+  },
+  "notas": "El test anterior esperaba un arreglo de enlaces y dos ninos. Ahora comprueba el bloque demo (grupo, ocho ninos, enlace con token), que la segunda siembra no crea enlaces nuevos, que la nomina tiene ocho ninos y que la sesion del dia tiene la ventana de todo el dia."
+}

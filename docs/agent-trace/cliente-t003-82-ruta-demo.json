@@ -1,0 +1,25 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-12",
+  "agente": "OpenCode",
+  "modelo": "minimax-m3.1-flash-free",
+  "tarea": "T003-82",
+  "solicitud": "Paso 1 de la demo: verificar que la ruta APP-30 elegir grupo, APP-28 lista, APP-29 lista confirmada y APP-32 por enviar se navega de punta a punta",
+  "commitPrevisto": "test(asistencia): recorrer la ruta de la demo de punta a punta",
+  "alcance": [
+    "src/__tests__/ruta-demo.test.tsx"
+  ],
+  "criterio": "T003-82: la ruta de la demo se recorre sin pantallas de prototipado ni enlaces muertos: el menu lleva a la lista, la lista se confirma sin conexion y el menu cuenta lo que falta por enviar.",
+  "comprobaciones": ["npm run test:app", "npm run typecheck", "npm run lint"],
+  "resultados": {
+    "tests": "Cliente: 42 suites y 145 tests en verde",
+    "typecheck": "Pasa raiz y API",
+    "lint": "Pasa sin errores ni advertencias"
+  },
+  "evidencia": {
+    "recorrido": "menu (Grupo Demo) -> /asistencia/lista/grupo-1 -> confirmar sin conexion -> 1 lista y 8 marcas en el celular -> el menu muestra 9 registros por enviar -> la pantalla Por enviar lista los ninos.",
+    "enlaces": "Se reviso cada destino de router.push y router.replace del codigo: los de la ruta de la demo existen. Hay tres enlaces muertos fuera del guion (coordinacion/grupos/nuevo, coordinacion/grupos/{id} y catequizandos/{id}/carne) que no se tocaron por quedar fuera del alcance.",
+    "prototipado": "La pantalla Pendiente de prototipado solo se usa en la hub de coordinacion, que no entra en el guion."
+  },
+  "notas": "La eleccion de grupo del guion la hace el menu (APP-21) con la lista de grupos descargados; la pantalla dedicada de elegir grupo (APP-30) no se construyo y no hace falta para el guion. El conteo de la lista y sus marcas vive en el menu; en el paso 3 se anade tambien a la pantalla Por enviar para que se vea en la exposicion."
+}

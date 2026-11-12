@@ -29,11 +29,18 @@ afterAll(async () => {
   if (anterior === undefined) delete process.env.URL_WEB; else process.env.URL_WEB = anterior;
 });
 test("RF-102 RF-110 RF-111: demo crea cinco roles, cuenta mixta, hermanos y enlaces solo una vez", async () => {
-  const enlaces = await sembrarDemo();
-  expect(enlaces).toHaveLength(8);
-  expect(await sembrarDemo()).toEqual([]);
+  const resultado = await sembrarDemo();
+  expect(resultado.enlacesNuevos).toHaveLength(8);
+  expect(resultado.demo.ninos).toBe(8);
+  expect(resultado.demo.grupo).toBe("Grupo demo");
+  expect(resultado.demo.enlace).toContain("#t=");
+  expect((await sembrarDemo()).enlacesNuevos).toEqual([]);
   expect((await pool.query("SELECT DISTINCT rol FROM rol_cuenta ORDER BY rol")).rows.map(fila => fila.rol)).toEqual(["administracion", "catequista", "coordinacion", "familia", "supervision"]);
-  expect((await pool.query("SELECT count(*)::integer AS cantidad FROM v_nomina_ciclo")).rows[0].cantidad).toBe(2);
+  expect((await pool.query("SELECT count(*)::integer AS cantidad FROM v_nomina_ciclo")).rows[0].cantidad).toBe(8);
+  const sesionDemo = (await pool.query<{ tipo: string; ventana_inicio: string; ventana_fin: string }>("SELECT tipo,ventana_inicio::text,ventana_fin::text FROM sesion WHERE fecha=current_date AND tipo='catequesis'")).rows[0];
+  expect(sesionDemo.tipo).toBe("catequesis");
+  expect(sesionDemo.ventana_inicio).toBe("00:00:00");
+  expect(sesionDemo.ventana_fin).toBe("23:59:59");
   const mixta = (await pool.query<{ cuenta_id: string; credencial_id: string }>("SELECT c.id cuenta_id,cr.id credencial_id FROM cuenta c JOIN credencial cr ON cr.cuenta_id=c.id WHERE c.identidad_operativa='Cuenta mixta demo' AND cr.tipo='familia'")).rows[0];
   await pool.query("UPDATE credencial SET estado='activa' WHERE id=$1", [mixta.credencial_id]);
   const contexto = await cargarContexto({ cuentaId: mixta.cuenta_id, credencialId: mixta.credencial_id, tipo: "familia" });

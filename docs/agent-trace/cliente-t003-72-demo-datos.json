@@ -1,0 +1,28 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-12",
+  "agente": "OpenCode",
+  "modelo": "minimax-m3.1-flash-free",
+  "tarea": "T003-72",
+  "solicitud": "Paso 2 de la demo: npm run sembrar-demo crea contra la API un ciclo abierto, un grupo con 8 ninos, la sesion de catequesis de hoy y una cuenta de catequista con su enlace de activacion, y se puede repetir sin duplicar",
+  "commitPrevisto": "feat(demo): sembrar los datos de la demo de asistencia",
+  "alcance": [
+    "api/scripts/sembrar-demo.ts",
+    "api/package.json",
+    "package.json",
+    ".gitignore"
+  ],
+  "criterio": "T003-72 (preparacion local): la siembra deja ciclo abierto, grupo con 8 ninos, sesion de catequesis del dia y el enlace del catequista, y se puede repetir sin duplicar.",
+  "comprobaciones": ["npm run sembrar-demo", "npm run typecheck", "npm run lint"],
+  "resultados": {
+    "siembra": "grupo=1 ninos=8 inscripciones=8 sesiones=105 cuentas=7 tras la primera siembra; tras repetir: los mismos conteos y un enlace nuevo del catequista",
+    "typecheck": "Pasa raiz y API",
+    "lint": "Pasa sin errores ni advertencias"
+  },
+  "evidencia": {
+    "primera": "npm run sembrar-demo -> enlaces por rol y demo: {cuentaCatequista, grupo: Grupo demo, ninos: 8, fechaSesion, enlace, enlaceExpo}",
+    "repetida": "npm run sembrar-demo -> enlacesNuevos: [] y los conteos de grupo, ninos, inscripciones, sesiones y cuentas no cambian; solo se emite un enlace nuevo del catequista de demo para que el celular pueda activarse otra vez",
+    "base": "PostgreSQL local en el puerto 5433, base sigecat migrada (33 migraciones)"
+  },
+  "notas": "La sesion de catequesis de hoy lleva ventana de todo el dia (00:00 a 23:59) para que la demo sirva a cualquier hora, y la siembra limpia las marcas de esa sesion: las marcas son inmutables y un intento rechazado con otro momento dejaria el id bloqueado. El enlace y el token de la demo se guardan en api/demo-local.json, que esta en .gitignore porque es una credencial."
+}

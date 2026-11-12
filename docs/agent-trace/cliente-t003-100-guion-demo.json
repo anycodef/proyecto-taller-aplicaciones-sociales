@@ -1,0 +1,21 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-12",
+  "agente": "OpenCode",
+  "modelo": "minimax-m3.1-flash-free",
+  "tarea": "T003-100",
+  "solicitud": "Paso 5 de la demo: docs/demo-asistencia.md con los comandos exactos desde cero en esta PC, el guion paso a paso, que debe verse en cada pantalla y que hacer si algo falla, con la advertencia del modo avion",
+  "commitPrevisto": "docs(demo): guion de la demo de asistencia local",
+  "alcance": [
+    "docs/demo-asistencia.md"
+  ],
+  "criterio": "T003-100: el protocolo describe como verificar cada paso del guion (modo avion, lista, por enviar, sincronizacion) y las consultas a la base.",
+  "comprobaciones": ["npm run test:app", "npm run typecheck", "npm run lint"],
+  "resultados": {
+    "contenido": "Requisitos y dependencias instaladas, reglas de firewall, comandos exactos (base, local.settings, API, siembra, ensayo, app), guion de 10 pasos con lo que se ve en cada pantalla, tabla de fallos y que quedo sin comprobar",
+    "tests": "Cliente: 43 suites y 147 tests en verde",
+    "typecheck": "Pasa raiz y API",
+    "lint": "Pasa sin errores ni advertencias"
+  },
+  "notas": "La advertencia pedida esta en el guion: en modo avion el celular pierde tambien el servidor de Expo, asi que no se debe cerrar ni recargar la app estando sin conexion. Se documenta la eleccion de levantar el host con --functions (solo las cinco rutas de la demo) para no necesitar Azurite ni Docker, y el comando exacto del firewall para el API y para Metro."
+}

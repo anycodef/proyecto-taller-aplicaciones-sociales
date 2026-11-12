@@ -1,0 +1,26 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-11",
+  "agente": "OpenCode",
+  "modelo": "minimax-m3.1-flash-free",
+  "tarea": "T003-13",
+  "solicitud": "Retirar el codigo heredado: la cola de sincronizacion y los tipos antiguos de asistencia",
+  "commitPrevisto": "refactor(asistencia): retirar la cola y los tipos heredados",
+  "alcance": [
+    "src/lib/offline/cola-sincronizacion.ts",
+    "src/lib/domain/modelo.ts",
+    "src/plataforma/asistencia/contexto-asistencia.tsx"
+  ],
+  "criterio": "T003-13: esperaReintento vive en src/lib/sincronizacion/orquestador.ts, se borra src/lib/offline/cola-sincronizacion.ts y se retiran SesionCatequesis, EstadoAsistencia y RegistroAsistencia de src/lib/domain/modelo.ts.",
+  "comprobaciones": ["npm test", "npm run typecheck", "npm run lint"],
+  "resultados": {
+    "tests": "Cliente: 37 suites y 123 tests en verde",
+    "typecheck": "Pasa raiz y API",
+    "lint": "Pasa sin errores ni advertencias"
+  },
+  "evidencia": {
+    "antes": "grep en src: 12 coincidencias de cola-sincronizacion, RegistroAsistencia, EstadoAsistencia y SesionCatequesis, repartidas entre la cola, el modelo y el proveedor de asistencia.",
+    "despues": "grep en src: 0 coincidencias de cola-sincronizacion|RegistroAsistencia|EstadoAsistencia|SesionCatequesis. La carpeta src/lib/offline queda vacia y se elimina."
+  },
+  "notas": "El tipo local del proveedor se renombra a EstadoProveedorAsistencia para que no choque con el tipo retirado del modelo. La cola retirada duplicaba la logica de pendientes: escribia una fila por marca sin id determinista y con estados propios, mientras el dominio ya usa ids deterministas y reintento con esperaReintento en el orquestador."
+}

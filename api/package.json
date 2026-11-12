@@ -18,6 +18,7 @@
     "migrar": "tsx scripts/migrar.ts",
     "configurar:roles": "tsx scripts/configurar-roles.ts",
     "sembrar:demo": "tsx scripts/sembrar-demo.ts",
+    "verificar:demo": "tsx scripts/verificar-demo.ts",
     "sembrar:riesgo": "tsx scripts/sembrar-riesgo-demo.ts",
     "crear:administracion": "tsx scripts/crear-administracion-inicial.ts",
     "reemitir:administracion": "tsx scripts/reemitir-administracion.ts"
