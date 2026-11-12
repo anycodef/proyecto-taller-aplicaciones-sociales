@@ -1,0 +1,39 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-11",
+  "agente": "Claude Code",
+  "modelo": "claude-opus-5-5",
+  "rama": "feat/004-justificaciones",
+  "tarea": "T004-44",
+  "solicitud": "Crear los componentes selector-causa.tsx y selector-ausencias.tsx.",
+  "alcance": [
+    "src/components/justificaciones/selector-causa.tsx",
+    "src/components/justificaciones/selector-ausencias.tsx",
+    "src/components/justificaciones/__tests__/selectores.test.tsx",
+    "src/app/galeria.tsx",
+    "specs/004-justificaciones/tasks.md",
+    "docs/agent-trace/justificaciones-t004-44.json"
+  ],
+  "criterio": "Pasan RF-402: el selector muestra solo las tres causas como chips y RF-403: el selector permite marcar ausencias de varios hijos y fechas.",
+  "decisiones": [
+    "Las causas y las filas llegan como propiedades; el componente no decide qué es justificable."
+  ],
+  "comprobaciones": [
+    {
+      "comando": "npx jest src/components/justificaciones; npm run typecheck; npm run lint",
+      "resultado": "Pasa: 2 tests."
+    },
+    {
+      "comando": "npm run typecheck",
+      "resultado": "Pasa en raíz y API."
+    },
+    {
+      "comando": "npm run lint",
+      "resultado": "Pasa sin errores."
+    }
+  ],
+  "limites": [
+    "La suite completa npm test (cliente y API con PostgreSQL) se ejecuta al cerrar la fase."
+  ],
+  "notas": "Dominio puro en TypeScript, sin React, React Native ni Expo."
+}

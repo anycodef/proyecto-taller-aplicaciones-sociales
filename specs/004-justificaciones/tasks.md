@@ -313,7 +313,7 @@
 
     `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T004-44** Crear los componentes `selector-causa.tsx` y `selector-ausencias.tsx`
+- [x] **T004-44** Crear los componentes `selector-causa.tsx` y `selector-ausencias.tsx`
   - RF: RF-402, RF-403
   - Depende de: T004-04, T004-09
   - Hecho cuando: pasan `RF-402: el selector muestra solo las tres causas como chips` y `RF-403: el selector permite marcar ausencias de varios hijos y fechas`. Los componentes no contienen reglas de negocio. `npm test`, `npm run typecheck` y `npm run lint` pasan.

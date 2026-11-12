@@ -13,6 +13,9 @@ import { PuntosPin, TecladoPin } from '@/components/seguridad/teclado-pin';
 import { CompartirEnlace } from '@/components/seguridad/compartir-enlace';
 import { ComponenteConsentimiento } from '@/components/seguridad/consentimiento';
 import { TarjetaCarne } from '@/components/catequizandos/tarjeta-carne';
+import { SelectorAusencias } from '@/components/justificaciones/selector-ausencias';
+import { SelectorCausa } from '@/components/justificaciones/selector-causa';
+import { CAUSAS, ETIQUETAS_CAUSA } from '@/lib/justificaciones/causas';
 import { colores, espacio, tipografia } from '@/tema';
 import { useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
@@ -22,6 +25,8 @@ export default function Galeria() {
   const [nombre, setNombre] = useState('');
   const [sexo, setSexo] = useState<string | null>(null);
   const [pin, setPin] = useState('');
+  const [causa, setCausa] = useState<string | null>(null);
+  const [ausencias, setAusencias] = useState<string[]>(['ana-0108']);
 
   if (verResultado) {
     return (
@@ -127,6 +132,18 @@ export default function Galeria() {
           }}
           alAceptar={() => undefined}
         />
+      </Seccion>
+
+      <Seccion titulo="Justificaciones">
+        <SelectorAusencias
+          opciones={[
+            { clave: 'ana-0108', titulo: 'Ana · domingo 8 de noviembre', detalle: 'Misa y catequesis', nota: 'Puedes justificar hasta el 15 de noviembre' },
+            { clave: 'luis-0108', titulo: 'Luis · domingo 8 de noviembre', detalle: 'Misa' },
+          ]}
+          seleccionadas={ausencias}
+          alCambiar={setAusencias}
+        />
+        <SelectorCausa causas={CAUSAS.map((c) => ({ valor: c, etiqueta: ETIQUETAS_CAUSA[c] }))} valor={causa} alCambiar={setCausa} />
       </Seccion>
 
       <Seccion titulo="Carné">
