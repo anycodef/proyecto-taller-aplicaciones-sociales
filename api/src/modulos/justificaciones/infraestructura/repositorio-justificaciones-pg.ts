@@ -1,6 +1,7 @@
+import { PLAZO_PREDETERMINADO_DIAS, validarDiasPlazo } from "@/lib/justificaciones/plazo";
 import { ErrorJustificacion, type AusenciaRef, type Justificacion } from "@/lib/justificaciones/tipos";
 import type { Tx } from "../../../compartido/bd/transaccion";
-import type { CambioEstado, LoteBandeja, RepositorioJustificaciones } from "../dominio/puertos";
+import type { CambioEstado, LoteBandeja, PlazoCiclo, RepositorioJustificaciones } from "../dominio/puertos";
 
 type Fila = {
   id: string; lote_id: string; ciclo_id: string; catequizando_id: string; sesion_id: string; tipo_sesion: Justificacion["tipoSesion"];
@@ -117,6 +118,22 @@ async function cambiosDesde(tx: Tx, desde: Date, catequizandoIds?: readonly stri
   return filas.rows.map(f => ({ id: f.id, catequizandoId: f.catequizando_id, sesionId: f.sesion_id, fecha: f.fecha_sesion, tipoSesion: f.tipo_sesion, estadoVisible: f.estado_visible, actualizadoEn: f.actualizado_en.toISOString() }));
 }
 
+type FilaPlazo = { ciclo_id: string; dias_plazo: number; definido_por: string; definido_en: Date };
+const aPlazo = (f: FilaPlazo): PlazoCiclo => ({ cicloId: f.ciclo_id, diasPlazo: f.dias_plazo, predeterminado: false, definidoPor: f.definido_por, definidoEn: f.definido_en.toISOString() });
+
+async function obtenerPlazo(tx: Tx, cicloId: string): Promise<PlazoCiclo> {
+  const filas = await tx.query<FilaPlazo>("SELECT ciclo_id,dias_plazo,definido_por,definido_en FROM justificacion_plazo WHERE ciclo_id=$1", [cicloId]);
+  return filas.rows[0] ? aPlazo(filas.rows[0]) : { cicloId, diasPlazo: PLAZO_PREDETERMINADO_DIAS, predeterminado: true, definidoPor: null, definidoEn: null };
+}
+
+async function definirPlazo(tx: Tx, cicloId: string, diasPlazo: number, por: string, en: Date): Promise<PlazoCiclo> {
+  validarDiasPlazo(diasPlazo);
+  const filas = await tx.query<FilaPlazo>(`INSERT INTO justificacion_plazo(ciclo_id,dias_plazo,definido_por,definido_en) VALUES($1,$2,$3,$4)
+    ON CONFLICT(ciclo_id) DO UPDATE SET dias_plazo=EXCLUDED.dias_plazo,definido_por=EXCLUDED.definido_por,definido_en=EXCLUDED.definido_en
+    RETURNING ciclo_id,dias_plazo,definido_por,definido_en`, [cicloId, diasPlazo, por, en]);
+  return aPlazo(filas.rows[0]);
+}
+
 export const repositorioJustificacionesPg: RepositorioJustificaciones = {
-  insertarLote, obtener, guardarRevision, marcarSinEfecto, restaurarEfecto, bandeja, listarPorCatequizando, listarPorApoderado, cambiosDesde,
+  insertarLote, obtener, guardarRevision, marcarSinEfecto, restaurarEfecto, bandeja, listarPorCatequizando, listarPorApoderado, cambiosDesde, obtenerPlazo, definirPlazo,
 };

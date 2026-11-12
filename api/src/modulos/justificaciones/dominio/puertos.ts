@@ -54,7 +54,12 @@ export interface RepositorioJustificaciones {
   listarPorApoderado(tx: Tx, apoderadoId: string): Promise<Justificacion[]>;
   /** Para el pull de 003: solo estado, sin causa, motivo ni evidencia (D-408). Puede reentregar la última fila del cursor. */
   cambiosDesde(tx: Tx, desde: Date, catequizandoIds?: readonly string[]): Promise<CambioEstado[]>;
+  /** Sin definición del ciclo devuelve el plazo predeterminado (supuesto A-11). */
+  obtenerPlazo(tx: Tx, cicloId: string): Promise<PlazoCiclo>;
+  definirPlazo(tx: Tx, cicloId: string, diasPlazo: number, por: string, en: Date): Promise<PlazoCiclo>;
 }
+
+export type PlazoCiclo = { cicloId: string; diasPlazo: number; predeterminado: boolean; definidoPor: string | null; definidoEn: string | null };
 
 export type JustificacionEnBandeja = Justificacion & { duplicada: boolean };
 export type LoteBandeja = { loteId: string; justificaciones: JustificacionEnBandeja[] };

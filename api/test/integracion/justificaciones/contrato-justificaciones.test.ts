@@ -99,9 +99,10 @@ test("RF-403: si falla una inserción del lote no queda ninguna", async () => {
 test("RF-407: cada justificación insertada tiene su evento creada", async () => {
   const js = expandirLote(lote({ canal: "coordinacion", registradaPor: s.cuentaId }), enviadaEn);
   const guardadas = await enTx(bd, tx => repo.insertarLote(tx, js, s.cuentaId));
-  expect(guardadas.map(j => ({ ...j }))).toEqual(js.map(j => ({ ...j, enviadaEn, registradaEn: enviadaEn })));
-  const eventos = await bd.app.query("SELECT justificacion_id,tipo,por FROM justificacion_evento WHERE justificacion_id=ANY($1::uuid[]) ORDER BY secuencia", [js.map(j => j.id)]);
-  expect(eventos.rows).toEqual(js.map(j => ({ justificacion_id: j.id, tipo: "creada", por: s.cuentaId })));
+  const porId = <T extends { id: string }>(xs: T[]) => [...xs].sort((a, b) => a.id.localeCompare(b.id));
+  expect(porId(guardadas)).toEqual(porId(js.map(j => ({ ...j, enviadaEn, registradaEn: enviadaEn }))));
+  const eventos = await bd.app.query("SELECT justificacion_id AS id,tipo,por FROM justificacion_evento WHERE justificacion_id=ANY($1::uuid[])", [js.map(j => j.id)]);
+  expect(porId(eventos.rows)).toEqual(porId(js.map(j => ({ id: j.id, tipo: "creada", por: s.cuentaId }))));
 });
 
 const tiposEvento = async (id: string) => (await bd.app.query("SELECT tipo,por FROM justificacion_evento WHERE justificacion_id=$1 ORDER BY secuencia", [id])).rows;

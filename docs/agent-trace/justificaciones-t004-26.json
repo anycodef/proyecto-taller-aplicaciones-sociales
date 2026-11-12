@@ -1,0 +1,40 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-11",
+  "agente": "Claude Code",
+  "modelo": "claude-opus-5-5",
+  "rama": "feat/004-justificaciones",
+  "tarea": "T004-26",
+  "solicitud": "Implementar obtenerPlazo y definirPlazo en el repositorio (supuesto A-11).",
+  "alcance": [
+    "api/src/modulos/justificaciones/dominio/puertos.ts",
+    "api/src/modulos/justificaciones/infraestructura/repositorio-justificaciones-pg.ts",
+    "api/test/integracion/justificaciones/contrato-plazo.test.ts",
+    "api/test/integracion/justificaciones/contrato-justificaciones.test.ts",
+    "specs/004-justificaciones/tasks.md",
+    "docs/agent-trace/justificaciones-t004-26.json"
+  ],
+  "criterio": "Pasan contrato-plazo.test.ts › RF-405: obtenerPlazo devuelve 7 si el ciclo no lo definió y RF-405: definirPlazo guarda definido_por y definido_en.",
+  "decisiones": [
+    "definirPlazo reutiliza validarDiasPlazo del dominio antes de escribir.",
+    "La prueba RF-407 de eventos creada ahora compara por id: el lote se lista ordenado por catequizando y los UUID son aleatorios."
+  ],
+  "comprobaciones": [
+    {
+      "comando": "npx jest --selectProjects integracion --testPathPattern \"justificaciones|catalogo\" (api, PostgreSQL 16 en Docker), tres corridas",
+      "resultado": "Pasa: 33 tests en tres corridas seguidas."
+    },
+    {
+      "comando": "npm run typecheck",
+      "resultado": "Pasa en raíz y API."
+    },
+    {
+      "comando": "npm run lint",
+      "resultado": "Pasa sin errores."
+    }
+  ],
+  "limites": [
+    "La suite completa npm test (cliente y API con PostgreSQL) se ejecuta al cerrar la fase."
+  ],
+  "notas": "Repositorio PostgreSQL del módulo api/src/modulos/justificaciones."
+}

@@ -182,7 +182,7 @@
 
     `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T004-26** Implementar `obtenerPlazo` y `definirPlazo` en el repositorio **[Supuesto A-11]**
+- [x] **T004-26** Implementar `obtenerPlazo` y `definirPlazo` en el repositorio **[Supuesto A-11]**
   - RF: RF-405
   - Depende de: T004-18, T004-22
   - Hecho cuando: pasan `contrato-plazo.test.ts › RF-405: obtenerPlazo devuelve 7 si el ciclo no lo definió` y `RF-405: definirPlazo guarda definido_por y definido_en`. `npm test`, `npm run typecheck` y `npm run lint` pasan.
