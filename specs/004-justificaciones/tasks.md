@@ -50,7 +50,7 @@
   - Depende de: T004-04
   - Hecho cuando: pasan `plazo.test.ts › RF-405: el plazo vence al final del día calendario en America/Lima`, `RF-405: un minuto después del límite el plazo ya no está vigente`, `RF-405: rechaza un plazo fuera de 1 a 60 días` y `RF-405: el plazo por defecto es 7 días`. La hora `ahora` llega como parámetro y no se agrega ninguna dependencia. `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T004-06** Implementar `revisar` y `estadoVisible` en `estados.ts` **[Supuesto A-05]**
+- [x] **T004-06** Implementar `revisar` y `estadoVisible` en `estados.ts` **[Supuesto A-05]**
   - RF: RF-408, RF-410
   - Depende de: T004-04
   - Hecho cuando: pasan `estados.test.ts › RF-408: solo se revisa una justificación pendiente`, `RF-408: rechazar sin motivo lanza error`, `RF-408: la revisión registra quién y cuándo` y `RF-410: estadoVisible devuelve pendiente, aprobada, rechazada o sin_efecto`. Aprobar y rechazar son estados finales (A-05). `npm test`, `npm run typecheck` y `npm run lint` pasan.

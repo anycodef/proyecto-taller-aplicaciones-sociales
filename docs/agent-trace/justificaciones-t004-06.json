@@ -1,0 +1,40 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-11",
+  "agente": "Claude Code",
+  "modelo": "claude-opus-5-5",
+  "rama": "feat/004-justificaciones",
+  "tarea": "T004-06",
+  "solicitud": "Implementar revisar y estadoVisible en estados.ts (supuesto A-05).",
+  "alcance": [
+    "src/lib/justificaciones/estados.ts",
+    "src/lib/justificaciones/__tests__/estados.test.ts",
+    "src/lib/justificaciones/__tests__/fabrica.ts",
+    "specs/004-justificaciones/tasks.md",
+    "docs/agent-trace/justificaciones-t004-06.json"
+  ],
+  "criterio": "Pasan los tests RF-408 y RF-410 de estados.test.ts; aprobar y rechazar son estados finales.",
+  "decisiones": [
+    "Una justificación sin efecto no se revisa: la ausencia ya no existe.",
+    "El motivo se recorta y se limita a 280 caracteres, como la columna motivo_rechazo del plan.",
+    "Fábrica de pruebas compartida en __tests__/fabrica.ts."
+  ],
+  "comprobaciones": [
+    {
+      "comando": "npx jest src/lib/justificaciones",
+      "resultado": "Pasa: 11 tests."
+    },
+    {
+      "comando": "npm run typecheck",
+      "resultado": "Pasa en raíz y API."
+    },
+    {
+      "comando": "npm run lint",
+      "resultado": "Pasa sin errores."
+    }
+  ],
+  "limites": [
+    "La suite completa npm test (cliente y API con PostgreSQL) se ejecuta al cerrar la fase 1."
+  ],
+  "notas": "Dominio puro en TypeScript, sin React, React Native ni Expo."
+}
