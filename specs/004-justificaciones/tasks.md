@@ -103,7 +103,7 @@
 
     `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T004-14** Implementar `puedeJustificar`, `puedeRegistrarEnNombre` y `puedeRevisar` en `permisos.ts`
+- [x] **T004-14** Implementar `puedeJustificar`, `puedeRegistrarEnNombre` y `puedeRevisar` en `permisos.ts`
   - RF: RF-401, RF-406, RF-408
   - Depende de: T004-04, T001 (F1: `contexto-acceso` y `matriz-permisos`), T001 (F2: delegación `0103`)
   - Hecho cuando: pasan `permisos.test.ts › RF-408: solo la coordinación o un delegado vigente puede revisar`, `RF-408: supervisión no puede revisar`, `RF-408: un delegado con la delegación vencida no puede revisar`, `RF-406: solo la coordinación o un delegado registra en nombre de un apoderado` y `RF-401: un apoderado solo justifica a sus hijos`. `npm test`, `npm run typecheck` y `npm run lint` pasan.
