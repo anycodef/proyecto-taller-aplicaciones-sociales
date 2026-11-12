@@ -14,6 +14,7 @@ import { CompartirEnlace } from '@/components/seguridad/compartir-enlace';
 import { ComponenteConsentimiento } from '@/components/seguridad/consentimiento';
 import { TarjetaCarne } from '@/components/catequizandos/tarjeta-carne';
 import { ConfirmacionEscaneo } from '@/components/asistencia/confirmacion-escaneo';
+import { TarjetaRiesgo } from '@/components/riesgo/tarjeta-riesgo';
 import { SelectorAusencias } from '@/components/justificaciones/selector-ausencias';
 import { SelectorCausa } from '@/components/justificaciones/selector-causa';
 import { TarjetaLote } from '@/components/justificaciones/tarjeta-lote';
@@ -174,6 +175,20 @@ export default function Galeria() {
             justificaciones: [
               { id: 'j1', catequizandoId: 'n1', nombre: 'Ana Demostración', fecha: '2026-11-08', tipoSesion: 'misa', causa: 'salud_nino', enviadaEn: '2026-11-09T14:00:00.000Z', canal: 'enlace', duplicada: true },
               { id: 'j2', catequizandoId: 'n1', nombre: 'Ana Demostración', fecha: '2026-11-08', tipoSesion: 'catequesis', causa: 'salud_nino', enviadaEn: '2026-11-09T14:00:00.000Z', canal: 'enlace', duplicada: false },
+            ],
+          }}
+        />
+      </Seccion>
+
+      <Seccion titulo="Riesgo de deserción">
+        <TarjetaRiesgo
+          fila={{
+            catequizandoId: 'n2', nombre: 'Niño ficticio 2', grupoId: 'g1', grupoNombre: 'Grupo demo', paso: 'alerta_retiro', conteo: 4, sinFicha: true, pendientesJustificar: 0,
+            faltasOrigen: [
+              { catequizandoId: 'n2', fecha: '2026-10-18', origen: 'domingo', estado: 'suma', sesionIds: ['s1'] },
+              { catequizandoId: 'n2', fecha: '2026-10-25', origen: 'domingo', estado: 'suma', sesionIds: ['s2'] },
+              { catequizandoId: 'n2', fecha: '2026-11-01', origen: 'domingo', estado: 'suma', sesionIds: ['s3'] },
+              { catequizandoId: 'n2', fecha: '2026-11-08', origen: 'domingo', estado: 'suma', sesionIds: ['s4'] },
             ],
           }}
         />

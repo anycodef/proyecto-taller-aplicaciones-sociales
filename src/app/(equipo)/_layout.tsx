@@ -36,6 +36,9 @@ export default function LayoutEquipo() {
             options={{ title: "Corregir asistencia" }}
           />
         </Stack.Protected>
+        <Stack.Protected guard={coordinacion || (equipo && rolesEfectivos.includes("catequista"))}>
+          <Stack.Screen name="riesgo" options={{ title: "Riesgo de deserción" }} />
+        </Stack.Protected>
         <Stack.Protected guard={administracion || coordinacion}>
           <Stack.Screen name="cuentas/index" options={{ title: "Cuentas" }} />
           <Stack.Screen name="cuentas/nueva" options={{ title: "Nueva cuenta" }} />

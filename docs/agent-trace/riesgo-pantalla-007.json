@@ -1,0 +1,27 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-12",
+  "agente": "Claude Code",
+  "modelo": "claude-sonnet-5-5",
+  "tarea": "T2-riesgo-pantalla",
+  "solicitud": "Crear la pantalla Riesgo de desercion que consume GET /riesgo y muestra por nino el paso y por que (reglas explicables), para coordinacion y catequistas, sin recalcular en el celular",
+  "commitPrevisto": "feat(riesgo): pantalla de lista de riesgo con reglas explicables",
+  "alcance": [
+    "src/lib/riesgo/explicacion.ts",
+    "src/lib/riesgo/api.ts",
+    "src/lib/riesgo/__tests__/{explicacion,api}.test.ts",
+    "src/components/riesgo/tarjeta-riesgo.tsx",
+    "src/app/(equipo)/riesgo.tsx",
+    "src/app/(equipo)/_layout.tsx",
+    "src/app/galeria.tsx",
+    "src/__tests__/riesgo-pantalla.test.tsx"
+  ],
+  "criterio": "La pantalla agrupa por paso (alerta de retiro, citacion, contacto, seguimiento), explica cada paso con las fechas de las faltas que suman, distingue las pendientes de justificar y en revision, y permite reintentar sin red. La coordinacion ve todos y el catequista solo sus grupos porque el servidor ya filtra (riesgo:leer).",
+  "comprobaciones": ["npm run typecheck", "npm run lint", "npm run test:app"],
+  "resultados": {
+    "tests": "33 tests de riesgo en verde (explicacion, api y pantalla); RF-1206 sigue pasando",
+    "typecheck": "sin errores",
+    "lint": "sin errores"
+  },
+  "notas": "La ruta /riesgo se registra en un Stack.Protected para coordinacion y catequista (no para administracion ni supervision, que no tienen riesgo:leer). El estado del modulo en modulos.ts no se cambia: lo hace T8. explicacion.ts importa fechaCorta de src/lib/justificaciones/seleccion.ts. No se probo contra la API local: pendiente del recorrido de T8."
+}
