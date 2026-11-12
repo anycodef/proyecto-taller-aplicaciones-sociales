@@ -17,16 +17,19 @@ app en Expo Go. **Nada de Docker, nada de Azure en la nube.**
 
 ## 0. Lo más rápido para la demostración
 
-Con la siembra hecha (§3.4) y la API levantada (§3.3), **un solo comando** deja
-la app lista en el modo demostración: activa la cuenta de demo, fija el PIN,
-entra directo a pasar lista y baja la nomina.
+**El orden importa**: primero la siembra (emite el enlace y la sesion del dia),
+despues la app (lee el token de la siembra).
 
 ```powershell
-# Celular (Expo Go del SDK 57): escanea el QR que sale
-npm run demo:app
+# 1) Datos de la demo (ciclo, grupo con 8 ninos, sesion de hoy, enlace)
+$env:BD_URL="postgresql://sigecat_api:demo-local-api-clave-2026@127.0.0.1:5433/sigecat"
+$env:URL_WEB="https://192.168.1.77:8081"
+$env:URL_APP_EXPO="exp://192.168.1.77:8081/--"
+npm run sembrar-demo
 
-# Navegador (para compartir pantalla en una exposición virtual)
-npm run demo:app -- --web
+# 2) App en modo demostracion
+npm run demo:app              # celular (Expo Go del SDK 57): escanea el QR
+npm run demo:app -- --web     # navegador: ideal para compartir pantalla
 ```
 
 Con el modo demostración **no hay que abrir enlaces ni escribir el PIN**: al
@@ -46,6 +49,11 @@ El modo demostración solo existe en desarrollo y solo si se indica el token
 (`EXPO_PUBLIC_DEMO_ENLACE`), que el script `npm run demo:app` toma de
 `api/demo-local.json`. Fuera de ese modo, la app sigue pidiendo el enlace y
 el PIN como siempre.
+
+> El enlace de demo es de un solo uso por dispositivo: si borras los datos de
+> la app (o del navegador), el identificador del celular cambia y el servidor
+> rechaza el enlace con "acceso denegado". La solucion es volver a sembrar
+> (`npm run sembrar-demo`) y reiniciar la app.
 
 ---
 
