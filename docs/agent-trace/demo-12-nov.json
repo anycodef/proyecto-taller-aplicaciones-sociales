@@ -1,0 +1,28 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-12",
+  "agente": "Claude Code",
+  "modelo": "claude-sonnet-5-5",
+  "tarea": "T8-integracion-demo",
+  "solicitud": "Activar los modulos de 004 y 007 en el registro de navegacion, enlazar el asistente, dejar un solo comando para preparar la demo, recorrer el flujo completo y documentar el arranque y el plan B",
+  "commitPrevisto": "feat(demo): activar modulos 004 y 007 y preparar la demo del 12 de noviembre",
+  "alcance": [
+    "src/lib/navegacion/modulos.ts",
+    "src/app/(equipo)/asistencia/index.tsx",
+    "api/scripts/{preparar-demo,verificar-004,sembrar-demo,sembrar-riesgo-demo,sembrar-justificaciones-demo}.ts",
+    "api/package.json",
+    "package.json",
+    "docs/demo-12-nov.md",
+    "docs/despliegue-azure.md"
+  ],
+  "criterio": "Los modulos justificaciones, justificar y riesgo pasan a disponible con su ruta y su permiso existentes (RF-1206); npm run preparar-demo migra, siembra 003, 007 y 004 e imprime los tres enlaces; el recorrido real de 004 y 007 pasa contra PostgreSQL y Azurite.",
+  "comprobaciones": ["npm run typecheck", "npm run lint", "npm run test:app", "npm --prefix api test", "node api/scripts/verificar-openapi.mjs", "npm --prefix api run build", "npx expo export --platform web", "npm run verificar-004"],
+  "resultados": {
+    "tests": "cliente: 65 suites y 293 tests; api: 40 suites y 281 tests con PostgreSQL 16 y Azurite",
+    "typecheck": "sin errores (cliente y api)",
+    "lint": "sin errores",
+    "exportWeb": "genera /asistente, /riesgo, /familia/justificar, /familia/mis-justificaciones y /coordinacion/justificaciones",
+    "recorrido": "npm run verificar-004 pasa dos veces seguidas: la familia justifica con foto, la coordinacion aprueba, el conteo del nino 2 baja de 4 a 3 y sale de la alerta de retiro, y la foto se descarga con la URL firmada"
+  },
+  "notas": "No se ejecuto func start (Core Tools no esta instalado en esta maquina) ni npm run verificar-demo, que lo necesita; tampoco hubo prueba en un celular. El recorrido de 004 y 007 se hizo invocando los handlers reales en memoria con peticiones HTTP reales (scripts/verificar-004.ts). avisos-asistencia se queda pendiente porque su pantalla no existe. sembrarRiesgoDemo acepta el resultado de la siembra base para no emitir un segundo enlace al catequista. Las claves locales de la guia son solo de la base local."
+}

@@ -127,17 +127,18 @@ export async function sembrarDemo(): Promise<ResultadoDemo> {
     },
   };
 }
+/** El enlace lleva el token y solo se muestra una vez: se guarda en un archivo local para `verificar:demo` y el guion. */
+export function guardarDemoLocal(resultado: ResultadoDemo): void {
+  const token = resultado.demo.enlace.split("#t=")[1] ?? "";
+  writeFileSync(
+    join(__dirname, "..", "demo-local.json"),
+    JSON.stringify({ ...resultado.demo, token, grupoId: id("grupo"), cuentaCatequista: resultado.demo.cuentaCatequista }, null, 2)
+  );
+}
 if (require.main === module) {
   sembrarDemo()
     .then(resultado => {
-      // El enlace lleva el token y solo se muestra una vez: se guarda en un
-      // archivo local para que el script de verificacion y el guion de la
-      // demo puedan usar el mismo enlace.
-      const token = resultado.demo.enlace.split("#t=")[1] ?? "";
-      writeFileSync(
-        join(__dirname, "..", "demo-local.json"),
-        JSON.stringify({ ...resultado.demo, token, grupoId: id("grupo"), cuentaCatequista: resultado.demo.cuentaCatequista }, null, 2)
-      );
+      guardarDemoLocal(resultado);
       console.info(JSON.stringify({ enlacesNuevos: resultado.enlacesNuevos, demo: resultado.demo }, null, 2));
     })
     .catch(error => {

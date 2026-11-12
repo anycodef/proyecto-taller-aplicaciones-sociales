@@ -42,7 +42,7 @@ export const MODULOS: readonly Modulo[] = [
     subtitulo: "Bandeja de justificaciones por revisar",
     ruta: "/coordinacion/justificaciones",
     accion: "justificacion:revisar",
-    estado: "pendiente",
+    estado: "disponible",
   },
   {
     id: "riesgo",
@@ -52,7 +52,7 @@ export const MODULOS: readonly Modulo[] = [
     subtitulo: "Niños por paso de seguimiento y faltas de origen",
     ruta: "/riesgo",
     accion: "riesgo:leer",
-    estado: "pendiente",
+    estado: "disponible",
   },
   {
     id: "justificar",
@@ -62,7 +62,7 @@ export const MODULOS: readonly Modulo[] = [
     subtitulo: "Envío con foto del comprobante",
     ruta: "/familia/justificar",
     accion: "justificacion:enviar",
-    estado: "pendiente",
+    estado: "disponible",
   },
 ];
 

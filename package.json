@@ -17,6 +17,8 @@
     "migrar": "npm --prefix api run migrar",
     "sembrar-demo": "npm --prefix api run sembrar:demo",
     "verificar-demo": "npm --prefix api run verificar:demo",
+    "verificar-004": "npm --prefix api run verificar:004",
+    "preparar-demo": "npm --prefix api run migrar && npm --prefix api run preparar:demo",
     "verificar:migraciones": "node api/scripts/verificar-migraciones.mjs",
     "verificar:cobertura": "node scripts/verificar-cobertura-rf.mjs",
     "adr:new": "npx --yes log4brains@1.1.0 adr new",

@@ -21,6 +21,8 @@
     "verificar:demo": "tsx scripts/verificar-demo.ts",
     "sembrar:riesgo": "tsx scripts/sembrar-riesgo-demo.ts",
     "sembrar:justificaciones": "tsx scripts/sembrar-justificaciones-demo.ts",
+    "preparar:demo": "tsx scripts/preparar-demo.ts",
+    "verificar:004": "tsx scripts/verificar-004.ts",
     "crear:administracion": "tsx scripts/crear-administracion-inicial.ts",
     "reemitir:administracion": "tsx scripts/reemitir-administracion.ts"
   },

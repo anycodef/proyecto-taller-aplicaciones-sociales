@@ -3,6 +3,7 @@ import type { ContextoAcceso, Rol } from "@/lib/seguridad/contexto-acceso";
 import { enTransaccion } from "../src/compartido/bd/transaccion";
 import { cerrarPool } from "../src/compartido/bd/pool";
 import { emitirEnlace } from "../src/modulos/seguridad/aplicacion/cuentas";
+import type { ResultadoDemo } from "./sembrar-demo";
 import { sembrarRiesgoDemo } from "./sembrar-riesgo-demo";
 
 const id = (nombre: string) => uuidV5(nombre, "c14a3f20-1b98-4da8-a075-4f680d5a1000");
@@ -20,8 +21,8 @@ export type ResultadoJustificacionesDemo = {
  * domingo dentro del plazo, sin justificación; aprobarla debe bajarlo a 3 en el riesgo (007).
  * Borrar justificaciones solo es posible en el contexto de retención, igual que la siembra de 003.
  */
-export async function sembrarJustificacionesDemo(): Promise<ResultadoJustificacionesDemo> {
-  const riesgo = await sembrarRiesgoDemo();
+export async function sembrarJustificacionesDemo(demoPrevio?: ResultadoDemo): Promise<ResultadoJustificacionesDemo> {
+  const riesgo = await sembrarRiesgoDemo(demoPrevio);
   return enTransaccion(async (tx) => {
     const admin = (await tx.query<{ id: string; credencial_id: string }>(
       "SELECT c.id,cr.id credencial_id FROM cuenta c JOIN rol_cuenta r ON r.cuenta_id=c.id AND r.rol='administracion' JOIN credencial cr ON cr.cuenta_id=c.id AND cr.tipo='equipo' AND cr.estado<>'terminada' WHERE c.activa ORDER BY c.creada_en LIMIT 1",
@@ -32,14 +33,15 @@ export async function sembrarJustificacionesDemo(): Promise<ResultadoJustificaci
       rolesPropios: ["administracion", "coordinacion"] as Rol[], gruposAsignados: [], catequizandosApoderados: [], esMenor: false,
     };
     const ninoId = id("nino:2");
+    // La familia demo está vinculada a los 8 niños: se limpian todos para que la siembra sea repetible.
+    const hijosDemo = Array.from({ length: 8 }, (_, i) => id(`nino:${i + 1}`));
 
     await tx.query("SET LOCAL ROLE sigecat_retencion");
     await tx.query("SELECT set_config('sigecat.contexto','retencion',true)");
-    await tx.query("DELETE FROM justificacion_evento WHERE justificacion_id IN (SELECT id FROM justificacion WHERE catequizando_id=$1)", [ninoId]);
-    await tx.query("DELETE FROM justificacion WHERE catequizando_id=$1", [ninoId]);
+    await tx.query("DELETE FROM justificacion_evento WHERE justificacion_id IN (SELECT id FROM justificacion WHERE catequizando_id=ANY($1::uuid[]))", [hijosDemo]);
+    await tx.query("DELETE FROM justificacion WHERE catequizando_id=ANY($1::uuid[])", [hijosDemo]);
     await tx.query("RESET ROLE");
 
-    // Una justificación de otro niño con la misma evidencia no se toca; aquí solo se limpia el niño de la demo.
     const ausencias = await tx.query<{ fecha: string; tipo: string }>(
       `SELECT s.fecha::text AS fecha,s.tipo FROM asistencia a JOIN sesion s ON s.id=a.sesion_id
        WHERE a.catequizando_id=$1 AND a.valor='ausente' AND a.eliminado_en IS NULL AND s.tipo IN ('misa','catequesis')

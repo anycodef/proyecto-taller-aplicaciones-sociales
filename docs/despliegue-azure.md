@@ -312,15 +312,16 @@ aparece como enlace solo si:
 
 Si falta cualquiera de las tres cosas, aparece en «Próximamente».
 
-**Estado al 2026-11-11:**
+**Estado al 2026-11-12:**
 
 | Módulo | Ruta | Estado |
 |---|---|---|
 | 003 Pasar lista | `/asistencia` | Conectado: es el inicio del catequista y una opción del panel de coordinación |
-| 003 Avisos de asistencia | `/coordinacion/avisos-asistencia` | Pendiente: no existe la pantalla |
-| 004 Justificaciones (coordinación) | `/coordinacion/justificaciones` | Pendiente: no existen la API, el permiso `justificacion:revisar` ni las pantallas |
-| 004 Justificar una ausencia (familia) | `/familia/justificar` | Pendiente: no existen la API, el permiso `justificacion:enviar` ni las pantallas |
-| 007 Riesgo de deserción | `/riesgo` | Pendiente: la API `GET /riesgo` existe; falta la pantalla |
+| 003 Avisos de asistencia | `/coordinacion/avisos-asistencia` | Pendiente: no existe la pantalla (la coordinación ve hoy «Avisos del sistema» en `/avisos-sistema`) |
+| 004 Justificaciones (coordinación) | `/coordinacion/justificaciones` | Conectado: bandeja por lote, detalle con evidencia, aprobar y rechazar con motivo. API con 8 operaciones (`docs/backend-implementacion.md`) |
+| 004 Justificar una ausencia (familia) | `/familia/justificar` | Conectado: ausencias, motivo, foto, envío y «Mis justificaciones». Sin conexión muestra «No se envió» y no guarda la foto |
+| 007 Riesgo de deserción | `/riesgo` | Conectado para coordinación (panel) y catequista (menú de asistencia), con las faltas que originan cada paso |
+| Asistente de catequesis | `/asistente` | Conectado para coordinación, catequista y familia (no usa el registro de módulos: es una ruta compartida) |
 
 Las pantallas internas de 003 (lista del grupo y «Por enviar») las enlaza la propia
 pantalla de asistencia de la rama `frontend-001_003`. Al unir esa rama a `main`
