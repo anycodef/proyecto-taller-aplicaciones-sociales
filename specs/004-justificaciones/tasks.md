@@ -338,7 +338,7 @@
   - Depende de: T004-46
   - Hecho cuando: pasa `RF-402: confirma la recepción con la lista de ausencias justificadas`. `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T004-48** Crear `familia/anticipar.tsx` para eventos escolares
+- [x] **T004-48** Crear `familia/anticipar.tsx` para eventos escolares
   - RF: RF-404
   - Depende de: T004-46
   - Hecho cuando: pasan `RF-404: solo ofrece la causa evento escolar y pide la foto del comunicado` y `RF-404: lista las sesiones futuras de cada hijo`. `npm test`, `npm run typecheck` y `npm run lint` pasan.
