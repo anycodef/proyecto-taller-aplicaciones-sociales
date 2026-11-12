@@ -145,7 +145,7 @@
   - Depende de: T004-19, T002 (Fase 1: migraciones M-201 a M-204 de catequizandos), T003 (Fase 1: migración `0302_sesiones.sql`)
   - Hecho cuando: pasan `contrato-justificaciones.test.ts › RF-406: el canal coordinación exige registrada_por`, `RF-408: rechazada exige motivo_rechazo`, `RF-408: una revisada exige revisada_por` y `RF-408: dos justificaciones de la misma ausencia se aceptan` (no hay unicidad por niño y sesión). `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T004-21** Crear la migración `NNNN_justificaciones_sin_borrado.sql`
+- [x] **T004-21** Crear la migración `NNNN_justificaciones_sin_borrado.sql`
   - RF: RF-407
   - Depende de: T004-20
   - Hecho cuando: pasan los tests de `contrato-sin-borrado.test.ts`:
