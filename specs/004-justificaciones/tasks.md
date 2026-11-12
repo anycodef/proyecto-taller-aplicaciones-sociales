@@ -75,7 +75,7 @@
   - Depende de: T004-04
   - Hecho cuando: pasan `evidencia.test.ts › RNF-402: rechaza un archivo de más de 307 200 bytes`, `RNF-403: rechaza un content-type distinto de image/jpeg` y `RF-402: exige entre 1 y 3 fotos`. `npm test`, `npm run typecheck` y `npm run lint` pasan.
 
-- [ ] **T004-11** Implementar `validarLote` en `lote.ts` **[Supuesto A-04]**
+- [x] **T004-11** Implementar `validarLote` en `lote.ts` **[Supuesto A-04]**
   - RF: RF-402, RF-403, RF-404, RF-405, RF-406
   - Depende de: T004-08, T004-09, T004-10
   - Hecho cuando: pasan los tests de `lote.test.ts`:
