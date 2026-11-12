@@ -439,7 +439,7 @@
 
 ## Fase 7 — Integración con 001, 002, 003, 006, 007 y 008
 
-- [ ] **T004-61** Implementar `al-cambiar-asistencia.ts` y conectarlo a la corrección de 003
+- [x] **T004-61** Implementar `al-cambiar-asistencia.ts` y conectarlo a la corrección de 003
   - RF: RF-407
   - Depende de: T004-24, T003 (Fase 1: corrección RF-309 que invoca el puerto en su transacción)
   - Hecho cuando: pasan los tests `RF-407: una ausencia corregida a presente queda sin efecto y se conserva` y `RF-407: si vuelve a ausente se restaura el efecto`, y la corrección de 003 llama al puerto dentro de su transacción. `npm test`, `npm run typecheck` y `npm run lint` pasan.
