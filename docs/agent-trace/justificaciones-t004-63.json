@@ -1,0 +1,40 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-11",
+  "agente": "Claude Code",
+  "modelo": "claude-opus-5-5",
+  "rama": "feat/004-justificaciones",
+  "tarea": "T004-63",
+  "solicitud": "Implementar la fase 7 de la spec 004.",
+  "alcance": [
+    "api/src/modulos/justificaciones/aplicacion/proveedor-pull.ts",
+    "api/test/integracion/justificaciones/proveedor-pull.test.ts",
+    "api/src/index.ts",
+    "api/src/modulos/justificaciones/index.ts",
+    "specs/004-justificaciones/tasks.md",
+    "docs/agent-trace/justificaciones-t004-63.json"
+  ],
+  "criterio": "Pasan los tres tests RF-410 del proveedor; e2e 001-003 sigue en verde.",
+  "decisiones": [
+    "Se filtra por ciclo abierto y por actualizado_en dentro de la ventana del pull.",
+    "Las lápidas de 003 no cubren esta colección; queda como límite documentado."
+  ],
+  "comprobaciones": [
+    {
+      "comando": "npx jest --runInBand --selectProjects integracion --testPathPattern 'proveedor-pull|e2e'",
+      "resultado": "3 de 3 pasan contra PostgreSQL; e2e en verde."
+    },
+    {
+      "comando": "npm run typecheck",
+      "resultado": "Pasa en raíz y API."
+    },
+    {
+      "comando": "npm run lint",
+      "resultado": "Pasa sin errores."
+    }
+  ],
+  "limites": [
+    "Sin lápidas para justificaciones_estado: una fila borrada por retiro de consentimiento desaparece del dispositivo en el siguiente pull de reemplazo."
+  ],
+  "notas": "Proveedor registrado en el arranque junto a los de 003 y avisos."
+}
