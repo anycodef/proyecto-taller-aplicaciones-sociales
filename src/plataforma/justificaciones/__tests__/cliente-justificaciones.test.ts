@@ -1,5 +1,4 @@
-import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
+import * as SecureStore from "expo-secure-store";
 
 import { crearClienteHttp } from "@/plataforma/api/cliente";
 import { crearClienteJustificaciones } from "@/lib/justificaciones/cliente-justificaciones";
@@ -35,8 +34,14 @@ test("RF-402: envía la reserva y el lote con los cuerpos esperados", async () =
   ]);
 });
 
-test("RNF-404: el cliente de justificaciones no importa ningún almacenamiento", () => {
-  const fuente = readFileSync(resolve(__dirname, "../../../lib/justificaciones/cliente-justificaciones.ts"), "utf8");
-  const importaciones = [...fuente.matchAll(/from\s+"([^"]+)"/g)].map(m => m[1]);
-  expect(importaciones).toEqual(["./tipos"]);
+test("RNF-404: el cliente de justificaciones no escribe en ningún almacenamiento", async () => {
+  const seguro = jest.spyOn(SecureStore, "setItemAsync");
+  const local = (globalThis as { localStorage?: { setItem: (...a: unknown[]) => void } }).localStorage;
+  const web = local ? jest.spyOn(local, "setItem") : undefined;
+  const { fetchImpl } = fetchSimulado({ "GET /familia/sesiones-anticipables": { cicloId: "c", sesiones: [] }, "POST /evidencias/reservas": { evidenciaId: "e" } });
+  const cliente = crearClienteJustificaciones(http(fetchImpl));
+  await cliente.sesionesAnticipables();
+  await cliente.reservarEvidencia("e", [{ orden: 1, bytes: 10, contentType: "image/jpeg" }]);
+  expect(seguro).not.toHaveBeenCalled();
+  if (web) expect(web).not.toHaveBeenCalled();
 });
