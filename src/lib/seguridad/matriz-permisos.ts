@@ -40,6 +40,7 @@ export const MATRIZ_PERMISOS = {
   "actividad:gestionar": { escritura: true, roles: coordinacion },
   "ciclo:gestionar": { escritura: true, roles: { administracion: "ciclo" } },
   "justificacion:leer": { escritura: false, roles: consultaOperativa },
+  "justificacion:enviar": { escritura: true, roles: { familia: "apoderados" } },
   "justificacion:revisar": { escritura: true, roles: coordinacion },
   "justificacion:registrar-en-nombre": { escritura: true, roles: coordinacion },
   "justificacion:configurar-plazo": { escritura: true, roles: coordinacion },

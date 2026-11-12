@@ -93,3 +93,21 @@ Registro resuelto y **host real local verificado por el principal**: Core Tools4
 La pausa npm terminó. **Conteos finales de npm test/typecheck/lint tras metadata local requieren evidencia del principal**; no se declaran a partir de pasadas previas ni se suma un total estimado. Build ADR aprobado por ejecución propia y host local por smoke del principal; C4/Bicep/despliegue mantienen evidencia separada. UI/EAS/Android/campo/carga y consumidores reales 004–008 siguen pendientes. No omitir/debilitar tests ni marcar todos los tasks terminados.
 
 Agent Trace de la edición documental: [backend-documentacion.json](agent-trace/backend-documentacion.json). La implementación se verificó antes de publicar commits. A petición del usuario, la publicación se organiza en las tareas T001-DOC (acuerdos y contratos), T001-152 (API integrada) y T001-153 (infraestructura/CI), cada una con su commit Conventional Commits y traza `backend-publicacion-*.json`. Los hashes efectivos se consultan en `git log`; publicación no sustituye revisión ni despliegue.
+
+## 004 Justificaciones: API HTTP (2026-11-12)
+
+Se exponen 8 operaciones (total OpenAPI: 76): `GET /familia/ausencias-justificables`, `GET /familia/justificaciones`, `POST /evidencias/reservas`, `PUT /evidencias/{evidenciaId}/archivos/{orden}`, `POST /justificaciones/lotes`, `GET /justificaciones/bandeja`, `POST /justificaciones/revisiones` y `GET /justificaciones/{id}/evidencia`. Código en `api/src/modulos/justificaciones/{aplicacion,http,infraestructura}`; pruebas en `api/test/unit/justificaciones/http.test.ts` y `api/test/integracion/justificaciones/api-004-flujo.test.ts`.
+
+**Desviaciones respecto a `specs/004-justificaciones` (la spec no se modificó):**
+
+- **D-402, subida por la API y no por SAS directa.** La spec (T004-30/31) prevé que el navegador suba a Blob con una SAS de solo crear. Hoy `AlmacenEvidencias` no tenía implementación y la subida directa exige CORS en la cuenta de almacenamiento, así que `PUT /evidencias/{id}/archivos/{orden}` recibe el JPEG (≤ 300 KB, firma `FF D8 FF`) y lo escribe con `@azure/storage-blob` en el contenedor privado `evidencias`. Se añadió `subir` al puerto `AlmacenEvidencias`. La lectura sí usa SAS de 5 minutos con `Cache-Control: no-store`; requiere cadena de conexión con clave (Azurite o cuenta real). Con identidad administrada habría que delegar la clave de usuario: pendiente.
+- **Reserva con 400 y no 422** para cantidad, tipo o tamaño declarado inválidos (lo piden los tests de la spec); el resto de entradas inválidas responde 422.
+- **Permiso nuevo `justificacion:enviar`** (solo familia, alcance `apoderados`) en `matriz-permisos.ts`.
+- **La bandeja exige coordinación o supervisión** además de `justificacion:leer`, porque la matriz da lectura al catequista por grupos y la spec le niega la bandeja.
+- **Fuera de este corte:** `GET /familia/sesiones-anticipables`, plazo configurable por HTTP (T004-50), historial por niño (T004-55) y registro en nombre de un apoderado (T004-56). El lote HTTP solo admite `anticipada: false` y canal enlace.
+
+**Conexión con 003 y 007:** `api/src/index.ts` registra `fuenteJustificacionesAprobadasPg` (una aprobada con efecto deja de contar la falta) y `alCambiarAsistenciaJustificaciones` (RF-407: la justificación queda sin efecto si la ausencia se corrige a presente y se restaura si vuelve a ausente). La prueba de integración verifica que, tras aprobar, la fuente devuelve la falta; el descenso del conteo en `GET /riesgo` queda por comprobar en el recorrido de la demo (T8) porque `consultarFaltas` ya consume esa fuente.
+
+**Siembra de demo:** `npm --prefix api run sembrar:justificaciones` encadena la siembra de 003 y 007, limpia las justificaciones del niño con 4 faltas y emite enlaces nuevos de familia y coordinación; deja sus 2 ausencias del último domingo dentro del plazo.
+
+**Evidencia de esta entrega:** `npm --prefix api test` 40 suites / 280 tests con PostgreSQL 16 y Azurite; `node api/scripts/verificar-openapi.mjs` 76 operaciones; `npm run typecheck`, `npm run lint` y `npm run test:app` (54 suites / 212 tests) pasan. No se probó con `func start` (Core Tools no estaba instalado en esta máquina).

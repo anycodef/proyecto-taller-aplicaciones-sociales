@@ -9,7 +9,7 @@ import * as bd from "../../src/compartido/bd/pool";
 jest.mock("@azure/functions", () => ({ ...jest.requireActual("@azure/functions"), app: { http: jest.fn(), timer: jest.fn() } }));
 jest.mock("../../src/compartido/bd/pool", () => ({ obtenerPool: jest.fn(() => { throw new Error("BD durante arranque"); }), consultar: jest.fn(() => { throw new Error("SQL durante arranque"); }) }));
 
-test("RNF-106 RF-101 RF-106 RF-201 RF-307: el arranque real registra 68 bindings protegidos, contratos completos y proveedores sin secretos ni SQL", () => {
+test("RNF-106 RF-101 RF-106 RF-201 RF-307: el arranque real registra 76 bindings protegidos, contratos completos y proveedores sin secretos ni SQL", () => {
   const variables = ["BD_URL", "JWT_CLAVE", "BLOBS_CONEXION", "URL_WEB"];
   const anteriores = variables.map(nombre => process.env[nombre]);
   const orden: string[] = [];
@@ -20,7 +20,7 @@ test("RNF-106 RF-101 RF-106 RF-201 RF-307: el arranque real registra 68 bindings
     for (const nombre of variables) delete process.env[nombre];
     expect(() => jest.requireActual("../../src/index")).not.toThrow();
     const http = jest.mocked(app.http).mock.calls as [string, HttpFunctionOptions][];
-    expect(http).toHaveLength(68);
+    expect(http).toHaveLength(76);
         expect(http.find(([nombre]) => nombre === "estado")?.[1]).toMatchObject({ methods: ["GET"], route: "estado", authLevel: "function" });
     expect(new Set(http.map(([nombre]) => nombre)).size).toBe(http.length);
     for (const [, opciones] of http) {

@@ -32,8 +32,10 @@ export interface RepositorioEvidencias {
   marcarEliminada(tx: Tx, id: string, motivo: MotivoEliminacion): Promise<boolean>;
 }
 
-/** Blob Storage privado; la implementación real llega en la fase 3. */
+/** Blob Storage privado. La subida directa con SAS (D-402 de la spec) se sustituye hoy por `subir` desde la API. */
 export interface AlmacenEvidencias {
+  /** Escribe el blob con la identidad de la API; la subida directa del navegador exige CORS en la cuenta (desviación D-402). */
+  subir(blobNombre: string, contenido: Buffer, contentType: string): Promise<void>;
   urlSubida(blobNombre: string, ahora: Date): Promise<{ url: string; expiraEn: string }>;
   urlLectura(blobNombre: string, ahora: Date): Promise<{ url: string; expiraEn: string }>;
   inspeccionar(blobNombre: string): Promise<{ bytes: number; contentType: string } | undefined>;

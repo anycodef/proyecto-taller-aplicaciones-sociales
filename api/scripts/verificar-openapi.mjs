@@ -102,7 +102,8 @@ function revisarSchema(origen, ruta) {
 function revisarContenido(contenido, ruta) {
   exigir(contenido && Object.keys(contenido).length, `${ruta}: falta content`);
   for (const [tipo, media] of Object.entries(contenido ?? {})) {
-    exigir(tipo === "application/json", `${ruta}: media type inesperado ${tipo}`);
+    // image/jpeg: subida binaria de evidencias de 004 (RF-402).
+    exigir(tipo === "application/json" || tipo === "image/jpeg", `${ruta}: media type inesperado ${tipo}`);
     revisarSchema(media.schema, `${ruta}/schema`);
     if (Object.hasOwn(media, "example")) errores.push(...validarValor(media.example, media.schema, `${ruta}/example`));
     for (const [nombre, ejemplo] of Object.entries(media.examples ?? {})) errores.push(...validarValor(expandir(ejemplo).value, media.schema, `${ruta}/examples/${nombre}`));

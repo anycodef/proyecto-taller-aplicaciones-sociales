@@ -6,9 +6,9 @@ import { registrarAsistencia } from "./modulos/asistencia/http";
 import { registrarSincronizacion } from "./modulos/sincronizacion/http";
 import { registrarProveedorResumen, participanteRetencion } from "./modulos/catequizandos";
 import { registrarParticipanteRetencion, participanteSeguridad } from "./modulos/seguridad";
-import { participanteRetencionAsistencia, consultarResumenAsistencia } from "./modulos/asistencia";
+import { participanteRetencionAsistencia, consultarResumenAsistencia, registrarFuenteJustificaciones, registrarAlCambiarAsistencia } from "./modulos/asistencia";
 import { proveedorAvisos, participanteRetencionAvisos } from "./modulos/avisos";
-import { participanteRetencionJustificaciones } from "./modulos/justificaciones";
+import { participanteRetencionJustificaciones, registrarJustificaciones, fuenteJustificacionesAprobadasPg, alCambiarAsistenciaJustificaciones } from "./modulos/justificaciones";
 import { registrarProveedor } from "./modulos/sincronizacion/aplicacion/registro-proveedores";
 import { registrarCiclos } from "./modulos/ciclos";
 import { registrarActividades } from "./modulos/actividades";
@@ -27,6 +27,8 @@ registrarParticipanteRetencion(participanteSeguridad);
 registrarParticipanteRetencion(participanteRetencionAvisos);
 registrarParticipanteRetencion(participanteRetencionJustificaciones);
 registrarProveedor(proveedorAvisos);
+registrarFuenteJustificaciones(fuenteJustificacionesAprobadasPg);
+registrarAlCambiarAsistencia(alCambiarAsistenciaJustificaciones);
 registrarEstado();
 registrarSeguridad();
 registrarAvisos();
@@ -38,6 +40,7 @@ registrarCiclos();
 registrarActividades();
 registrarRiesgo();
 registrarAsistente();
+registrarJustificaciones();
 app.timer("depurarMetadatos", { schedule: "0 30 9 * * *", handler: async () => {
   await enTransaccion(async tx => {
     await tx.query("SET LOCAL ROLE sigecat_retencion");
