@@ -1,4 +1,5 @@
 import {
+  CacheRespuestas,
   cargarCorpus,
   construirPrompt,
   consultarAsistente,
@@ -217,4 +218,21 @@ test("RF-1004: «¿Cuántas faltas tiene Juan?» responde con el filtro de datos
   const respuesta = await consultarAsistente("¿Cuántas faltas tiene Juan?", { corpus: corpusDe(eucaristia) });
   expect(respuesta).toMatchObject({ proveedor: "guardia", modelo: "filtro", fuentes: [] });
   expect(respuesta.respuesta).toContain("No puedo consultar datos de niños");
+});
+
+test("RNF-1001: la caché reutiliza la respuesta del mismo corpus y no vuelve a llamar al proveedor", async () => {
+  const generar = jest.fn(async () => ({
+    texto: "La Eucaristía es el sacramento del cuerpo y la sangre de Cristo [Documento, Eucaristía].",
+    proveedor: "gemini",
+    modelo: "gemini-2.5-flash",
+  }));
+  const cache = new CacheRespuestas({ maximo: 10, ttlMs: 60_000 });
+  const opciones = { corpus: corpusDe(eucaristia), proveedor: { generar }, cache };
+
+  const primera = await consultarAsistente("¿Qué es la Eucaristía?", opciones);
+  const segunda = await consultarAsistente("que es la eucaristia", opciones);
+
+  expect(generar).toHaveBeenCalledTimes(1);
+  expect(segunda).toEqual(primera);
+  expect(cache.tamano).toBe(1);
 });

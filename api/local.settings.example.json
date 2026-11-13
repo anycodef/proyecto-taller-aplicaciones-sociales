@@ -9,6 +9,10 @@
     "RENOVACION_CLAVE": "reemplazar-por-otra-clave-aleatoria-de-32-bytes",
     "URL_WEB": "https://sigecat.example",
     "BLOBS_CONEXION": "UseDevelopmentStorage=true",
+    "ASISTENTE_PROVEEDOR": "gemini",
+    "ASISTENTE_MODELO": "gemini-2.5-flash",
+    "ASISTENTE_CLAVE": "",
+    "ASISTENTE_TIMEOUT_MS": "8000",
     "EVIDENCIAS_MODO": "pruebas",
     "EVIDENCIAS_CONEXION_PRUEBAS": "UseDevelopmentStorage=true"
   }

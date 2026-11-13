@@ -159,7 +159,10 @@ Con `solo_plan=false`, exige CI completo mediante workflow reutilizable:
 2. What-if y primera creación sin políticas sensibles APIM; identidades y
    permisos quedan antes de leer secretos. Crear referencias de entorno
    `BD_URL`, `JWT_CLAVE`, `JWT_KID`, `RENOVACION_CLAVE`, `URL_WEB`,
-   `BLOBS_CONEXION`; refrescar referencias.
+   `BLOBS_CONEXION`; refrescar referencias. Para el asistente generativo,
+   cargar manualmente `asistente-clave` en Key Vault antes de desplegar; si no
+   existe, Functions arranca con `ASISTENTE_CLAVE` vacío y usa el fallback
+   extractivo. La clave nunca se versiona.
 3. Firewall runner temporal, preparación de roles con credencial administrativa,
    migraciones como migrador, limpieza del firewall incluso al fallar.
 4. Publicar paquete con `dist/index.js`, `host.json`, `package.json` y módulos

@@ -55,6 +55,8 @@ npm run build
 func start --address 0.0.0.0 --port 7071
 ```
 
+Para que el asistente redacte con Gemini, agrega en `api/local.settings.json` (no se versiona) `ASISTENTE_PROVEEDOR: "gemini"`, `ASISTENTE_MODELO: "gemini-2.5-flash"` y `ASISTENTE_CLAVE` con tu clave. Si la clave queda vacía o el proveedor falla, el asistente responde en modo extractivo con las mismas citas.
+
 Terminal 3, la app (celular por Expo Go y web):
 
 ```powershell

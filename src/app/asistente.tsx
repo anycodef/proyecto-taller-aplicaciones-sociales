@@ -3,7 +3,15 @@ import { ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { BurbujaMensaje, type MensajeChat } from "@/components/asistente/burbuja-mensaje";
 import { Aviso, Boton, CampoTexto } from "@/components/ui";
-import { crearApiAsistente, NOTA_ASISTENTE, PREGUNTA_MAXIMO, preguntaValida, SUGERENCIAS } from "@/lib/asistente/api";
+import {
+  AVISO_PRIVACIDAD_ASISTENTE,
+  crearApiAsistente,
+  NOTA_ASISTENTE,
+  PREGUNTA_MAXIMO,
+  preguntaValida,
+  SUGERENCIAS,
+} from "@/lib/asistente/api";
+import { useConexion } from "@/plataforma/justificaciones/usar-conexion";
 import { useSesion } from "@/plataforma/seguridad/contexto-sesion";
 import { colores, espacio, tipografia } from "@/tema";
 
@@ -24,10 +32,12 @@ export default function Asistente() {
   const [mensajes, setMensajes] = useState<MensajeChat[]>([]);
   const [texto, setTexto] = useState("");
   const [consultando, setConsultando] = useState(false);
+  const conectado = useConexion();
+  const sinConexion = conectado === false;
   const contador = useRef(0);
 
   async function preguntar(pregunta: string) {
-    if (!preguntaValida(pregunta) || consultando) return;
+    if (!preguntaValida(pregunta) || consultando || sinConexion) return;
     const limpia = pregunta.trim();
     const id = () => `m-${++contador.current}`;
     setMensajes((actuales) => [...actuales, { id: id(), autor: "usuario", texto: limpia }]);
@@ -49,12 +59,25 @@ export default function Asistente() {
     <ScrollView contentContainerStyle={estilos.contenido} keyboardShouldPersistTaps="handled">
       <Text style={[tipografia.titulo, estilos.titulo]}>Asistente de catequesis</Text>
       <Aviso tono="informativo" mensaje={NOTA_ASISTENTE} />
+      <Aviso tono="advertencia" mensaje={AVISO_PRIVACIDAD_ASISTENTE} />
+      {sinConexion ? (
+        <Aviso
+          tono="advertencia"
+          mensaje="El asistente necesita conexión. La asistencia y las justificaciones siguen funcionando sin conexión."
+        />
+      ) : null}
 
       {mensajes.length === 0 ? (
         <View style={estilos.sugerencias}>
           <Text style={[tipografia.etiqueta, estilos.suave]}>Prueba con una de estas preguntas</Text>
           {SUGERENCIAS.map((sugerencia) => (
-            <Boton key={sugerencia} etiqueta={sugerencia} variante="secundario" deshabilitado={consultando} alPresionar={() => void preguntar(sugerencia)} />
+            <Boton
+              key={sugerencia}
+              etiqueta={sugerencia}
+              variante="secundario"
+              deshabilitado={consultando || sinConexion}
+              alPresionar={() => void preguntar(sugerencia)}
+            />
           ))}
         </View>
       ) : null}
@@ -67,7 +90,12 @@ export default function Asistente() {
       </View>
 
       <CampoTexto etiqueta="Tu pregunta" valor={texto} alCambiar={setTexto} maximoCaracteres={PREGUNTA_MAXIMO} marcador="Escribe tu pregunta de catequesis" />
-      <Boton etiqueta={consultando ? "Consultando…" : "Preguntar"} cargando={consultando} deshabilitado={!preguntaValida(texto) || consultando} alPresionar={() => void preguntar(texto)} />
+      <Boton
+        etiqueta={consultando ? "Consultando…" : "Preguntar"}
+        cargando={consultando}
+        deshabilitado={!preguntaValida(texto) || consultando || sinConexion}
+        alPresionar={() => void preguntar(texto)}
+      />
     </ScrollView>
   );
 }

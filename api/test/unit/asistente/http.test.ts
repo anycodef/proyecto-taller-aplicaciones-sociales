@@ -3,11 +3,13 @@ import type { ContextoAcceso, Rol } from "@/lib/seguridad/contexto-acceso";
 import { autenticarPeticion, auditar } from "../../../src/modulos/seguridad";
 import { limitarPorCuenta } from "../../../src/compartido/http/limites";
 import { ErrorAplicacion } from "../../../src/compartido/http/respuestas";
+import { registrarMetricasAsistente } from "../../../src/modulos/asistente/aplicacion/metricas";
 import { preguntarAsistente } from "../../../src/modulos/asistente/aplicacion/preguntar";
 import { manejadoresAsistente } from "../../../src/modulos/asistente/http";
 
 jest.mock("../../../src/modulos/seguridad", () => ({ autenticarPeticion: jest.fn(), auditar: jest.fn() }));
 jest.mock("../../../src/compartido/http/limites", () => ({ limitarPorCuenta: jest.fn() }));
+jest.mock("../../../src/modulos/asistente/aplicacion/metricas", () => ({ registrarMetricasAsistente: jest.fn() }));
 jest.mock("../../../src/modulos/asistente/aplicacion/preguntar", () => ({ preguntarAsistente: jest.fn() }));
 
 const id = "00200000-0000-4000-8000-000000000001";
@@ -49,6 +51,7 @@ beforeEach(() => {
   jest.mocked(auditar).mockResolvedValue();
   jest.mocked(limitarPorCuenta).mockResolvedValue();
   jest.mocked(preguntarAsistente).mockResolvedValue(respuesta);
+  jest.mocked(registrarMetricasAsistente).mockResolvedValue();
   jest.mocked(autenticarPeticion).mockResolvedValue(contexto("coordinacion"));
 });
 
@@ -71,6 +74,8 @@ test("RF-1001 RF-1008: todos los roles autenticados consultan con no-store, cuot
   }
   expect(limitarPorCuenta).toHaveBeenCalledWith(id, "asistente:preguntar", 20, 3600);
   expect(preguntarAsistente).toHaveBeenCalledWith("¿Qué es la Eucaristía?");
+  await Promise.resolve();
+  expect(registrarMetricasAsistente).toHaveBeenCalledWith(id, respuesta, expect.any(Number));
 });
 
 test("RF-1001 RNF-1004: el cuerpo inválido responde 422 sin consultar ni guardar", async () => {

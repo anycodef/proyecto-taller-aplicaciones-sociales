@@ -4,6 +4,7 @@ import { conAcceso } from "../../../compartido/http/con-acceso";
 import { limitarPorCuenta } from "../../../compartido/http/limites";
 import { respuesta } from "../../../compartido/http/respuestas";
 import { validarCuerpo } from "../../../compartido/http/validar-cuerpo";
+import { registrarMetricasAsistente } from "../aplicacion/metricas";
 import { preguntarAsistente } from "../aplicacion/preguntar";
 
 export const esquemaPregunta = z
@@ -16,7 +17,10 @@ export const manejadoresAsistente = {
   preguntar: conAcceso({ accion: "asistente:consultar" }, async (req, ctx) => {
     await limitarPorCuenta(ctx.cuentaId, "asistente:preguntar", 20, 3600);
     const { pregunta } = await validarCuerpo(req, esquemaPregunta);
-    return respuesta(await preguntarAsistente(pregunta));
+    const inicio = Date.now();
+    const resultado = await preguntarAsistente(pregunta);
+    void registrarMetricasAsistente(ctx.cuentaId, resultado, Date.now() - inicio).catch(() => undefined);
+    return respuesta(resultado);
   }),
 };
 

@@ -1,0 +1,90 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-12",
+  "agente": "OpenCode",
+  "modelo": "opencode/big-pickle",
+  "rama": "feat/servidor-local",
+  "tarea": "asistente-llm-cloud",
+  "solicitud": "Conectar el asistente de catequesis a un LLM cloud real con Gemini o Groq, conservando la recuperación del corpus, las citas obligatorias y el fallback extractivo cuando no hay clave o el proveedor falla.",
+  "commitPrevisto": "feat(asistente): proveedor LLM cloud con fallback extractivo",
+  "alcance": [
+    "api/local.settings.example.json",
+    "api/openapi.json",
+    "api/src/compartido/http/limites.ts",
+    "api/src/modulos/asistente/aplicacion/metricas.ts",
+    "api/src/modulos/asistente/aplicacion/preguntar.ts",
+    "api/src/modulos/asistente/aplicacion/proveedores.ts",
+    "api/src/modulos/asistente/http/index.ts",
+    "api/test/integracion/base/demo-bd.test.ts",
+    "api/test/unit/asistente/http.test.ts",
+    "api/test/unit/asistente/metricas.test.ts",
+    "api/test/unit/asistente/proveedores.test.ts",
+    "docs/agent-trace/asistente-llm-cloud.json",
+    "docs/demo-12-nov.md",
+    "docs/tecnicas-inteligentes.md",
+    "infra/README.md",
+    "infra/modulos/funciones.bicep",
+    "openspec/changes/asistente-catequesis/tasks.md",
+    "src/__tests__/asistente-pantalla.test.tsx",
+    "src/app/asistente.tsx",
+    "src/lib/asistente/__tests__/asistente.test.ts",
+    "src/lib/asistente/__tests__/proveedor-llm.test.ts",
+    "src/lib/asistente/api.ts",
+    "src/lib/asistente/cache.ts",
+    "src/lib/asistente/index.ts",
+    "src/lib/asistente/prompt.ts",
+    "src/lib/asistente/proveedor-llm.ts",
+    "src/lib/asistente/servicio.ts"
+  ],
+  "criterio": "El backend usa Gemini o Groq cuando ASISTENTE_CLAVE está configurada y cae al proveedor extractivo cuando falta la clave o el proveedor falla; el cliente conserva las citas y el aviso de privacidad, no envía sin conexión y la caché solo guarda respuestas exitosas; las métricas son agregadas y no contienen preguntas, respuestas ni datos personales.",
+  "decisiones": [
+    "El LLM no sustituye la recuperación ni la cita: el corpus y las fuentes siguen siendo la base y el proveedor solo redacta la respuesta.",
+    "Gemini es el proveedor por defecto; Groq y Ollama quedan disponibles mediante configuración, sin cambiar el puerto del proveedor.",
+    "Sin ASISTENTE_CLAVE, o ante un error del proveedor, se usa ProveedorExtractivo; la clave nunca se envía al cliente ni se registra.",
+    "La caché es LRU en memoria, con TTL de 5 minutos y máximo de 100 entradas, indexada por versión de corpus, pregunta normalizada y contexto.",
+    "Las métricas reutilizan los contadores existentes y solo guardan agregados: consultas, tipo de respuesta, proveedor y latencia; no guardan contenido.",
+    "La pantalla bloquea el envío y las sugerencias cuando NetInfo informa que no hay conexión, y muestra el aviso de privacidad antes de escribir.",
+    "Se corrigió demo-bd.test.ts para consultar la fecha sembrada en Lima en lugar de current_date de PostgreSQL en UTC, evitando el fallo nocturno de zona horaria."
+  ],
+  "comprobaciones": [
+    {
+      "comando": "npm test con BD_PRUEBAS_URL apuntando al PostgreSQL local del puerto 55432",
+      "resultado": "Pasa: cliente con 82 suites y 340 tests; API con 53 suites y 348 tests, incluida la integración con PostgreSQL 16 y Azurite."
+    },
+    {
+      "comando": "npm run typecheck",
+      "resultado": "Pasa en raíz y API, sin errores."
+    },
+    {
+      "comando": "npm run lint",
+      "resultado": "Pasa sin errores."
+    },
+    {
+      "comando": "npm --prefix api run test:rapido",
+      "resultado": "Pasa: 27 suites y 152 tests."
+    },
+    {
+      "comando": "node api/scripts/verificar-openapi.mjs",
+      "resultado": "Pasa: 80 operaciones, 207 schemas y 37 migraciones SQL inventariadas; las variables ASISTENTE_* quedan documentadas."
+    },
+    {
+      "comando": "git diff --check",
+      "resultado": "Pasa; solo aparecen avisos de normalización LF/CRLF del árbol de trabajo."
+    }
+  ],
+  "resultados": {
+    "tests": "cliente: 82 suites y 340 tests; API: 53 suites y 348 tests con PostgreSQL 16 y Azurite",
+    "typecheck": "sin errores en cliente y API",
+    "lint": "sin errores",
+    "integracion": "demo-bd pasa usando la fecha de Lima sembrada; la suite completa de API queda en verde"
+  },
+  "limites": [
+    "No se verificó una llamada real a Gemini o Groq porque no hay ASISTENTE_CLAVE configurada; los tests simulan fetch.",
+    "El secreto asistente-clave debe crearse manualmente en Key Vault antes de desplegar; sin él la función usa el fallback extractivo.",
+    "La caché es por proceso y se pierde al reiniciar; no se comparte entre instancias.",
+    "No se probó en un dispositivo físico; la comprobación sin conexión usa el mock de NetInfo.",
+    "No se modificaron specs ni la constitución.",
+    "No se commitearon los cambios de package-lock generados por npm install; se descartaron por ser ruido de versión y no formar parte de la funcionalidad."
+  ],
+  "notas": "El cambio cubre las tareas 2.2, 2.3, 3.5, 3.6 y 5.1 a 5.4 de la spec del asistente. ASISTENTE_CLAVE queda vacía en la configuración local, así que la demo funciona en modo extractivo hasta que se configure una clave real. La infraestructura deja la referencia al secreto asistente-clave y el README indica crearlo antes del despliegue. El test de demo se ajustó para no depender de la fecha UTC de PostgreSQL."
+}

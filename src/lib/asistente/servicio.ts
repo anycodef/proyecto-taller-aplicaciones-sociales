@@ -1,4 +1,5 @@
 import { recuperarFragmentos } from "./bm25";
+import type { CacheRespuestas } from "./cache";
 import { evaluarGuardia } from "./guardia";
 import { crearPregunta } from "./normalizar";
 import { ProveedorExtractivo } from "./proveedor";
@@ -12,6 +13,7 @@ export type OpcionesConsulta = {
   corpus: Corpus;
   proveedor?: ProveedorRespuesta;
   proveedorRespaldo?: ProveedorRespuesta;
+  cache?: CacheRespuestas;
   limite?: number;
   umbral?: number;
 };
@@ -43,6 +45,10 @@ export async function consultarAsistente(
   }
 
   const consulta = crearPregunta(pregunta);
+  const contextoCache = `${opciones.limite ?? ""}|${opciones.umbral ?? ""}`;
+  const cacheada = opciones.cache?.obtener(versionCorpus, consulta.normalizada, contextoCache);
+  if (cacheada) return cacheada;
+
   const recuperacion = recuperarFragmentos(opciones.corpus, consulta, {
     limite: opciones.limite,
     umbral: opciones.umbral,
@@ -65,11 +71,13 @@ export async function consultarAsistente(
   const fuentes = fuentesUsadas(salida.texto, recuperacion.fragmentos);
   if (fuentes.length === 0) return abstencion(versionCorpus);
 
-  return {
+  const resultado: RespuestaAsistente = {
     respuesta: salida.texto,
     fuentes,
     proveedor: salida.proveedor,
     modelo: salida.modelo,
     versionCorpus,
   };
+  opciones.cache?.guardar(versionCorpus, consulta.normalizada, resultado, contextoCache);
+  return resultado;
 }

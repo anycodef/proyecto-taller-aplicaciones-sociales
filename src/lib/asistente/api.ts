@@ -9,6 +9,9 @@ export const SUGERENCIAS = ["¿Qué es la confirmación?", "¿Qué es la eucaris
 
 export const NOTA_ASISTENTE = "Respuestas basadas en material público de catequesis. No sustituye a la coordinación ni da consejo médico o legal.";
 
+export const AVISO_PRIVACIDAD_ASISTENTE =
+  "No escribas nombres, documentos, datos de salud ni otros datos de niños. El asistente solo necesita tu pregunta.";
+
 export type FuenteAsistenteApi = { id: string; documento: string; seccion: string; fuente: string; licencia: string };
 
 export type RespuestaAsistenteApi = {

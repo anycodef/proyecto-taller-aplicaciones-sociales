@@ -22,8 +22,8 @@ No todas las técnicas propuestas se implementan. La idea es comparar valor, dat
 | # | Técnica | Estado en SIGECAT | Dónde se ve |
 | --- | --- | --- | --- |
 | 1 | Sistema experto basado en reglas | Implementada | `src/lib/riesgo/`, spec 007 |
-| 2 | RAG (recuperación aumentada) | Implementada en corte mínimo | `src/lib/asistente/`, spec 010 |
-| 3 | LLM generativo | Puerto listo; corte con proveedor extractivo | Asistente de catequesis |
+| 2 | RAG (recuperación aumentada) | Implementada con caché y métricas | `src/lib/asistente/`, spec 010 |
+| 3 | LLM generativo | Implementado con Gemini/Groq y fallback extractivo | Asistente de catequesis |
 | 4 | Agente inteligente con herramientas (MCP) | Funcionando en demo | `tarea3/servidor-mcp/`, spec 009 |
 | 5 | PLN para intención y temas sensibles | Implementada como filtro léxico | `src/lib/asistente/guardia.ts`, spec 010 |
 | 6 | Aprendizaje automático predictivo | Descartada para esta entrega | Spec 007 la excluye |
@@ -54,7 +54,7 @@ No todas las técnicas propuestas se implementan. La idea es comparar valor, dat
 
 **Límites.** Si el corpus no cubre la pregunta, el asistente debe abstenerse. Un corpus mal curado produce respuestas mal citadas.
 
-**Decisión.** Implementada en el corte mínimo de la spec 010: BM25 en TypeScript puro, corpus público versionado y endpoint `POST /asistente/preguntar`. No añade dependencias, costo ni datos de menores. La caché y el cliente móvil quedan para una iteración posterior.
+**Decisión.** Implementada en la spec 010: BM25 en TypeScript puro, corpus público versionado, endpoint `POST /asistente/preguntar`, caché LRU por versión de corpus, métricas agregadas sin contenido y pantalla móvil con aviso de privacidad y bloqueo sin conexión. No añade dependencias ni datos de menores.
 
 ## 3. LLM generativo
 
@@ -68,7 +68,7 @@ No todas las técnicas propuestas se implementan. La idea es comparar valor, dat
 
 **Límites.** Puede alucinar, tiene cupos gratuitos y depende de conexión. Por eso la respuesta se valida contra las citas y se prefiere abstenerse antes que inventar.
 
-**Decisión.** El puerto `ProveedorRespuesta` y el fallback extractivo están implementados en la spec 010. Los adaptadores reales Gemini, Groq u Ollama quedan modelados: el corte mínimo usa extractivo para no depender de claves ni red y demuestra la validación de citas.
+**Decisión.** Implementados `ProveedorRespuesta`, `ProveedorLLM` para Gemini, Groq y Ollama, timeout de 8 s, validación de citas y fallback extractivo. La app se despliega con Gemini o Groq en el servidor y la clave nunca sale de la API. Si no hay clave o el proveedor falla, la respuesta sigue siendo extractiva y citada; no se inventa doctrina.
 
 ## 4. Agente inteligente con herramientas (MCP)
 
@@ -114,8 +114,8 @@ No todas las técnicas propuestas se implementan. La idea es comparar valor, dat
 
 ## Qué queda funcionando y qué queda modelado
 
-- **Funcionando:** sistema experto de riesgo (spec 007), agente MCP de demostración (spec 009) y asistente mínimo con RAG, filtro PLN y proveedor extractivo (spec 010).
-- **Modeladas y listas para implementar:** adaptadores LLM reales, caché, métricas agregadas y pantalla móvil del asistente (spec 010).
+- **Funcionando:** sistema experto de riesgo (spec 007), agente MCP de demostración (spec 009) y asistente con RAG, PLN, proveedor LLM cloud, caché, métricas y pantalla móvil (spec 010).
+- **Pendiente de evaluación:** calidad de las respuestas generativas con el corpus actual y ampliación del corpus; no bloquea la demo porque el fallback extractivo está probado.
 - **Descartada:** aprendizaje automático predictivo, por decisión de la spec 007 y por falta de datos y de explicabilidad.
 
-La técnica que el profesor pide usar está cubierta: el proyecto usa reglas inteligentes para el riesgo y un asistente con RAG y PLN sobre corpus público. El corte mínimo funciona sin claves externas; los proveedores generativos y la interfaz quedan para una iteración posterior.
+La técnica que el profesor pide usar está cubierta: el proyecto usa reglas inteligentes para el riesgo y un asistente con RAG, PLN y LLM sobre corpus público. Sin clave externa el asistente sigue funcionando en modo extractivo; con clave, redacta y mantiene la cita obligatoria.

@@ -1,3 +1,4 @@
+import NetInfo from "@react-native-community/netinfo";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react-native";
 
 import Asistente from "@/app/asistente";
@@ -36,6 +37,10 @@ function montar(respuestas: Record<string, unknown>): ClienteFalso {
   return cliente;
 }
 const preguntasEnviadas = (cliente: ClienteFalso) => cliente.llamadas.filter((l) => l.ruta === "/asistente/preguntar").map((l) => (l.cuerpo as { pregunta: string }).pregunta);
+
+beforeEach(() => {
+  jest.mocked(NetInfo.fetch).mockResolvedValue({ isConnected: true } as never);
+});
 
 async function preguntar(texto: string) {
   fireEvent.changeText(screen.getByLabelText("Tu pregunta"), texto);
@@ -106,4 +111,17 @@ test("RF-1005: al llegar al límite de 20 preguntas por hora avisa con el mensaj
   await screen.findByText("Tu pregunta");
   await preguntar("¿Qué es la eucaristía?");
   expect(await screen.findByText("Llegaste al límite de preguntas por hora; intenta más tarde.")).toBeTruthy();
+});
+
+test("RNF-1001: muestra el aviso de no escribir datos de niños", async () => {
+  montar({});
+  expect(await screen.findByText(/No escribas nombres, documentos, datos de salud/)).toBeTruthy();
+});
+
+test("RNF-1001: sin conexión bloquea el envío y avisa que el asistente necesita red", async () => {
+  jest.mocked(NetInfo.fetch).mockResolvedValue({ isConnected: false } as never);
+  const cliente = montar({ "POST /asistente/preguntar": citada });
+  expect(await screen.findByText(/El asistente necesita conexión/)).toBeTruthy();
+  await preguntar("¿Qué es la eucaristía?");
+  expect(preguntasEnviadas(cliente)).toEqual([]);
 });

@@ -55,6 +55,10 @@ resource funciones 'Microsoft.Web/sites@2024-04-01' = {
         { name: 'JWT_KID', value: '@Microsoft.KeyVault(SecretUri=${bovedaUri}secrets/jwt-kid/)' }
         { name: 'RENOVACION_CLAVE', value: '@Microsoft.KeyVault(SecretUri=${bovedaUri}secrets/renovacion-clave/)' }
         { name: 'BLOBS_CONEXION', value: '@Microsoft.KeyVault(SecretUri=${bovedaUri}secrets/blobs-conexion/)' }
+        { name: 'ASISTENTE_PROVEEDOR', value: 'gemini' }
+        { name: 'ASISTENTE_MODELO', value: 'gemini-2.5-flash' }
+        { name: 'ASISTENTE_CLAVE', value: '@Microsoft.KeyVault(SecretUri=${bovedaUri}secrets/asistente-clave/)' }
+        { name: 'ASISTENTE_TIMEOUT_MS', value: '8000' }
         // Evidencias de 004: solo la URL; la SAS se firma con la identidad administrada (RNF-403).
         { name: 'EVIDENCIAS_CUENTA_URL', value: 'https://${nombreAlmacen}.blob.${environment().suffixes.storage}' }
       ]
