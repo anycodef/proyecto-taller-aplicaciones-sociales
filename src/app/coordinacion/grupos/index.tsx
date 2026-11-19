@@ -1,4 +1,5 @@
 import { router, type Href } from "expo-router";
+import { useCallback } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { Aviso, Boton, FilaNavegacion, Insignia } from "@/components/ui";
@@ -8,12 +9,16 @@ import { colores, espacio, tipografia } from "@/tema";
 
 export default function ListaGrupos() {
   const { apiCatequizandos } = useSesion();
-  const cargarCiclo = () => apiCatequizandos.cicloAbierto();
+  // Sin useCallback, `useCarga` repite la consulta en cada render.
+  const cargarCiclo = useCallback(() => apiCatequizandos.cicloAbierto(), [apiCatequizandos]);
   const { datos: ciclo, error: errorCiclo, cargando: cargandoCiclo } = useCarga(cargarCiclo);
 
   const cicloAbierto = ciclo;
-  const cargarGrupos = () =>
-    cicloAbierto ? apiCatequizandos.listarGrupos(cicloAbierto.id) : Promise.resolve([]);
+  const cicloId = cicloAbierto?.id;
+  const cargarGrupos = useCallback(
+    () => (cicloId ? apiCatequizandos.listarGrupos(cicloId) : Promise.resolve([])),
+    [apiCatequizandos, cicloId],
+  );
   const { datos: grupos, error: errorGrupos, cargando: cargandoGrupos, recargar } = useCarga(
     cargarGrupos,
     !!cicloAbierto

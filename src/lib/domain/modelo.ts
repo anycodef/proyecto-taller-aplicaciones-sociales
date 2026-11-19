@@ -86,29 +86,39 @@ export type Consentimiento = {
   retencionHasta: string;
 };
 
-/**
- * Justificacion enviada por la familia. La lectura por OCR corre de forma
- * asincrona y desacoplada: nunca bloquea el registro de asistencia.
- */
-export type Justificacion = {
+export type SesionCatequesis = {
   id: string;
-  catequizandoId: string;
-  sesionId: string;
-  enviadaPor: string;
-  enviadaEn: string;
-  /** Referencia al archivo en almacenamiento de objetos, no el binario. */
-  adjuntoUrl?: string;
-  ocr?: ResultadoOcr;
-  revision: "pendiente" | "aceptada" | "rechazada";
-  revisadaPor?: string;
+  grupoId: string;
+  fecha: string;
+  tema?: string;
 };
 
-export type ResultadoOcr = {
-  texto: string;
-  /** 0 a 1. Por debajo del umbral la justificacion pasa a revision manual. */
-  confianza: number;
-  procesadoEn: string;
+export type EstadoAsistencia =
+  | "presente"
+  | "tardanza"
+  | "ausente"
+  | "justificado";
+
+export type RegistroAsistencia = {
+  id: string;
+  sesionId: string;
+  catequizandoId: string;
+  estado: EstadoAsistencia;
+  /** Quien lo registro: la responsabilidad es nominal, no anonima. */
+  registradoPor: string;
+  registradoEn: string;
+  /** Marca de sincronizacion: el registro nace en el dispositivo. */
+  sincronizadoEn?: string;
 };
+
+/** El modelo de justificaciones vive en su dominio: sin OCR, fuera de alcance (spec 004). */
+export type {
+  AusenciaRef,
+  Causa,
+  EstadoRevision,
+  EstadoVisible,
+  Justificacion,
+} from "@/lib/justificaciones/tipos";
 
 /**
  * Senal de riesgo de desercion. Se calcula fuera del camino critico y

@@ -13,6 +13,14 @@ import { PuntosPin, TecladoPin } from '@/components/seguridad/teclado-pin';
 import { CompartirEnlace } from '@/components/seguridad/compartir-enlace';
 import { ComponenteConsentimiento } from '@/components/seguridad/consentimiento';
 import { TarjetaCarne } from '@/components/catequizandos/tarjeta-carne';
+import { FormularioJustificacion } from '@/components/justificaciones/formulario-justificacion';
+import { SelectorAusencias } from '@/components/justificaciones/selector-ausencias';
+import { SelectorCausa } from '@/components/justificaciones/selector-causa';
+import { ResumenJustificaciones } from '@/components/justificaciones/resumen-justificaciones';
+import { VisorEvidencia } from '@/components/justificaciones/visor-evidencia';
+import { CAUSAS, ETIQUETAS_CAUSA } from '@/lib/justificaciones/causas';
+import { BurbujaMensaje } from '@/components/asistente/burbuja-mensaje';
+import { TarjetaRiesgo } from '@/components/riesgo/tarjeta-riesgo';
 import { ConfirmacionEscaneo } from '@/components/asistencia/confirmacion-escaneo';
 import { colores, espacio, tipografia } from '@/tema';
 import { useState } from 'react';
@@ -23,6 +31,8 @@ export default function Galeria() {
   const [nombre, setNombre] = useState('');
   const [sexo, setSexo] = useState<string | null>(null);
   const [pin, setPin] = useState('');
+  const [causa, setCausa] = useState<string | null>(null);
+  const [ausencias, setAusencias] = useState<string[]>(['ana-0108']);
 
   if (verResultado) {
     return (
@@ -130,6 +140,45 @@ export default function Galeria() {
         />
       </Seccion>
 
+      <Seccion titulo="Justificaciones">
+        <SelectorAusencias
+          opciones={[
+            { clave: 'ana-0108', titulo: 'Ana · domingo 8 de noviembre', detalle: 'Misa y catequesis', nota: 'Puedes justificar hasta el 15 de noviembre' },
+            { clave: 'luis-0108', titulo: 'Luis · domingo 8 de noviembre', detalle: 'Misa' },
+          ]}
+          seleccionadas={ausencias}
+          alCambiar={setAusencias}
+        />
+        <SelectorCausa causas={CAUSAS.map((c) => ({ valor: c, etiqueta: ETIQUETAS_CAUSA[c] }))} valor={causa} alCambiar={setCausa} />
+      </Seccion>
+
+      <Seccion titulo="Formulario de justificación">
+        <FormularioJustificacion
+          titulo="Justificar ausencia"
+          filas={[{ catequizandoId: 'ana', fecha: '2026-11-08', ausencias: [{ catequizandoId: 'ana', sesionId: 'misa', tipoSesion: 'misa', fecha: '2026-11-08' }] }]}
+          nombres={new Map([['ana', 'Ana']])}
+          marcadasAlInicio={['ana|2026-11-08|misa']}
+          causas={CAUSAS}
+          anticipada={false}
+          textoFoto="Foto del certificado o comprobante"
+        />
+      </Seccion>
+
+      <Seccion titulo="Visor de evidencia">
+        <VisorEvidencia justificacionId="ejemplo" obtener={async () => Promise.reject(Object.assign(new Error('sin_evidencia'), { codigo: 'sin_evidencia' }))} />
+      </Seccion>
+
+      <Seccion titulo="Resumen de justificaciones en el perfil">
+        <ResumenJustificaciones
+          estados={[
+            { id: 'j-1', sesionId: 'misa', tipoSesion: 'misa', fecha: '2026-11-08', estado: 'pendiente' },
+            { id: 'j-2', sesionId: 'catequesis', tipoSesion: 'catequesis', fecha: '2026-11-01', estado: 'aprobada' },
+            { id: 'j-3', sesionId: 'misa-25', tipoSesion: 'misa', fecha: '2026-10-25', estado: 'rechazada' },
+            { id: 'j-4', sesionId: 'misa-18', tipoSesion: 'misa', fecha: '2026-10-18', estado: 'sin_efecto' },
+          ]}
+        />
+      </Seccion>
+
       <Seccion titulo="Carné">
         <TarjetaCarne
           nombres="Mateo Alejandro"
@@ -146,6 +195,38 @@ export default function Galeria() {
         <ConfirmacionEscaneo estado="ya_registrado" />
         <ConfirmacionEscaneo estado="invalido" />
       </Seccion>
+
+      <Seccion titulo="Riesgo de deserción">
+        <TarjetaRiesgo
+          fila={{
+            catequizandoId: 'n2', nombre: 'Niño ficticio 2', grupoId: 'g1', grupoNombre: 'Grupo demo', paso: 'alerta_retiro', conteo: 4, sinFicha: true, pendientesJustificar: 0,
+            faltasOrigen: [
+              { catequizandoId: 'n2', fecha: '2026-10-18', origen: 'domingo', estado: 'suma', sesionIds: ['s1'] },
+              { catequizandoId: 'n2', fecha: '2026-10-25', origen: 'domingo', estado: 'suma', sesionIds: ['s2'] },
+              { catequizandoId: 'n2', fecha: '2026-11-01', origen: 'domingo', estado: 'suma', sesionIds: ['s3'] },
+              { catequizandoId: 'n2', fecha: '2026-11-08', origen: 'domingo', estado: 'suma', sesionIds: ['s4'] },
+            ],
+          }}
+        />
+      </Seccion>
+
+      <Seccion titulo="Asistente de catequesis">
+        <BurbujaMensaje mensaje={{ id: 'u', autor: 'usuario', texto: '¿Qué es el bautismo?' }} />
+        <BurbujaMensaje
+          mensaje={{
+            id: 'a', autor: 'asistente',
+            respuesta: {
+              respuesta: 'Según el material público de catequesis: el bautismo es el primer sacramento de la iniciación cristiana.',
+              fuentes: [{ id: 'bautismo', documento: 'Catecismo', seccion: 'Bautismo (Mateo 28:19-20)', fuente: 'https://example.org', licencia: 'Dominio público' }],
+              proveedor: 'extractivo', modelo: 'extractivo-1', versionCorpus: 'v1',
+            },
+          }}
+        />
+        <BurbujaMensaje
+          mensaje={{ id: 'g', autor: 'asistente', respuesta: { respuesta: 'No puedo consultar datos de niños, familias, salud, documentos o riesgo. Contacta a la coordinación parroquial.', fuentes: [], proveedor: 'guardia', modelo: 'filtro', versionCorpus: 'v1' } }}
+        />
+      </Seccion>
+
     </ScrollView>
   );
 }

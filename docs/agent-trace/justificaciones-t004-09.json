@@ -1,0 +1,38 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-11",
+  "agente": "Claude Code",
+  "modelo": "claude-opus-5-5",
+  "rama": "feat/004-justificaciones",
+  "tarea": "T004-09",
+  "solicitud": "Implementar agruparPorDomingo y sesionesAnticipables (supuestos A-03, A-13).",
+  "alcance": [
+    "src/lib/justificaciones/justificables.ts",
+    "src/lib/justificaciones/__tests__/justificables.test.ts",
+    "specs/004-justificaciones/tasks.md",
+    "docs/agent-trace/justificaciones-t004-09.json"
+  ],
+  "criterio": "Pasan los tests RF-401 y RF-404 de justificables.test.ts.",
+  "decisiones": [
+    "Futura significa posterior al día de hoy en Lima; la sesión de hoy se justifica como ausencia normal.",
+    "Las actividades obligatorias quedan en filas propias."
+  ],
+  "comprobaciones": [
+    {
+      "comando": "npx jest src/lib/justificaciones",
+      "resultado": "Pasa: 20 tests."
+    },
+    {
+      "comando": "npm run typecheck",
+      "resultado": "Pasa en raíz y API."
+    },
+    {
+      "comando": "npm run lint",
+      "resultado": "Pasa sin errores."
+    }
+  ],
+  "limites": [
+    "La suite completa npm test (cliente y API con PostgreSQL) se ejecuta al cerrar la fase 1."
+  ],
+  "notas": "Dominio puro en TypeScript, sin React, React Native ni Expo."
+}

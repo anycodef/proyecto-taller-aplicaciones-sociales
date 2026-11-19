@@ -1,0 +1,18 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-12",
+  "agente": "Claude Code",
+  "modelo": "claude-sonnet-5-5",
+  "tarea": "integracion-fabrizzio",
+  "solicitud": "Integrar la rama origin/fabrizzio (modulo 004 completo de Wilson Espinoza, hecho en paralelo) en feat/servidor-local priorizando lo de Fabrizzio",
+  "commitPrevisto": "chore: integrar fabrizzio en feat/servidor-local priorizando 004 de fabrizzio",
+  "alcance": ["api/src/modulos/justificaciones/**", "api/openapi.json", "api/src/index.ts", "src/app/(familia)/**", "src/app/(equipo)/coordinacion/justificaciones/**", "src/components/justificaciones/**", "src/lib/justificaciones/**", "src/plataforma/justificaciones/**", "src/lib/seguridad/matriz-permisos.ts", "app.json", "src/app/galeria.tsx"],
+  "criterio": "En los 25 archivos en conflicto del modulo 004 gana la version de Fabrizzio. Se conserva lo nuestro que no choca: riesgo, asistente, catequizandos, correccion del enlace de Expo Go y servidor local. Se retiran los archivos nuestros de 004 que su implementacion reemplaza.",
+  "comprobaciones": ["npm run typecheck", "npm run test:app", "npm --prefix api run test:rapido", "node api/scripts/verificar-openapi.mjs"],
+  "resultados": {
+    "tests": "cliente: 81 suites y 330 tests; api rapidos: 25 suites y 146 tests",
+    "typecheck": "sin errores (cliente y api)",
+    "lint": "solo errores de tarea3 por dependencias sin instalar (import/no-unresolved), ninguno en el codigo integrado"
+  },
+  "notas": "Se retiraron de nuestra version: evidencias.ts, revision.ts y puentes-asistencia.ts de la API, sus tests, enviar-justificacion, elegir-foto, usar-api-justificaciones, tarjeta-lote, mis-justificaciones y los dos tests de pantalla de 004. seleccion.ts queda solo con fechaCorta y etiquetaSesion porque lo usan riesgo y perfil. Dos tests de Fabrizzio (plazo y registrar) simulaban GET /ciclos/abierto con el ciclo directo; el contrato real es { ciclo }, asi que se ajusto el simulacro y no la correccion de cicloAbierto. Se quitaron registros duplicados de pantallas en el layout del equipo. Los scripts verificar-004 y sembrar-justificaciones-demo se escribieron contra nuestra API y deben revisarse contra la de Fabrizzio."
+}

@@ -47,6 +47,9 @@ function crearClienteFalso(peticiones: Peticion[], sinRed: boolean): ClienteHttp
       }
       return respuestaServidor as T;
     },
+    solicitarBinario: async () => {
+      throw new Error("sin_binario");
+    },
   };
 }
 

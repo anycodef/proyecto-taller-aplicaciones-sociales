@@ -1,0 +1,39 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-11",
+  "agente": "Claude Code",
+  "modelo": "claude-opus-5-5",
+  "rama": "feat/004-justificaciones",
+  "tarea": "T004-04",
+  "solicitud": "Crear tipos.ts y causas.ts con la lista cerrada de causas (supuestos A-02, A-03).",
+  "alcance": [
+    "src/lib/justificaciones/tipos.ts",
+    "src/lib/justificaciones/causas.ts",
+    "src/lib/justificaciones/__tests__/causas.test.ts",
+    "specs/004-justificaciones/tasks.md",
+    "docs/agent-trace/justificaciones-t004-04.json"
+  ],
+  "criterio": "Pasan los tests RF-402 y RF-404 de causas.test.ts.",
+  "decisiones": [
+    "TipoSesion se reutiliza de src/lib/asistencia/tipos.",
+    "ErrorJustificacion lleva un código estable para que la API lo traduzca."
+  ],
+  "comprobaciones": [
+    {
+      "comando": "npx jest src/lib/justificaciones",
+      "resultado": "Pasa: 3 tests."
+    },
+    {
+      "comando": "npm run typecheck",
+      "resultado": "Pasa en raíz y API."
+    },
+    {
+      "comando": "npm run lint",
+      "resultado": "Pasa sin errores."
+    }
+  ],
+  "limites": [
+    "La suite completa npm test (cliente y API con PostgreSQL) se ejecuta al cerrar la fase 1."
+  ],
+  "notas": "Dominio puro en TypeScript, sin React, React Native ni Expo."
+}

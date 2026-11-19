@@ -1,0 +1,38 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-11",
+  "agente": "Claude Code",
+  "modelo": "claude-opus-5-5",
+  "rama": "feat/004-justificaciones",
+  "tarea": "T004-11",
+  "solicitud": "Implementar validarLote en lote.ts (supuesto A-04).",
+  "alcance": [
+    "src/lib/justificaciones/lote.ts",
+    "src/lib/justificaciones/__tests__/lote.test.ts",
+    "specs/004-justificaciones/tasks.md",
+    "docs/agent-trace/justificaciones-t004-11.json"
+  ],
+  "criterio": "Pasan los cinco tests de lote.test.ts (RF-402, RF-403, RF-404, RF-405).",
+  "decisiones": [
+    "El servidor calcula el contexto (hijos, justificables, anticipables); el lote solo lo compara.",
+    "El motivo de rechazo indica la sesión afectada para mostrarla en la interfaz."
+  ],
+  "comprobaciones": [
+    {
+      "comando": "npx jest src/lib/justificaciones",
+      "resultado": "Pasa: 28 tests."
+    },
+    {
+      "comando": "npm run typecheck",
+      "resultado": "Pasa en raíz y API."
+    },
+    {
+      "comando": "npm run lint",
+      "resultado": "Pasa sin errores."
+    }
+  ],
+  "limites": [
+    "La suite completa npm test (cliente y API con PostgreSQL) se ejecuta al cerrar la fase 1."
+  ],
+  "notas": "Dominio puro en TypeScript, sin React, React Native ni Expo."
+}

@@ -1,0 +1,40 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-11",
+  "agente": "Claude Code",
+  "modelo": "claude-opus-5-5",
+  "rama": "feat/004-justificaciones",
+  "tarea": "T004-67",
+  "solicitud": "Implementar la fase 7 de la spec 004.",
+  "alcance": [
+    "api/src/modulos/justificaciones/aplicacion/depurar-evidencias.ts",
+    "api/test/integracion/justificaciones/depurar-evidencias.test.ts",
+    "api/src/index.ts",
+    "api/src/modulos/justificaciones/index.ts",
+    "specs/004-justificaciones/tasks.md",
+    "docs/agent-trace/justificaciones-t004-67.json"
+  ],
+  "criterio": "Pasan RF-407 de borrado con justificación conservada, evento con motivo, evidencia compartida y borrado por prefijo.",
+  "decisiones": [
+    "Borrador compuesto configurado en el arranque.",
+    "El prefijo se valida como UUID para no borrar fuera del ciclo."
+  ],
+  "comprobaciones": [
+    {
+      "comando": "npx jest --runInBand --selectProjects integracion --testPathPattern 'depurar-evidencias|contrato-retencion|e2e'",
+      "resultado": "20 de 20 pasan, incluidos retención y e2e."
+    },
+    {
+      "comando": "npm run typecheck",
+      "resultado": "Pasa en raíz y API."
+    },
+    {
+      "comando": "npm run lint",
+      "resultado": "Pasa sin errores."
+    }
+  ],
+  "limites": [
+    "El puerto eliminarEvidenciasDeCiclo queda listo; 008 aún no lo invoca."
+  ],
+  "notas": "Contra Azurite 3.35.0 y PostgreSQL 16 locales."
+}

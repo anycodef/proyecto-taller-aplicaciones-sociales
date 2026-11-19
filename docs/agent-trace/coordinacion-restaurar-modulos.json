@@ -1,0 +1,20 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-12",
+  "agente": "Claude Code",
+  "modelo": "claude-sonnet-5-5",
+  "tarea": "T4-coordinacion",
+  "solicitud": "Restaurar en el panel de coordinacion el registro de modulos de Pedro y la opcion Grupos de Diego, perdidos al resolver el merge de fabrizzio con la version de Wilson",
+  "commitPrevisto": "fix(coordinacion): restaurar modulos y grupos en el panel",
+  "alcance": [
+    "src/app/(equipo)/coordinacion.tsx"
+  ],
+  "criterio": "El panel muestra Cuentas, Delegaciones, Auditoria, Avisos del sistema, Grupos y Pasar lista; los conectados y los pendientes salen de modulosDelPanel con rolesEfectivos. El unico cambio de Wilson era un texto de la lista fija de pendientes, que deja de importar.",
+  "comprobaciones": ["npm run typecheck", "npm run lint", "npm run test:app"],
+  "resultados": {
+    "tests": "54 suites y 212 tests en verde (incluye RF-1206 de modulos.test.ts)",
+    "typecheck": "sin errores (cliente y api)",
+    "lint": "sin errores"
+  },
+  "notas": "Se restauro el archivo desde 487dc0b (merge de frontend-001_003, previo al de fabrizzio), que equivale a 98c069c mas la opcion Grupos. La causa de la perdida fue resolver el conflicto con --theirs: el lado de main tenia +15/-2 lineas en ese archivo y el de fabrizzio +1/-1. La ruta /coordinacion/grupos vive en src/app/coordinacion/grupos/index.tsx, fuera de (equipo) y de los Stack.Protected del layout raiz; no se movio porque excede la tarea. No se cambia ningun estado en modulos.ts."
+}

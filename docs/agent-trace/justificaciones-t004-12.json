@@ -1,0 +1,38 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-11",
+  "agente": "Claude Code",
+  "modelo": "claude-opus-5-5",
+  "rama": "feat/004-justificaciones",
+  "tarea": "T004-12",
+  "solicitud": "Implementar expandirLote en lote.ts.",
+  "alcance": [
+    "src/lib/justificaciones/lote.ts",
+    "src/lib/justificaciones/__tests__/lote.test.ts",
+    "specs/004-justificaciones/tasks.md",
+    "docs/agent-trace/justificaciones-t004-12.json"
+  ],
+  "criterio": "Pasan los tests RF-403, RF-406 y RF-407 de lote.test.ts.",
+  "decisiones": [
+    "enviadaPor siempre es el apoderado; registradaPor identifica a la coordinación en el registro en nombre de.",
+    "enviadaEn es la hora del servidor que recibe el lote."
+  ],
+  "comprobaciones": [
+    {
+      "comando": "npx jest src/lib/justificaciones",
+      "resultado": "Pasa: 32 tests."
+    },
+    {
+      "comando": "npm run typecheck",
+      "resultado": "Pasa en raíz y API."
+    },
+    {
+      "comando": "npm run lint",
+      "resultado": "Pasa sin errores."
+    }
+  ],
+  "limites": [
+    "La suite completa npm test (cliente y API con PostgreSQL) se ejecuta al cerrar la fase 1."
+  ],
+  "notas": "Dominio puro en TypeScript, sin React, React Native ni Expo."
+}

@@ -1,0 +1,38 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-11",
+  "agente": "Claude Code",
+  "modelo": "claude-opus-5-5",
+  "rama": "feat/004-justificaciones",
+  "tarea": "T004-42-43",
+  "solicitud": "Implementar el camino feliz de enviar-justificacion.ts y manejar falta de conexión, fallos y limpieza de temporales.",
+  "alcance": [
+    "src/plataforma/justificaciones/enviar-justificacion.ts",
+    "src/plataforma/justificaciones/__tests__/enviar-justificacion.test.ts",
+    "specs/004-justificaciones/tasks.md",
+    "docs/agent-trace/justificaciones-t004-42-43.json"
+  ],
+  "criterio": "Pasan RF-402 (reserva, sube y crea el lote), RF-403 (reintento con los mismos ids), RNF-404 (sin conexión, fallo de subida y URL de objeto en web).",
+  "decisiones": [
+    "En un reintento se tolera que la subida falle: la SAS solo crea y la foto pudo subirse antes; el servidor verifica cada blob al crear el lote.",
+    "Una foto demasiado pesada tiene su propio aviso; los demás fallos usan el aviso de sin conexión, como pide el plan."
+  ],
+  "comprobaciones": [
+    {
+      "comando": "npx jest src/plataforma/justificaciones; npm run typecheck; npm run lint",
+      "resultado": "Pasa: 12 tests."
+    },
+    {
+      "comando": "npm run typecheck",
+      "resultado": "Pasa en raíz y API."
+    },
+    {
+      "comando": "npm run lint",
+      "resultado": "Pasa sin errores."
+    }
+  ],
+  "limites": [
+    "Un solo commit para T004-42 y T004-43: ambas tareas viven en enviar-justificacion.ts. WatermelonDB y AsyncStorage no están instalados en el cliente; la prueba espía SecureStore y localStorage."
+  ],
+  "notas": "Cliente de la familia de la spec 004."
+}

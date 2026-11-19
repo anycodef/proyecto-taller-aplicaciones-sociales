@@ -1,0 +1,53 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-11",
+  "agente": "Claude Code",
+  "modelo": "claude-opus-5-5",
+  "rama": "feat/004-justificaciones",
+  "tarea": "T004-32-a-38",
+  "solicitud": "Implementar la fase 4 (functions de familia) de la spec 004.",
+  "alcance": [
+    "api/src/modulos/justificaciones/aplicacion/familia.ts",
+    "api/src/modulos/justificaciones/aplicacion/reservar-evidencia.ts",
+    "api/src/modulos/justificaciones/aplicacion/crear-lote.ts",
+    "api/src/modulos/justificaciones/http/index.ts",
+    "api/src/modulos/justificaciones/infraestructura/almacen.ts",
+    "api/src/modulos/justificaciones/index.ts",
+    "api/src/modulos/justificaciones/dominio/puertos.ts",
+    "api/src/modulos/justificaciones/infraestructura/repositorio-justificaciones-pg.ts",
+    "api/src/index.ts",
+    "api/openapi.json",
+    "api/test/http/inventario.test.ts",
+    "api/test/integracion/justificaciones/http-familia.test.ts",
+    "api/test/unit/justificaciones/almacen-credencial.test.ts",
+    "src/lib/seguridad/matriz-permisos.ts",
+    "specs/004-justificaciones/tasks.md",
+    "docs/agent-trace/justificaciones-t004-32-a-38.json"
+  ],
+  "criterio": "Pasan los 24 tests de http-familia.test.ts con los nombres de T004-32 a T004-38 contra PostgreSQL y Azurite; npm test completo en verde.",
+  "decisiones": [
+    "El tipo y la fecha de cada sesión los pone el servidor a partir de las ausencias reales; el cliente solo envía ids.",
+    "Lo que envió el otro apoderado se muestra sin causa ni nombre (A-14); nunca se devuelve URL de evidencia.",
+    "El registro en nombre de la coordinación queda para T004-56: justificacion:enviar solo admite familia.",
+    "Un blob inválido se borra y la reserva queda para la limpieza de huérfanas (T004-68).",
+    "El inventario de arranque pasa de 68 a 73 bindings."
+  ],
+  "comprobaciones": [
+    {
+      "comando": "npm test (cliente 157, API 290 con PostgreSQL y Azurite); npm run typecheck; npm run lint; node api/scripts/verificar-openapi.mjs (73 operaciones)",
+      "resultado": "Pasa: 24 tests de integración HTTP y servicio."
+    },
+    {
+      "comando": "npm run typecheck",
+      "resultado": "Pasa en raíz y API."
+    },
+    {
+      "comando": "npm run lint",
+      "resultado": "Pasa sin errores."
+    }
+  ],
+  "limites": [
+    "Un solo commit para T004-32 a T004-38: el registro HTTP importa todos los servicios y no compilan por separado. T004-35 queda abierta: el límite por cuenta está en Functions y probado, y el global ya existe en las políticas de producto de APIM, pero falta evidencia de Bicep compilado y desplegado. npm --prefix api run build falla en Windows también sin estos cambios (alias @/lib de esbuild con rutas /C:/...)."
+  ],
+  "notas": "Functions de familia de la spec 004."
+}

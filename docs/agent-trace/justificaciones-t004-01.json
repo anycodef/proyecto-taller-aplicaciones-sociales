@@ -1,0 +1,28 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-11",
+  "agente": "Claude Code",
+  "modelo": "claude-opus-5-5",
+  "rama": "main",
+  "tarea": "T004-01",
+  "solicitud": "Justificar en la spec 004 las dependencias de API y de pruebas antes de implementar (principio 1, supuesto A-09). Edición de specs/ autorizada por el usuario el 2026-11-11.",
+  "alcance": [
+    "specs/004-justificaciones/spec.md",
+    "docs/agent-trace/justificaciones-t004-01.json"
+  ],
+  "criterio": "spec.md tiene una sección de dependencias con @azure/storage-blob, @azure/identity y la imagen de Azurite, cada una con uso, alternativa descartada (D-402, D-410), costo 0 y sin instalación en la app.",
+  "decisiones": [
+    "@azure/storage-blob y Azurite 3.35.0 ya existen en api/ por 001; se justifican igualmente para el uso de 004.",
+    "@azure/identity solo firma SAS de usuario delegado en Azure; la clave de cuenta queda limitada a Azurite en pruebas."
+  ],
+  "comprobaciones": [
+    { "comando": "npm test (con BD_PRUEBAS_URL y docker compose -f api/docker-compose.yml up -d)", "resultado": "Pasa: cliente 31 suites y 107 tests; API 33 suites y 222 tests." },
+    { "comando": "npm run typecheck", "resultado": "Pasa en raíz y API." },
+    { "comando": "npm run lint", "resultado": "Pasa tras instalar dependencias de tarea3/ con npm --prefix tarea3 ci." }
+  ],
+  "limites": [
+    "La tarea exige aprobación del equipo en un PR revisado; no se marca como hecha en tasks.md hasta entonces.",
+    "No se instaló @azure/identity: se instala en T004-27."
+  ],
+  "notas": "Cambio solo documental."
+}

@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { ScrollView, StyleSheet, Text } from "react-native";
 
 import { Pendiente } from "./pendiente";
@@ -7,15 +8,18 @@ type Props = {
   titulo: string;
   descripcion: string;
   pendientes: string[];
+  /** Accesos a modulos ya conectados, antes de la lista de pendientes. */
+  children?: ReactNode;
 };
 
 /** Estructura comun de las pantallas de entrada de cada rol. */
-export function PantallaRol({ rol, titulo, descripcion, pendientes }: Props) {
+export function PantallaRol({ rol, titulo, descripcion, pendientes, children }: Props) {
   return (
     <ScrollView contentContainerStyle={estilos.contenedor}>
       <Text style={estilos.rol}>{rol}</Text>
       <Text style={estilos.titulo}>{titulo}</Text>
       <Text style={estilos.descripcion}>{descripcion}</Text>
+      {children}
       <Pendiente items={pendientes} />
     </ScrollView>
   );

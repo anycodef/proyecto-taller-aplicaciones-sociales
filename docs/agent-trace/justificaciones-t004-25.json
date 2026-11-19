@@ -1,0 +1,40 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-11",
+  "agente": "Claude Code",
+  "modelo": "claude-opus-5-5",
+  "rama": "feat/004-justificaciones",
+  "tarea": "T004-25",
+  "solicitud": "Implementar las consultas del repositorio (bandeja, perfil, familia y cambios).",
+  "alcance": [
+    "api/src/modulos/justificaciones/dominio/puertos.ts",
+    "api/src/modulos/justificaciones/infraestructura/repositorio-justificaciones-pg.ts",
+    "api/test/integracion/justificaciones/contrato-justificaciones.test.ts",
+    "specs/004-justificaciones/tasks.md",
+    "docs/agent-trace/justificaciones-t004-25.json"
+  ],
+  "criterio": "Pasan contrato-justificaciones.test.ts › RF-408 (bandeja por lote, ausencias duplicadas) y RF-410 (por apoderado, cambiosDesde).",
+  "decisiones": [
+    "cambiosDesde no expone causa, motivo, remitente ni evidencia (D-408).",
+    "El cursor en milisegundos puede reentregar la última fila porque PostgreSQL guarda microsegundos; el pull es idempotente y así no se pierde ningún cambio.",
+    "listarPorApoderado incluye las del otro apoderado; el servicio de la familia ocultará remitente y evidencia (A-14)."
+  ],
+  "comprobaciones": [
+    {
+      "comando": "npx jest --selectProjects integracion --testPathPattern \"justificaciones|catalogo\" (api, PostgreSQL 16 en Docker)",
+      "resultado": "Pasa: 31 tests (contratos de 004 y catálogo RF-107)."
+    },
+    {
+      "comando": "npm run typecheck",
+      "resultado": "Pasa en raíz y API."
+    },
+    {
+      "comando": "npm run lint",
+      "resultado": "Pasa sin errores."
+    }
+  ],
+  "limites": [
+    "La suite completa npm test (cliente y API con PostgreSQL) se ejecuta al cerrar la fase."
+  ],
+  "notas": "Repositorio PostgreSQL del módulo api/src/modulos/justificaciones."
+}

@@ -1,0 +1,27 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-11",
+  "agente": "Claude Code",
+  "modelo": "claude-opus-5-5",
+  "rama": "main",
+  "tarea": "T004-02",
+  "solicitud": "Justificar en la spec 004 las dependencias de la app (principio 1, supuesto A-09). Edición de specs/ autorizada por el usuario el 2026-11-11.",
+  "alcance": [
+    "specs/004-justificaciones/spec.md",
+    "docs/agent-trace/justificaciones-t004-02.json"
+  ],
+  "criterio": "La sección de dependencias incluye expo-image-picker, expo-image-manipulator (D-403), expo-file-system (RNF-404) y expo-image con cachePolicy none (D-410), con enlace a la documentación del SDK 57 y alternativa descartada.",
+  "decisiones": [
+    "Las versiones no se fijan en la spec: las fija npx expo install según el SDK 57 en T004-39."
+  ],
+  "comprobaciones": [
+    { "comando": "npm test (con BD_PRUEBAS_URL y Postgres/Azurite locales)", "resultado": "Pasa: cliente 31 suites y 107 tests; API 33 suites y 222 tests." },
+    { "comando": "npm run typecheck", "resultado": "Pasa en raíz y API." },
+    { "comando": "npm run lint", "resultado": "Pasa sin errores." }
+  ],
+  "limites": [
+    "La tarea exige aprobación del equipo en un PR revisado; no se marca como hecha en tasks.md hasta entonces.",
+    "No se instaló ningún paquete de la app."
+  ],
+  "notas": "Cambio solo documental."
+}

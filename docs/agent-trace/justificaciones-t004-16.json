@@ -1,0 +1,38 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-11",
+  "agente": "Claude Code",
+  "modelo": "claude-opus-5-5",
+  "rama": "feat/004-justificaciones",
+  "tarea": "T004-16",
+  "solicitud": "Implementar compresion.ts (plan iterativo de compresión).",
+  "alcance": [
+    "src/lib/justificaciones/compresion.ts",
+    "src/lib/justificaciones/__tests__/compresion.test.ts",
+    "specs/004-justificaciones/tasks.md",
+    "docs/agent-trace/justificaciones-t004-16.json"
+  ],
+  "criterio": "Pasan los tres tests RNF-402 de compresion.test.ts.",
+  "decisiones": [
+    "El plan es puro: el adaptador de expo-image-manipulator (T004-41) solo ejecuta cada intento.",
+    "Se baja primero la calidad para conservar la legibilidad del comprobante."
+  ],
+  "comprobaciones": [
+    {
+      "comando": "npx jest src/lib/justificaciones",
+      "resultado": "Pasa: 48 tests."
+    },
+    {
+      "comando": "npm run typecheck",
+      "resultado": "Pasa en raíz y API."
+    },
+    {
+      "comando": "npm run lint",
+      "resultado": "Pasa sin errores."
+    }
+  ],
+  "limites": [
+    "La suite completa npm test (cliente y API con PostgreSQL) se ejecuta al cerrar la fase 1."
+  ],
+  "notas": "Dominio puro en TypeScript, sin React, React Native ni Expo."
+}

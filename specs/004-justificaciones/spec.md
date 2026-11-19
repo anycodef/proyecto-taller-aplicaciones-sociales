@@ -6,6 +6,27 @@ Según la ficha de compromiso, tres faltas no justificadas llevan al retiro del 
 
 **Objetivo:** que los padres justifiquen en pocos pasos desde su enlace personal, que cada justificación quede ligada de forma inequívoca al niño y a la ausencia con su evidencia, que la coordinación las revise en un solo lugar fuera de su WhatsApp, y que cualquier catequista del grupo pueda ver su estado.
 
+### Dependencias justificadas
+
+Aprobadas por el usuario el 2026-11-11 (principio 1, supuesto A-09 del plan). Ninguna tiene costo de licencia ni de suscripción. Las de la API y de pruebas no se instalan en la app.
+
+**API y pruebas** (T004-01):
+
+| Paquete | Uso | Alternativa descartada |
+| --- | --- | --- |
+| `@azure/storage-blob` | Reservar evidencias con SAS de subida solo `c` de 5 min, inspeccionar blobs y emitir SAS de lectura de 5 min con `rscc=no-store` (RNF-403). Ya está en `api/` por el motor de retención de 001. | Pasar los bytes por la Function (D-402): más tiempo y memoria facturados. Proxy de lectura por la Function (D-410): más costo sin ganancia de seguridad. |
+| `@azure/identity` | Credencial de la identidad administrada de la Function App para pedir la clave de usuario delegado y firmar las SAS en Azure, sin clave de cuenta (RNF-403, RF-407). | Clave de cuenta en la configuración: secreto de larga vida con acceso total al almacenamiento. Solo se usa con Azurite en pruebas. |
+| Imagen Docker de Azurite (`mcr.microsoft.com/azure-storage/azurite:3.35.0`) | Emular Blob Storage en los tests de almacén y extremo a extremo. Ya está en `api/docker-compose.yml`. | Probar contra una cuenta real: costo, red y datos fuera del equipo de desarrollo. |
+
+**App** (T004-02), versiones fijadas por `npx expo install` según el SDK 57:
+
+| Paquete | Uso | Alternativa descartada |
+| --- | --- | --- |
+| [`expo-image-picker`](https://docs.expo.dev/versions/v57.0.0/sdk/imagepicker/) | Tomar la foto con la cámara o elegirla de la galería, también en web sin instalar (RF-401, RF-402). | `<input type="file">` propio para web y `expo-camera` en nativo: dos caminos y sin galería en nativo. |
+| [`expo-image-manipulator`](https://docs.expo.dev/versions/v57.0.0/sdk/imagemanipulator/) | Redimensionar y recomprimir a JPEG hasta < 300 KB antes de enviar (RNF-402, D-403). | Solo `quality` del picker: no redimensiona y en iOS se ignora en PNG. Comprimir en el servidor: la foto pesada ya consumió datos móviles. |
+| [`expo-file-system`](https://docs.expo.dev/versions/v57.0.0/sdk/filesystem/) | Borrar los temporales nativos del picker y del manipulador tras enviar o fallar, para que la evidencia no quede en el celular (RNF-404). | Confiar en que el sistema operativo limpie la caché: la foto quedaría en disco un tiempo indefinido. |
+| [`expo-image`](https://docs.expo.dev/versions/v57.0.0/sdk/image/) | Mostrar la evidencia con `cachePolicy="none"` a la coordinación, a los catequistas del grupo y a la supervisión (RF-410, D-410). | `Image` de React Native: en Android cachea en disco y violaría RNF-101. |
+
 ## Usuarios
 
 - **Familia:** justifica ausencias desde su enlace personal (spec 001, RF-110) y consulta el resultado.

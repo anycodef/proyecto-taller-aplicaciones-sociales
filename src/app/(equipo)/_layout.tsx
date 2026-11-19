@@ -33,6 +33,11 @@ export default function LayoutEquipo() {
             name="asistencia/correccion/[sesionId]/[catequizandoId]"
             options={{ title: "Corregir asistencia" }}
           />
+          {/* Después de asistencia: el primer destino de este grupo es la pantalla de reserva de las rutas prohibidas. */}
+          <Stack.Screen name="mis-catequizandos" options={{ title: "Mis catequizandos" }} />
+        </Stack.Protected>
+        <Stack.Protected guard={coordinacion || (equipo && rolesEfectivos.includes("catequista"))}>
+          <Stack.Screen name="riesgo" options={{ title: "Riesgo de deserción" }} />
         </Stack.Protected>
         <Stack.Protected guard={administracion || coordinacion}>
           <Stack.Screen name="cuentas/index" options={{ title: "Cuentas" }} />
@@ -46,6 +51,11 @@ export default function LayoutEquipo() {
         <Stack.Protected guard={administracion}>
           <Stack.Screen name="auditoria" options={{ title: "Auditoría" }} />
         </Stack.Protected>
+        {/* Sin guarda propia, como antes: supervisión ve la bandeja en solo lectura (RF-408) y la API valida cada acción. */}
+        <Stack.Screen name="coordinacion/justificaciones/index" options={{ title: "Justificaciones" }} />
+        <Stack.Screen name="coordinacion/justificaciones/[loteId]" options={{ title: "Revisar lote" }} />
+        <Stack.Screen name="coordinacion/justificaciones/registrar" options={{ title: "Registrar en nombre de" }} />
+        <Stack.Screen name="coordinacion/justificaciones/plazo" options={{ title: "Plazo para justificar" }} />
       </Stack>
     </ProveedorAsistencia>
   );

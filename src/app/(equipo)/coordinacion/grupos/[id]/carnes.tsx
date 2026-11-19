@@ -1,4 +1,5 @@
 import * as Print from "expo-print";
+import { useLocalSearchParams } from "expo-router";
 import { useCallback, useState } from "react";
 import { Platform, ScrollView, StyleSheet, Text, View } from "react-native";
 
@@ -9,8 +10,11 @@ import { useCarga } from "@/plataforma/api/usar-carga";
 import { useSesion } from "@/plataforma/seguridad/contexto-sesion";
 import { colores, espacio, tipografia } from "@/tema";
 
-export default function CarnesDelGrupo({ id }: { id: string }) {
+/** Expo Router entrega el `id` como parámetro de ruta; la propiedad `id` queda para las pruebas. */
+export default function CarnesDelGrupo({ id: idPropio }: { id?: string }) {
   const { apiCatequizandos } = useSesion();
+  const parametros = useLocalSearchParams<{ id?: string }>();
+  const id = idPropio ?? parametros?.id ?? "";
   const cargar = useCallback(() => apiCatequizandos.listarCarnesGrupo(id), [apiCatequizandos, id]);
   const { datos: carnes, error, cargando } = useCarga(cargar);
   const [imprimiendo, setImprimiendo] = useState(false);

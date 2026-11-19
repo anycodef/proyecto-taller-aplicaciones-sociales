@@ -1,0 +1,39 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-11",
+  "agente": "Claude Code",
+  "modelo": "claude-opus-5-5",
+  "rama": "feat/004-justificaciones",
+  "tarea": "T004-66",
+  "solicitud": "Implementar la fase 7 de la spec 004.",
+  "alcance": [
+    "api/src/modulos/justificaciones/dominio/puertos.ts",
+    "api/test/integracion/justificaciones/notificacion.test.ts",
+    "api/test/integracion/justificaciones/al-cambiar-asistencia.test.ts",
+    "specs/004-justificaciones/tasks.md",
+    "docs/agent-trace/justificaciones-t004-66.json"
+  ],
+  "criterio": "Pasa RF-409 de notificación al aprobar y al dejar sin efecto; queda pendiente el test con la regla de 006.",
+  "decisiones": [
+    "Suscriptores en lista en vez de un único puerto.",
+    "Un fallo de suscriptor revierte el cambio: así 006 y 007 no quedan desfasados."
+  ],
+  "comprobaciones": [
+    {
+      "comando": "npx jest --runInBand --selectProjects integracion --testPathPattern 'notificacion|al-cambiar|http-coordinacion|http-familia'",
+      "resultado": "56 de 56 pasan en las suites de justificaciones afectadas."
+    },
+    {
+      "comando": "npm run typecheck",
+      "resultado": "Pasa en raíz y API."
+    },
+    {
+      "comando": "npm run lint",
+      "resultado": "Pasa sin errores."
+    }
+  ],
+  "limites": [
+    "Sin módulo 006 de aptitud: la regla de 006 no se puede probar; la tarea sigue abierta."
+  ],
+  "notas": "Notificación síncrona en proceso según D-414."
+}

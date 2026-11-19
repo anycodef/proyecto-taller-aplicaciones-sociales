@@ -27,8 +27,8 @@ jobs:
           EJECUCION: ${{ inputs.ejecucion_frontend }}
           REPOSITORIO: ${{ github.repository }}
         run: |
-          gh api "repos/$REPOSITORIO/actions/runs/$EJECUCION" --jq '{head_branch,conclusion,event}' > "$RUNNER_TEMP/origen.json"
-          python3 -c 'import json,os; o=json.load(open(os.environ["RUNNER_TEMP"]+"/origen.json")); assert o["head_branch"]=="main" and o["conclusion"]=="success" and o["event"] in ["push","workflow_dispatch"], "Artefacto frontend no aprobado"'
+          gh api "repos/$REPOSITORIO/actions/runs/$EJECUCION" --jq '{head_branch,conclusion,event,path}' > "$RUNNER_TEMP/origen.json"
+          python3 -c 'import json,os; o=json.load(open(os.environ["RUNNER_TEMP"]+"/origen.json")); assert o["head_branch"]=="main" and o["conclusion"]=="success" and o["event"] in ["push","workflow_dispatch"] and o["path"]==".github/workflows/ci.yml", "Artefacto frontend no aprobado"'
       - uses: actions/download-artifact@v4
         with:
           name: frontend-web

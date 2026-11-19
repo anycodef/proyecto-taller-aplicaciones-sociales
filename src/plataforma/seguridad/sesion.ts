@@ -113,6 +113,9 @@ export function crearClientePorDefecto(): ClienteHttp {
       solicitar: async () => {
         throw new Error("api_sin_configurar");
       },
+      solicitarBinario: async () => {
+        throw new Error("api_sin_configurar");
+      },
     };
   }
 

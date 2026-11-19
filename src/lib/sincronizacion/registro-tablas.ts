@@ -4,8 +4,9 @@ import { tablaCiclos } from "@/lib/ciclos/tablas-sincronizadas";
 import type { DefinicionTablaSincronizada } from "./tablas";
 import { validarColumnas } from "./columnas-prohibidas";
 import { tablaAvisos } from "@/lib/avisos/tablas-sincronizadas";
+import { tablaJustificacionesEstado } from "@/lib/justificaciones/tablas-sincronizadas";
 import { validarProyeccionLocal } from "@/lib/seguridad/catalogo-datos";
-const iniciales = [...tablasAsistencia, tablaActividades, tablaCiclos, tablaAvisos];
+const iniciales = [...tablasAsistencia, tablaActividades, tablaCiclos, tablaAvisos, tablaJustificacionesEstado];
 for (const tabla of iniciales) validarProyeccionLocal(tabla.nombre, Object.keys(tabla.columnas));
 const registro = new Map(iniciales.map(tabla => [tabla.nombre, tabla]));
 export function registrarTabla(tabla: DefinicionTablaSincronizada): void {

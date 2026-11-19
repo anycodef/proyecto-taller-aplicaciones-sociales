@@ -1,0 +1,43 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-11",
+  "agente": "Claude Code",
+  "modelo": "claude-opus-5-5",
+  "rama": "feat/004-justificaciones",
+  "tarea": "T004-30",
+  "solicitud": "Separar la credencial de SAS: de usuario delegado en Azure y de cuenta solo en pruebas.",
+  "alcance": [
+    "api/src/modulos/justificaciones/infraestructura/almacen-evidencias-blob.ts",
+    "api/test/unit/justificaciones/almacen-credencial.test.ts",
+    "infra/modulos/funciones.bicep",
+    "api/local.settings.example.json",
+    "api/openapi.json",
+    "docs/backend-desarrollo.md",
+    "specs/004-justificaciones/tasks.md",
+    "docs/agent-trace/justificaciones-t004-30.json"
+  ],
+  "criterio": "Pasa almacen-credencial.test.ts › RNF-403: en Azure se usa SAS de usuario delegado y nunca la clave de cuenta; ninguna configuración de producción de evidencias lee una clave.",
+  "decisiones": [
+    "El modo de pruebas se detecta por EVIDENCIAS_MODO=pruebas y se bloquea si existe WEBSITE_SITE_NAME (Azure Functions).",
+    "En Azure la SAS exige https; Azurite admite http solo en pruebas.",
+    "BLOBS_CONEXION de 001 sigue usando cadena de conexión para el borrador de retención; no se cambia en esta spec."
+  ],
+  "comprobaciones": [
+    {
+      "comando": "npx jest --selectProjects unit --testPathPattern unit/justificaciones y --selectProjects integracion --testPathPattern almacen (api); node api/scripts/verificar-openapi.mjs",
+      "resultado": "Pasa: 4 tests unitarios, 4 contra Azurite y el verificador OpenAPI."
+    },
+    {
+      "comando": "npm run typecheck",
+      "resultado": "Pasa en raíz y API."
+    },
+    {
+      "comando": "npm run lint",
+      "resultado": "Pasa sin errores."
+    }
+  ],
+  "limites": [
+    "Sin acceso a Azure: la firma con identidad administrada se verifica con dobles del SDK, no contra una cuenta real."
+  ],
+  "notas": "Almacén Blob del módulo api/src/modulos/justificaciones."
+}

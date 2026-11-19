@@ -1,0 +1,43 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-11",
+  "agente": "Claude Code",
+  "modelo": "claude-opus-5-5",
+  "rama": "feat/004-justificaciones",
+  "tarea": "T004-64",
+  "solicitud": "Implementar la fase 7 de la spec 004.",
+  "alcance": [
+    "src/components/justificaciones/resumen-justificaciones.tsx",
+    "src/__tests__/resumen-justificaciones.test.tsx",
+    "src/app/galeria.tsx",
+    "api/src/modulos/justificaciones/aplicacion/resumen-perfil.ts",
+    "api/test/integracion/justificaciones/consulta-justificaciones.test.ts",
+    "api/src/index.ts",
+    "api/src/modulos/justificaciones/index.ts",
+    "specs/004-justificaciones/tasks.md",
+    "docs/agent-trace/justificaciones-t004-64.json"
+  ],
+  "criterio": "Pasan RF-410 de estados sin conexión, RNF-405 de detalle con conexión y RF-410 del resumen del perfil.",
+  "decisiones": [
+    "El componente recibe las filas; la lectura del almacén local queda para cuando exista (T004-62).",
+    "Sin obtenerEvidencia el perfil solo muestra estados."
+  ],
+  "comprobaciones": [
+    {
+      "comando": "npx jest --runInBand src/__tests__/resumen-justificaciones.test.tsx; (api) npx jest --runInBand --testPathPattern 'consulta-justificaciones|inventario'",
+      "resultado": "Cliente 2 de 2 y API 4 de 4 pasan."
+    },
+    {
+      "comando": "npm run typecheck",
+      "resultado": "Pasa en raíz y API."
+    },
+    {
+      "comando": "npm run lint",
+      "resultado": "Pasa sin errores."
+    }
+  ],
+  "limites": [
+    "La suite completa npm test (cliente y API con PostgreSQL) se ejecuta al cerrar la fase."
+  ],
+  "notas": "Componente cliente sin datos sensibles; el detalle y la evidencia solo con conexión."
+}

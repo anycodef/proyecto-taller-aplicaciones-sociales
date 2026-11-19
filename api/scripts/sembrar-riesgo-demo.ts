@@ -5,7 +5,7 @@ import { idAsistencia, idSesion } from "@/lib/asistencia/sesiones";
 import { enTransaccion, type Tx } from "../src/compartido/bd/transaccion";
 import { cerrarPool } from "../src/compartido/bd/pool";
 import { crearInscripcion } from "../src/modulos/inscripciones/aplicacion/inscribir";
-import { sembrarDemo } from "./sembrar-demo";
+import { sembrarDemo, type ResultadoDemo } from "./sembrar-demo";
 
 const NAMESPACIO = "c14a3f20-1b98-4da8-a075-4f680d5a1000";
 const id = (nombre: string) => uuidV5(nombre, NAMESPACIO);
@@ -49,8 +49,9 @@ async function asegurarNino3(tx: Tx, cicloId: string, ctx: ContextoAcceso): Prom
   if (resultado.estado === 409) throw new Error("Conflicto al crear el niño demo 3");
 }
 
-export async function sembrarRiesgoDemo(): Promise<{ nino: string; faltas: number }[]> {
-  await sembrarDemo();
+/** Con `demoPrevio` no repite la siembra base, que emitiría otro enlace al catequista y dejaría viejo el ya impreso. */
+export async function sembrarRiesgoDemo(demoPrevio?: ResultadoDemo): Promise<{ nino: string; faltas: number }[]> {
+  if (!demoPrevio) await sembrarDemo();
   return enTransaccion(async (tx) => {
     const ciclo = (await tx.query<{ id: string }>("SELECT id FROM ciclo WHERE estado='abierto'")).rows[0];
     if (!ciclo) throw new Error("Falta ciclo abierto; ejecuta npm run sembrar:demo");

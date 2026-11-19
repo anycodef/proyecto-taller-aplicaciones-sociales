@@ -1,0 +1,40 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-11",
+  "agente": "Claude Code",
+  "modelo": "claude-opus-5-5",
+  "rama": "feat/004-justificaciones",
+  "tarea": "T004-39",
+  "solicitud": "Instalar las dependencias de cliente con npx expo install (fase 5).",
+  "alcance": [
+    "package.json",
+    "package-lock.json",
+    "app.json",
+    "src/__tests__/config-justificaciones.test.ts",
+    "docs/agent-trace/justificaciones-t004-39.json"
+  ],
+  "criterio": "Versiones ~57 en package.json y npx expo config --type public muestra el plugin del picker con el texto en español. npx expo install --check sí advierte por paquetes previos a esta spec.",
+  "decisiones": [
+    "Se consultó la documentación del SDK 57 de ImagePicker, ImageManipulator y FileSystem antes de usarlos.",
+    "expo-file-system no documenta web: en web el tamaño y la limpieza se resuelven con Blob y URL.revokeObjectURL.",
+    "No se actualizan expo, expo-router ni jest-expo: no son dependencias de 004."
+  ],
+  "comprobaciones": [
+    {
+      "comando": "npx jest src/__tests__/config-justificaciones.test.ts src/__tests__/config-app.test.ts; npx expo config --type public",
+      "resultado": "Pasa: 3 tests de configuración."
+    },
+    {
+      "comando": "npm run typecheck",
+      "resultado": "Pasa en raíz y API."
+    },
+    {
+      "comando": "npm run lint",
+      "resultado": "Pasa sin errores."
+    }
+  ],
+  "limites": [
+    "T004-39 queda abierta: npx expo install --check advierte por paquetes previos a 004 (expo, expo-constants, expo-linking, expo-router, expo-splash-screen, jest-expo) que no se actualizan aquí."
+  ],
+  "notas": "Dependencias justificadas en la spec 004 (T004-02) y NetInfo en la spec 003."
+}

@@ -71,7 +71,9 @@ export function crearApiCatequizandos(cliente: ClienteHttp) {
       const respuesta = await cliente.solicitar<{ grupos: GrupoApi[] }>("POST", "/grupos/sugerencias", datos);
       return respuesta.grupos;
     },
-    cicloAbierto: () => cliente.solicitar<CicloAbierto | null>("GET", "/ciclos/abierto"),
+    /** El contrato de `GET /ciclos/abierto` es `{ ciclo: Ciclo | null }`, no el ciclo directo. */
+    cicloAbierto: async (): Promise<CicloAbierto | null> =>
+      (await cliente.solicitar<{ ciclo: CicloAbierto | null }>("GET", "/ciclos/abierto")).ciclo ?? null,
     crearGrupo: (datos: {
       id: string;
       nombre: string;

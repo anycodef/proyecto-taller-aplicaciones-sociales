@@ -1,0 +1,40 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-11",
+  "agente": "Claude Code",
+  "modelo": "claude-opus-5-5",
+  "rama": "feat/004-justificaciones",
+  "tarea": "T004-27",
+  "solicitud": "Instalar @azure/storage-blob y @azure/identity en api/ y tener Azurite disponible.",
+  "alcance": [
+    "api/package.json",
+    "api/package-lock.json",
+    "api/test/unit/justificaciones/dependencias.test.ts",
+    "api/test/integracion/justificaciones/almacen-evidencias.test.ts",
+    "specs/004-justificaciones/tasks.md",
+    "docs/agent-trace/justificaciones-t004-27.json"
+  ],
+  "criterio": "npm ls muestra @azure/identity@4.14.1 y @azure/storage-blob@12.34.0; la prueba de humo crea y borra un contenedor en Azurite; src/ no importa los paquetes.",
+  "decisiones": [
+    "Se instala con --save-exact para que package.json lleve versión fija.",
+    "No se toca docker-compose.yml: Azurite ya existía con --skipApiVersionCheck."
+  ],
+  "comprobaciones": [
+    {
+      "comando": "npx jest --runInBand --selectProjects integracion --testPathPattern almacen y --selectProjects unit --testPathPattern unit/justificaciones (api, Azurite 3.35.0 en Docker)",
+      "resultado": "Pasa: 1 test de integración y 2 unitarios."
+    },
+    {
+      "comando": "npm run typecheck",
+      "resultado": "Pasa en raíz y API."
+    },
+    {
+      "comando": "npm run lint",
+      "resultado": "Pasa sin errores."
+    }
+  ],
+  "limites": [
+    "La suite completa npm test se ejecuta al cerrar la fase 3."
+  ],
+  "notas": "Dependencias justificadas en la spec 004 (T004-01)."
+}

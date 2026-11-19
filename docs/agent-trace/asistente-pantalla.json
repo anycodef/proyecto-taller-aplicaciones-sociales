@@ -1,0 +1,29 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-12",
+  "agente": "Claude Code",
+  "modelo": "claude-sonnet-5-5",
+  "tarea": "T3b-asistente-pantalla",
+  "solicitud": "Crear la pantalla Asistente de catequesis: chat que envia preguntas a POST /asistente/preguntar y muestra la respuesta con sus fuentes y avisos claros cuando se abstiene o rechaza",
+  "commitPrevisto": "feat(asistente): pantalla de chat con fuentes y avisos de rechazo",
+  "alcance": [
+    "src/lib/asistente/api.ts",
+    "src/lib/asistente/__tests__/api.test.ts",
+    "src/components/asistente/burbuja-mensaje.tsx",
+    "src/app/asistente.tsx",
+    "src/app/_layout.tsx",
+    "src/app/(equipo)/coordinacion.tsx",
+    "src/app/(equipo)/asistencia/index.tsx",
+    "src/app/(familia)/familia.tsx",
+    "src/app/galeria.tsx",
+    "src/__tests__/asistente-pantalla.test.tsx"
+  ],
+  "criterio": "Se pueden hacer tres preguntas seguidas; las respuestas con fuentes muestran Documento y Seccion con su licencia; el rechazo de la guardia y la abstencion salen como aviso informativo; un error de red muestra No pudimos consultar el servidor sin perder la pregunta; el 429 muestra el mensaje del limite por hora; una pregunta de menos de 3 caracteres no se envia; el historial solo vive en memoria.",
+  "comprobaciones": ["npm run typecheck", "npm run lint", "npm run test:app"],
+  "resultados": {
+    "tests": "65 suites y 293 tests del cliente en verde (30 de asistente)",
+    "typecheck": "sin errores",
+    "lint": "sin errores"
+  },
+  "notas": "Ruta /asistente en src/app/asistente.tsx, protegida en el layout raiz con Stack.Protected para cualquier sesion autenticada (coordinacion, catequista y familia); es lo mas simple que cubre los tres roles. Las tres sugerencias se verificaron contra el corpus real con preguntarAsistente: cada una devuelve una fuente. La guardia de T3a rechaza Cuantas faltas tiene Juan. Enlaces en coordinacion, menu del catequista y familia, sin tocar la logica de 003. No se cambiaron exports existentes de src/lib/asistente/index.ts."
+}

@@ -1,0 +1,40 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-11",
+  "agente": "Claude Code",
+  "modelo": "claude-opus-5-5",
+  "rama": "feat/004-justificaciones",
+  "tarea": "T004-46",
+  "solicitud": "Crear la pantalla única familia/justificar.tsx.",
+  "alcance": [
+    "src/app/(familia)/familia/justificar.tsx",
+    "src/components/justificaciones/formulario-justificacion.tsx",
+    "src/__tests__/familia-justificar.test.tsx",
+    "src/app/galeria.tsx",
+    "specs/004-justificaciones/tasks.md",
+    "docs/agent-trace/justificaciones-t004-46.json"
+  ],
+  "criterio": "Pasan RNF-401: el flujo de la familia requiere a lo sumo 4 interacciones, RF-402: Enviar está deshabilitado sin causa o sin foto y RF-403: se pueden añadir ausencias de otro hijo antes de enviar.",
+  "decisiones": [
+    "En web, launchCameraAsync de expo-image-picker abre un input de archivo con captura de cámara (documentación del SDK 57); no se escribe un input propio.",
+    "Si el envío falla la foto ya se borró del celular: se pide tomarla de nuevo y se conservan los ids para que el reintento no duplique."
+  ],
+  "comprobaciones": [
+    {
+      "comando": "npx jest src/__tests__/familia-justificar; npm run typecheck; npm run lint",
+      "resultado": "Pasa: 3 tests."
+    },
+    {
+      "comando": "npm run typecheck",
+      "resultado": "Pasa en raíz y API."
+    },
+    {
+      "comando": "npm run lint",
+      "resultado": "Pasa sin errores."
+    }
+  ],
+  "limites": [
+    "La suite completa npm test (cliente y API con PostgreSQL) se ejecuta al cerrar la fase."
+  ],
+  "notas": "Dominio puro en TypeScript, sin React, React Native ni Expo."
+}

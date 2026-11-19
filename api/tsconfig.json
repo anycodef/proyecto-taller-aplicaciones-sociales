@@ -6,5 +6,5 @@
     "paths": { "@/lib/*": ["../src/lib/*"] },
     "types": ["node", "jest"]
   },
-  "include": ["src/**/*.ts", "scripts/**/*.ts", "test/**/*.ts", "../src/lib/seguridad/**/*.ts", "../src/lib/avisos/**/*.ts", "../src/lib/catequizandos/**/*.ts", "../src/lib/asistencia/**/*.ts", "../src/lib/sincronizacion/**/*.ts"]
+  "include": ["src/**/*.ts", "scripts/**/*.ts", "test/**/*.ts", "../src/lib/seguridad/**/*.ts", "../src/lib/avisos/**/*.ts", "../src/lib/catequizandos/**/*.ts", "../src/lib/asistencia/**/*.ts", "../src/lib/sincronizacion/**/*.ts", "../src/lib/justificaciones/**/*.ts"]
 }

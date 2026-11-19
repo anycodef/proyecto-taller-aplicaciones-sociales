@@ -1,0 +1,60 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-12",
+  "agente": "Claude Code",
+  "modelo": "claude-opus-5-5",
+  "rama": "feat/004-justificaciones",
+  "tarea": "presentacion-vistas-004",
+  "solicitud": "Mejorar la presentación de las vistas de la spec 004, que no resultaban intuitivas, sin cambiar la función.",
+  "alcance": [
+    "src/app/_layout.tsx",
+    "src/app/(familia)/_layout.tsx",
+    "src/app/(equipo)/_layout.tsx",
+    "src/app/(familia)/familia/index.tsx",
+    "src/app/(equipo)/coordinacion/justificaciones/index.tsx",
+    "src/app/(equipo)/coordinacion/justificaciones/[loteId].tsx",
+    "src/components/justificaciones/formulario-justificacion.tsx",
+    "src/components/justificaciones/selector-causa.tsx",
+    "src/lib/justificaciones/presentacion.ts",
+    "src/lib/justificaciones/__tests__/presentacion.test.ts",
+    "src/__tests__/familia-inicio.test.tsx",
+    "src/__tests__/coordinacion-plazo-bandeja.test.tsx",
+    "src/__tests__/coordinacion-detalle.test.tsx",
+    "docs/agent-trace/justificaciones-presentacion-vistas.json"
+  ],
+  "criterio": "Las vistas siguen los mockups WEB-04, WEB-05, APP-38 y APP-39 sin cambiar API ni datos, y el usuario las validó en el emulador.",
+  "decisiones": [
+    "Un solo encabezado por pantalla con título en español; las pantallas de justificaciones del equipo quedan sin guarda propia para que supervisión siga viendo la bandeja en solo lectura (RF-408).",
+    "Agrupación por niño y fecha en el inicio de la familia, la bandeja y el detalle; los datos siguen siendo una justificación por sesión (RF-403).",
+    "La bandeja elige lotes enteros; aprobar o rechazar una ausencia se hace en el detalle, que ahora también permite rechazar por separado (RF-403).",
+    "El motivo de rechazo se pide al elegir rechazar y se confirma aparte (RF-408).",
+    "Sin componentes exportados nuevos: el encabezado numerado de pasos es interno del formulario."
+  ],
+  "comprobaciones": [
+    {
+      "comando": "npm run test:app",
+      "resultado": "71 suites, 266 tests pasan; tests nuevos de presentación, agrupación en el inicio y rechazo de una sola ausencia."
+    },
+    {
+      "comando": "npm run typecheck",
+      "resultado": "Pasa en raíz y API."
+    },
+    {
+      "comando": "npm run lint",
+      "resultado": "Pasa sin errores."
+    },
+    {
+      "comando": "node scripts/verificar-cobertura-rf.mjs --bloquear 004",
+      "resultado": "Salida 0."
+    },
+    {
+      "comando": "prueba manual en Expo Go 57 sobre el emulador Android",
+      "resultado": "El usuario recorrió familia y coordinación y aprobó la presentación."
+    }
+  ],
+  "limites": [
+    "La API no cambia; su suite conserva los 2 fallos de asistencia-bd de 003 por desfase de reloj.",
+    "La bandeja no muestra el nombre del apoderado porque la API no lo entrega; muestra los niños del lote."
+  ],
+  "notas": "Los datos de prueba (ausencias del 1 de noviembre y plazo de 14 días) se crearon solo en la base local y no forman parte del commit."
+}

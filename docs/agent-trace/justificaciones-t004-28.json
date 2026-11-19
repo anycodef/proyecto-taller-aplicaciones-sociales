@@ -1,0 +1,42 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-11",
+  "agente": "Claude Code",
+  "modelo": "claude-opus-5-5",
+  "rama": "feat/004-justificaciones",
+  "tarea": "T004-28",
+  "solicitud": "Crear infra/modulos/evidencias.bicep (contenedor privado, roles, CORS y CSP).",
+  "alcance": [
+    "infra/modulos/evidencias.bicep",
+    "infra/modulos/almacenamiento.bicep",
+    "infra/main.bicep",
+    "public/staticwebapp.config.json",
+    "api/pruebas/infra/plantilla.test.mjs",
+    "src/__tests__/csp-evidencias.test.ts",
+    "docs/agent-trace/justificaciones-t004-28.json"
+  ],
+  "criterio": "Pendiente de evidencia: az bicep build y what-if. Pasa la prueba de CSP del cliente; la prueba de plantilla corre en CI con Bicep.",
+  "decisiones": [
+    "El contenedor evidencias se mueve de almacenamiento.bicep a evidencias.bicep para que el módulo de 004 lo gobierne; ARM lo trata como el mismo recurso.",
+    "CORS se declara en el servicio Blob de almacenamiento.bicep porque ARM solo admite una definición del recurso blobServices/default.",
+    "La CSP usa *.blob.core.windows.net: el nombre de la cuenta se genera al desplegar."
+  ],
+  "comprobaciones": [
+    {
+      "comando": "npm test (cliente 157, API 266); npm run typecheck; npm run lint; node api/scripts/verificar-openapi.mjs",
+      "resultado": "Pasa npm test completo; la prueba de plantilla Bicep no se ejecutó localmente."
+    },
+    {
+      "comando": "npm run typecheck",
+      "resultado": "Pasa en raíz y API."
+    },
+    {
+      "comando": "npm run lint",
+      "resultado": "Pasa sin errores."
+    }
+  ],
+  "limites": [
+    "No verificado: az bicep build ni az deployment group what-if, porque el equipo no tiene Azure CLI ni Bicep. La tarea queda abierta hasta que CI (.github/workflows/ci.yml) compile la plantilla y alguien ejecute what-if."
+  ],
+  "notas": "Infraestructura de evidencias de la spec 004."
+}

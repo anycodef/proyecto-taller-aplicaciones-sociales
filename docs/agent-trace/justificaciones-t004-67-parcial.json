@@ -1,0 +1,43 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-11",
+  "agente": "Claude Code",
+  "modelo": "claude-opus-5-5",
+  "rama": "feat/004-justificaciones",
+  "tarea": "T004-67-parcial",
+  "solicitud": "Corregir la regresión de la fase 2 en el motor de retención con un participante real, adelantando parte de T004-67.",
+  "alcance": [
+    "api/src/modulos/justificaciones/aplicacion/depurar-evidencias.ts",
+    "api/src/modulos/justificaciones/index.ts",
+    "api/src/modulos/justificaciones/dominio/puertos.ts",
+    "api/src/index.ts",
+    "api/test/e2e/backend-001-003.test.ts",
+    "api/test/http/inventario.test.ts",
+    "api/test/integracion/justificaciones/contrato-retencion.test.ts",
+    "docs/agent-trace/justificaciones-t004-67-parcial.json"
+  ],
+  "criterio": "npm test completo en verde; pasan los cuatro tests de contrato-retencion.test.ts, la e2e de retiro HTTP y el inventario de arranque.",
+  "decisiones": [
+    "No se usa un participante vacío: ADR 013 prohíbe afirmar cobertura sin borrar datos.",
+    "La e2e y el inventario de arranque esperaban la lista exacta de participantes; ahora incluye justificaciones.",
+    "Las filas de evidencia eliminada se conservan en el retiro de consentimiento para que las justificaciones del hermano mantengan su referencia."
+  ],
+  "comprobaciones": [
+    {
+      "comando": "npm test (cliente 155 y API 255 con PostgreSQL 16 en Docker)",
+      "resultado": "Pasa: contratos de 004, e2e 001-003 e inventario."
+    },
+    {
+      "comando": "npm run typecheck",
+      "resultado": "Pasa en raíz y API."
+    },
+    {
+      "comando": "npm run lint",
+      "resultado": "Pasa sin errores."
+    }
+  ],
+  "limites": [
+    "T004-67 queda abierta: faltan el borrado real del blob contra Azurite (fase 3) y el puerto eliminarEvidenciasDeCiclo de 008."
+  ],
+  "notas": "Sin este participante, las tablas de 0403 dejaban al motor de retención de 001 sin cobertura (tablas_sin_participante_retencion)."
+}

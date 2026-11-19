@@ -1,0 +1,39 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-11",
+  "agente": "Claude Code",
+  "modelo": "claude-opus-5-5",
+  "rama": "feat/004-justificaciones",
+  "tarea": "T004-24",
+  "solicitud": "Implementar en el repositorio la revisión, «sin efecto» y la restauración.",
+  "alcance": [
+    "api/src/modulos/justificaciones/dominio/puertos.ts",
+    "api/src/modulos/justificaciones/infraestructura/repositorio-justificaciones-pg.ts",
+    "api/test/integracion/justificaciones/contrato-justificaciones.test.ts",
+    "specs/004-justificaciones/tasks.md",
+    "docs/agent-trace/justificaciones-t004-24.json"
+  ],
+  "criterio": "Pasan contrato-justificaciones.test.ts › RF-408 (revisar) y RF-407 (sin efecto, restaurar); cada escritura actualiza actualizado_en.",
+  "decisiones": [
+    "guardarRevision recibe el resultado de revisar() del dominio y el UPDATE condicional evita una doble revisión concurrente.",
+    "Los eventos de sin efecto y restauración llevan por null: los origina la corrección de asistencia de 003."
+  ],
+  "comprobaciones": [
+    {
+      "comando": "npx jest --selectProjects integracion --testPathPattern \"justificaciones|catalogo\" (api, PostgreSQL 16 en Docker)",
+      "resultado": "Pasa: 27 tests (contratos de 004 y catálogo RF-107)."
+    },
+    {
+      "comando": "npm run typecheck",
+      "resultado": "Pasa en raíz y API."
+    },
+    {
+      "comando": "npm run lint",
+      "resultado": "Pasa sin errores."
+    }
+  ],
+  "limites": [
+    "La suite completa npm test (cliente y API con PostgreSQL) se ejecuta al cerrar la fase."
+  ],
+  "notas": "Repositorio PostgreSQL del módulo api/src/modulos/justificaciones."
+}

@@ -16,6 +16,10 @@ Decisiones aceptadas no equivalen a implementación verificada. [Seguimiento](..
 
 - [016 — GraphQL en el borde de consulta, gRPC interno y MCP para agentes](20261019-graphql-grpc-mcp.md)
 
+## Spec 004 — Justificaciones (2026-11-11)
+
+- [017 — Evidencias solo en línea y comprimidas en el cliente](20261111-evidencias-solo-en-linea.md), complementa ADR 013.
+
 Welcome 👋 to the architecture knowledge base of proyecto-taller-aplicaciones-sociales.
 You will find here all the Architecture Decision Records (ADR) of the project.
 

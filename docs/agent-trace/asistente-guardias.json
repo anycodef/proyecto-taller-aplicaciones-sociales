@@ -1,0 +1,22 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-12",
+  "agente": "Claude Code",
+  "modelo": "claude-sonnet-5-5",
+  "tarea": "T3a-asistente-guardias",
+  "solicitud": "Endurecer las guardias del asistente: rechazar preguntas sobre una persona concreta aunque no diga nino (caso real: Cuantas faltas tiene Juan) y dejar de clasificar receta de ceviche como consejo medico",
+  "commitPrevisto": "fix(asistente): rechazar preguntas sobre personas concretas y corregir falsos positivos de consejo",
+  "alcance": [
+    "src/lib/asistente/guardia.ts",
+    "src/lib/asistente/__tests__/asistente.test.ts",
+    "api/test/unit/asistente/http.test.ts"
+  ],
+  "criterio": "Cuantas faltas tiene Juan, Falto Maria el domingo y Esta en riesgo el hijo de la senora Rosa se rechazan como datos_personales; Quien fue Juan el Bautista, Que dijo Pedro en Pentecostes y Que dice la Biblia sobre la falta de fe pasan; receta de ceviche pasa la guardia y termina en abstencion; me recetaron antibioticos sigue siendo consejo_profesional. No cambia el contrato OpenAPI ni MotivoRechazo.",
+  "comprobaciones": ["npm run typecheck", "npm run lint", "npm run test:app", "npm --prefix api run test:rapido"],
+  "resultados": {
+    "tests": "17 tests de asistente del cliente y 12 de la API en verde",
+    "typecheck": "sin errores",
+    "lint": "sin errores en los archivos tocados"
+  },
+  "notas": "La regla combina una consulta de seguimiento (faltas, asistencia, riesgo, notas, salud, telefono, como le fue) con una persona concreta: referencia como mi hijo o el nino, nombre propio con mayuscula fuera del inicio de la oracion, o un nombre de una lista corta en minuscula. Las palabras de doctrina, liturgia, calendario y lugares con mayuscula no cuentan como persona. Los nombres biblicos solo se rechazan junto a una consulta de seguimiento. receta ya no dispara por si sola: solo receta medica, recetar y sus formas; medicamentos en plural ahora tambien."
+}

@@ -1,0 +1,30 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-12",
+  "agente": "Claude Code",
+  "modelo": "claude-sonnet-5-5",
+  "tarea": "T1A-004-api",
+  "solicitud": "Exponer por HTTP el dominio de justificaciones de 004 (ausencias justificables, evidencias, lotes, bandeja, revision y lectura de evidencia) con OpenAPI y pruebas, y conectar la fuente de justificaciones aprobadas con 003 y 007",
+  "commitPrevisto": "feat(justificaciones): exponer la API HTTP de 004",
+  "alcance": [
+    "api/src/modulos/justificaciones/**",
+    "api/src/index.ts",
+    "api/openapi.json",
+    "api/scripts/verificar-openapi.mjs",
+    "api/scripts/sembrar-justificaciones-demo.ts",
+    "api/package.json",
+    "api/test/http/inventario.test.ts",
+    "api/test/unit/justificaciones/http.test.ts",
+    "api/test/integracion/justificaciones/api-004-flujo.test.ts",
+    "src/lib/seguridad/matriz-permisos.ts",
+    "docs/backend-implementacion.md"
+  ],
+  "criterio": "Una familia ve sus ausencias justificables, reserva y sube una evidencia, envia un lote, la coordinacion lo ve en la bandeja y lo aprueba o rechaza; la fuente de aprobadas devuelve la falta; un catequista recibe 403 en la bandeja; un apoderado no justifica a un nino ajeno.",
+  "comprobaciones": ["npm --prefix api test", "node api/scripts/verificar-openapi.mjs", "npm --prefix api run build", "npm run typecheck", "npm run lint", "npm run test:app"],
+  "resultados": {
+    "tests": "api: 40 suites y 280 tests con PostgreSQL 16 y Azurite; cliente: 54 suites y 212 tests",
+    "typecheck": "sin errores (cliente y api)",
+    "lint": "sin errores"
+  },
+  "notas": "Desviacion D-402 documentada en docs/backend-implementacion.md: la subida pasa por la API en vez de SAS directa. No se probo con func start (Core Tools no instalado). La spec no se modifico. El descenso del conteo en GET /riesgo tras aprobar queda por verificar en el recorrido de T8."
+}

@@ -37,7 +37,7 @@ test("RF-102 RF-110 RF-111: demo crea cinco roles, cuenta mixta, hermanos y enla
   expect((await sembrarDemo()).enlacesNuevos).toEqual([]);
   expect((await pool.query("SELECT DISTINCT rol FROM rol_cuenta ORDER BY rol")).rows.map(fila => fila.rol)).toEqual(["administracion", "catequista", "coordinacion", "familia", "supervision"]);
   expect((await pool.query("SELECT count(*)::integer AS cantidad FROM v_nomina_ciclo")).rows[0].cantidad).toBe(8);
-  const sesionDemo = (await pool.query<{ tipo: string; ventana_inicio: string; ventana_fin: string }>("SELECT tipo,ventana_inicio::text,ventana_fin::text FROM sesion WHERE fecha=current_date AND tipo='catequesis'")).rows[0];
+  const sesionDemo = (await pool.query<{ tipo: string; ventana_inicio: string; ventana_fin: string }>("SELECT tipo,ventana_inicio::text,ventana_fin::text FROM sesion WHERE fecha=$1::date AND tipo='catequesis'", [resultado.demo.fechaSesion])).rows[0];
   expect(sesionDemo.tipo).toBe("catequesis");
   expect(sesionDemo.ventana_inicio).toBe("00:00:00");
   expect(sesionDemo.ventana_fin).toBe("23:59:59");

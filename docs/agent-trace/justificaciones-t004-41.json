@@ -1,0 +1,38 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-11",
+  "agente": "Claude Code",
+  "modelo": "claude-opus-5-5",
+  "rama": "feat/004-justificaciones",
+  "tarea": "T004-41",
+  "solicitud": "Implementar el adaptador comprimir-foto.ts con expo-image-manipulator.",
+  "alcance": [
+    "src/plataforma/justificaciones/comprimir-foto.ts",
+    "src/plataforma/justificaciones/__tests__/comprimir-foto.test.ts",
+    "specs/004-justificaciones/tasks.md",
+    "docs/agent-trace/justificaciones-t004-41.json"
+  ],
+  "criterio": "Pasan con el manipulador simulado RNF-402: comprime de forma iterativa hasta quedar bajo 300 KB, RNF-402: falla con aviso tras 5 intentos y RNF-404: borra los archivos intermedios.",
+  "decisiones": [
+    "Se usa la API manipulate/renderAsync/saveAsync del SDK 57; manipulateAsync está obsoleta.",
+    "Si el picker no da dimensiones (0), se miden antes de planificar."
+  ],
+  "comprobaciones": [
+    {
+      "comando": "npx jest src/plataforma/justificaciones; npm run typecheck; npm run lint",
+      "resultado": "Pasa: 7 tests."
+    },
+    {
+      "comando": "npm run typecheck",
+      "resultado": "Pasa en raíz y API."
+    },
+    {
+      "comando": "npm run lint",
+      "resultado": "Pasa sin errores."
+    }
+  ],
+  "limites": [
+    "Verificado con el manipulador simulado; la compresión real en un celular queda para T004-49 (prueba manual)."
+  ],
+  "notas": "Cliente de la familia de la spec 004."
+}

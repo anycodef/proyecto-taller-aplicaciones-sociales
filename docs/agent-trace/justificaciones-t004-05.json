@@ -1,0 +1,38 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-11",
+  "agente": "Claude Code",
+  "modelo": "claude-opus-5-5",
+  "rama": "feat/004-justificaciones",
+  "tarea": "T004-05",
+  "solicitud": "Implementar plazo.ts (supuestos A-11, A-12).",
+  "alcance": [
+    "src/lib/justificaciones/plazo.ts",
+    "src/lib/justificaciones/__tests__/plazo.test.ts",
+    "specs/004-justificaciones/tasks.md",
+    "docs/agent-trace/justificaciones-t004-05.json"
+  ],
+  "criterio": "Pasan los cuatro tests RF-405 de plazo.test.ts; ahora llega como parámetro y no hay dependencias nuevas.",
+  "decisiones": [
+    "Se reutilizan hoyEnLima y finDelDiaEnLima de src/lib/seguridad/fechas (Perú no cambia de hora).",
+    "La vigencia compara días civiles de Lima para no depender del segundo final 23:59:59."
+  ],
+  "comprobaciones": [
+    {
+      "comando": "npx jest src/lib/justificaciones",
+      "resultado": "Pasa: 7 tests."
+    },
+    {
+      "comando": "npm run typecheck",
+      "resultado": "Pasa en raíz y API."
+    },
+    {
+      "comando": "npm run lint",
+      "resultado": "Pasa sin errores."
+    }
+  ],
+  "limites": [
+    "La suite completa npm test (cliente y API con PostgreSQL) se ejecuta al cerrar la fase 1."
+  ],
+  "notas": "Dominio puro en TypeScript, sin React, React Native ni Expo."
+}

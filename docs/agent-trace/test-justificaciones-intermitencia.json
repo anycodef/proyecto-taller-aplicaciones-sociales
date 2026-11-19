@@ -1,0 +1,20 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-12",
+  "agente": "Claude Code",
+  "modelo": "claude-sonnet-5-5",
+  "tarea": "T5-test-justificaciones",
+  "solicitud": "Eliminar la intermitencia de api/test/integracion/justificaciones/contrato-justificaciones.test.ts, que fallaba una de cuatro corridas completas de npm --prefix api test y pasaba siempre aislada",
+  "commitPrevisto": "test(justificaciones): eliminar la intermitencia de contrato-justificaciones",
+  "alcance": [
+    "api/test/integracion/justificaciones/contrato-justificaciones.test.ts"
+  ],
+  "criterio": "Las comparaciones de sello y el cursor de cambiosDesde ya no dependen de la resolucion en milisegundos de Date; no se debilita ninguna asercion ni se borra ninguna prueba; no se toca api/migraciones.",
+  "comprobaciones": ["npm --prefix api test", "npm run typecheck", "npm run lint"],
+  "resultados": {
+    "tests": "25 de 25 corridas aisladas del archivo (15 pruebas cada una) y 5 corridas completas seguidas de npm --prefix api test (281 de 281) en verde",
+    "typecheck": "sin errores",
+    "lint": "sin errores"
+  },
+  "notas": "No se logro reproducir la falla antes del cambio: 25 de 25 corridas aisladas pasaban, que coincide con el reporte (solo falla en la suite completa y rara vez). Causa por analisis del codigo, sin reproduccion directa: (1) sello() devolvia un Date de JavaScript con milisegundos y las pruebas de revisar, marcar sin efecto y restaurar comparaban con mayor estricto dos lecturas de actualizado_en, que PostgreSQL guarda con microsegundos y podian caer en el mismo milisegundo; ahora se lee en microsegundos como BigInt. (2) En la prueba de cambiosDesde, desde llegaba truncado al milisegundo hacia abajo y podia incluir la fila de la prueba anterior o excluir la nueva; ahora se redondea hacia arriba y se espera 10 ms antes de escribir. Ni el repositorio ni el trigger tenian defecto."
+}

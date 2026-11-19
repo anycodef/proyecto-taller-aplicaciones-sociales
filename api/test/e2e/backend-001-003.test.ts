@@ -12,6 +12,7 @@ import { registrarProveedorResumen, participanteRetencion } from "../../src/modu
 import { registrarParticipanteRetencion, participanteSeguridad } from "../../src/modulos/seguridad";
 import { participanteRetencionAsistencia, consultarResumenAsistencia } from "../../src/modulos/asistencia";
 import { participanteRetencionAvisos, proveedorAvisos } from "../../src/modulos/avisos";
+import { participanteRetencionJustificaciones } from "../../src/modulos/justificaciones";
 import { registrarProveedor } from "../../src/modulos/sincronizacion/aplicacion/registro-proveedores";
 import { consultarPerfil } from "../../src/modulos/catequizandos/aplicacion/perfil";
 import { cargarContexto } from "../../src/modulos/seguridad/aplicacion/contexto";
@@ -27,6 +28,7 @@ registrarParticipanteRetencion(participanteRetencionAsistencia);
 registrarParticipanteRetencion(participanteRetencion);
 registrarParticipanteRetencion(participanteSeguridad);
 registrarParticipanteRetencion(participanteRetencionAvisos);
+registrarParticipanteRetencion(participanteRetencionJustificaciones);
 registrarProveedor(proveedorAvisos);
 
 let admin: Sesion, coord: Sesion, cat: Sesion, suplente: Sesion, sup: Sesion, fam: Sesion;
@@ -218,7 +220,7 @@ test("RF-106 RF-108 RF-203 RF-307: retiro HTTP ejecuta participantes reales, ano
   await exigir(inscripciones.anular, "inscripciones/anular", coord, { cambioId: randomUUID(), motivo: "Error de inscripción" }, { id: primera.id });
   const retiro = await exigir<{ ejecucionId: string }>(manejadoresSeguridad.retirarConsentimiento, "consentimientos/retirar", fam, {}, { id: primera.consentimiento!.id });
   const ejecucion = (await administracion.query("SELECT completada_en,resumen FROM ejecucion_retencion WHERE id=$1", [retiro.ejecucionId])).rows[0];
-  expect(ejecucion.completada_en).not.toBeNull(); expect(Object.keys(ejecucion.resumen).sort()).toEqual(["asistencia", "avisos", "catequizandos", "seguridad"]);
+  expect(ejecucion.completada_en).not.toBeNull(); expect(Object.keys(ejecucion.resumen).sort()).toEqual(["asistencia", "avisos", "catequizandos", "justificaciones", "seguridad"]);
   expect((await administracion.query("SELECT nombres,apellidos,fecha_nacimiento,clave_duplicado,estado FROM catequizando WHERE id=$1", [primera.nino.id])).rows[0]).toEqual({ nombres: "", apellidos: "", fecha_nacimiento: null, clave_duplicado: null, estado: "anonimizado" });
   for (const tabla of ["condicion_catequizando", "cambio_inscripcion", "referencia_duplicado"]) expect((await administracion.query(`SELECT 1 FROM ${tabla} WHERE catequizando_id=$1`, [primera.nino.id])).rowCount).toBe(0);
   expect((await administracion.query("SELECT 1 FROM documento_inscripcion WHERE inscripcion_id=$1", [primera.id])).rowCount).toBe(0);

@@ -1,0 +1,37 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-11",
+  "agente": "Claude Code",
+  "modelo": "claude-opus-5-5",
+  "rama": "feat/004-justificaciones",
+  "tarea": "T004-08",
+  "solicitud": "Implementar ausenciasJustificables en justificables.ts.",
+  "alcance": [
+    "src/lib/justificaciones/justificables.ts",
+    "src/lib/justificaciones/__tests__/justificables.test.ts",
+    "specs/004-justificaciones/tasks.md",
+    "docs/agent-trace/justificaciones-t004-08.json"
+  ],
+  "criterio": "Pasan los tests RF-401, RF-405 y RF-408 de justificables.test.ts.",
+  "decisiones": [
+    "tieneJustificacionActiva se exporta para reutilizarla en anticipables y en el lote."
+  ],
+  "comprobaciones": [
+    {
+      "comando": "npx jest src/lib/justificaciones",
+      "resultado": "Pasa: 17 tests."
+    },
+    {
+      "comando": "npm run typecheck",
+      "resultado": "Pasa en raíz y API."
+    },
+    {
+      "comando": "npm run lint",
+      "resultado": "Pasa sin errores."
+    }
+  ],
+  "limites": [
+    "La suite completa npm test (cliente y API con PostgreSQL) se ejecuta al cerrar la fase 1."
+  ],
+  "notas": "Dominio puro en TypeScript, sin React, React Native ni Expo."
+}

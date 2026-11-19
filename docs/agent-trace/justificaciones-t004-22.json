@@ -1,0 +1,40 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-11",
+  "agente": "Claude Code",
+  "modelo": "claude-opus-5-5",
+  "rama": "feat/004-justificaciones",
+  "tarea": "T004-22",
+  "solicitud": "Definir los puertos de dominio e implementar repositorio-evidencias-pg.ts.",
+  "alcance": [
+    "api/src/modulos/justificaciones/dominio/puertos.ts",
+    "api/src/modulos/justificaciones/infraestructura/repositorio-evidencias-pg.ts",
+    "api/test/integracion/justificaciones/soporte.ts",
+    "api/test/integracion/justificaciones/contrato-evidencias.test.ts",
+    "specs/004-justificaciones/tasks.md",
+    "docs/agent-trace/justificaciones-t004-22.json"
+  ],
+  "criterio": "Pasan los tests de contrato RNF-403 de reservar y confirmar, listarHuerfanas y el conteo de reservas de la última hora.",
+  "decisiones": [
+    "RepositorioJustificaciones se declara en las tareas T004-23 a T004-26, a medida que se implementa cada método, para que el código compile en cada commit.",
+    "La hora de reserva llega como parámetro (Reloj de compartido) para poder probar las 24 h."
+  ],
+  "comprobaciones": [
+    {
+      "comando": "npx jest --selectProjects integracion --testPathPattern \"justificaciones|catalogo\" (api, PostgreSQL 16 en Docker)",
+      "resultado": "Pasa: 21 tests (contratos de 004 y catálogo RF-107)."
+    },
+    {
+      "comando": "npm run typecheck",
+      "resultado": "Pasa en raíz y API."
+    },
+    {
+      "comando": "npm run lint",
+      "resultado": "Pasa sin errores."
+    }
+  ],
+  "limites": [
+    "La suite completa npm test (cliente y API con PostgreSQL) se ejecuta al cerrar la fase."
+  ],
+  "notas": "Repositorio PostgreSQL del módulo api/src/modulos/justificaciones."
+}

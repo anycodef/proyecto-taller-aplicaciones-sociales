@@ -1,0 +1,38 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-11",
+  "agente": "Claude Code",
+  "modelo": "claude-opus-5-5",
+  "rama": "feat/004-justificaciones",
+  "tarea": "T004-13",
+  "solicitud": "Implementar efectos.ts para los consumidores de 003, 006 y 007 (supuesto A-13).",
+  "alcance": [
+    "src/lib/justificaciones/efectos.ts",
+    "src/lib/justificaciones/__tests__/efectos.test.ts",
+    "specs/004-justificaciones/tasks.md",
+    "docs/agent-trace/justificaciones-t004-13.json"
+  ],
+  "criterio": "Pasan los cuatro tests RF-409 de efectos.test.ts.",
+  "decisiones": [
+    "fechasJustificadas devuelve la forma que ya acepta faltasDelCiclo de 003.",
+    "La prueba integrada con faltasDelCiclo queda para T004-65 en la API: el Jest del cliente no transforma uuid, que importa sesiones.ts."
+  ],
+  "comprobaciones": [
+    {
+      "comando": "npx jest src/lib/justificaciones",
+      "resultado": "Pasa: 36 tests."
+    },
+    {
+      "comando": "npm run typecheck",
+      "resultado": "Pasa en raíz y API."
+    },
+    {
+      "comando": "npm run lint",
+      "resultado": "Pasa sin errores."
+    }
+  ],
+  "limites": [
+    "La suite completa npm test (cliente y API con PostgreSQL) se ejecuta al cerrar la fase 1."
+  ],
+  "notas": "Dominio puro en TypeScript, sin React, React Native ni Expo."
+}

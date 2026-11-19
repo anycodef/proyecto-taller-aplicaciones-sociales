@@ -1,0 +1,39 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-11",
+  "agente": "Claude Code",
+  "modelo": "claude-opus-5-5",
+  "rama": "feat/004-justificaciones",
+  "tarea": "T004-29",
+  "solicitud": "Implementar en almacen-evidencias-blob.ts la SAS de subida (solo crear, 5 min).",
+  "alcance": [
+    "api/src/modulos/justificaciones/infraestructura/almacen-evidencias-blob.ts",
+    "api/src/modulos/justificaciones/dominio/puertos.ts",
+    "api/test/integracion/justificaciones/almacen-evidencias.test.ts",
+    "specs/004-justificaciones/tasks.md",
+    "docs/agent-trace/justificaciones-t004-29.json"
+  ],
+  "criterio": "Pasan contra Azurite RNF-403: la SAS de subida no permite sobrescribir, RNF-403: la SAS vencida es rechazada y RNF-403: el blob se nombra {cicloId}/{evidenciaId}/{orden}.jpg.",
+  "decisiones": [
+    "Esta tarea solo firma con la clave de Azurite; la credencial de Azure llega en T004-30.",
+    "El almacén devuelve un Pick del puerto hasta implementar el resto en T004-31."
+  ],
+  "comprobaciones": [
+    {
+      "comando": "npx jest --runInBand --selectProjects integracion --testPathPattern almacen (api, Azurite 3.35.0 en Docker)",
+      "resultado": "Pasa: 4 tests contra Azurite."
+    },
+    {
+      "comando": "npm run typecheck",
+      "resultado": "Pasa en raíz y API."
+    },
+    {
+      "comando": "npm run lint",
+      "resultado": "Pasa sin errores."
+    }
+  ],
+  "limites": [
+    "La suite completa npm test se ejecuta al cerrar la fase 3."
+  ],
+  "notas": "Almacén Blob del módulo api/src/modulos/justificaciones."
+}
