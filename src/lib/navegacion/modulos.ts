@@ -32,7 +32,7 @@ export const MODULOS: readonly Modulo[] = [
     subtitulo: "Carnés inválidos, rechazos y conflictos por atender",
     ruta: "/coordinacion/avisos-asistencia",
     accion: "asistencia:avisos",
-    estado: "pendiente",
+    estado: "disponible",
   },
   {
     id: "justificaciones",

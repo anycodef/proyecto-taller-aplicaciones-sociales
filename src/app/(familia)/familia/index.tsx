@@ -1,8 +1,8 @@
-import { router } from "expo-router";
+import { router, type Href } from "expo-router";
 import { useCallback, useMemo } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
-import { Aviso, Boton, Insignia, Tarjeta, type TonoInsignia } from "@/components/ui";
+import { Aviso, Boton, FilaNavegacion, Insignia, Tarjeta, type TonoInsignia } from "@/components/ui";
 import { crearClienteJustificaciones } from "@/lib/justificaciones/cliente-justificaciones";
 import { agruparPorDomingo } from "@/lib/justificaciones/justificables";
 import {
@@ -99,6 +99,25 @@ export default function InicioFamilia() {
         })}
       </View>
       <Boton etiqueta="Avisar un evento escolar" variante="secundario" alPresionar={() => router.push("/familia/anticipar")} />
+
+      {datos?.justificables.ninos.length ? (
+        <View style={[estilos.seccion, estilos.separada]}>
+          <Text style={tipografia.encabezado}>Asistencia</Text>
+          <Text style={[tipografia.nota, estilos.suave]}>Misa y catequesis de cada domingo.</Text>
+        </View>
+      ) : null}
+      <View style={estilos.lista}>
+        {(datos?.justificables.ninos ?? []).map((nino) => (
+          <FilaNavegacion
+            key={nino.catequizandoId}
+            titulo={nino.nombres}
+            subtitulo="Ver asistencia"
+            alPresionar={() =>
+              router.push(`/familia/asistencia/${nino.catequizandoId}` as Href)
+            }
+          />
+        ))}
+      </View>
 
       <View style={[estilos.seccion, estilos.separada]}>
         <Text style={tipografia.encabezado}>Mis justificaciones</Text>

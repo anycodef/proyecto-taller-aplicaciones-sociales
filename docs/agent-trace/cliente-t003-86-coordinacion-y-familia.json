@@ -1,0 +1,21 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-22",
+  "agente": "Claude Code",
+  "modelo": "claude-opus-5-5",
+  "comprobaciones": [
+    "npm test (app y API con PostgreSQL y Azurite locales)",
+    "npm run typecheck",
+    "npm run lint"
+  ],
+  "resultados": {
+    "tests": "App: 85 suites y 380 tests en verde. API: 53 suites y 348 tests en verde",
+    "typecheck": "Pasa raíz y API",
+    "lint": "Pasa sin errores"
+  },
+  "tarea": "T003-86, T003-87, T003-88, T003-111",
+  "solicitud": "Pantallas de asistencia pendientes de la spec 003",
+  "commitPrevisto": "feat(asistencia): domingos del ciclo, avisos, reporte de misa y asistencia de la familia",
+  "criterio": "RF-301 cambio de sesión offline por la coordinación; RF-310/RF-303 avisos en línea; RF-312/RF-304 reporte de misa en línea; HU-306 asistencia de la familia de solo lectura.",
+  "notas": "El mockup APP-34 dice 'Requiere conexión para guardar' y T003-86 pide pendiente de envío: se siguió la tarea. web-10.png muestra el contenido de WEB-11."
+}

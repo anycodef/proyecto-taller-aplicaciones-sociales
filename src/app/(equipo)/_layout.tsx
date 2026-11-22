@@ -23,10 +23,16 @@ export default function LayoutEquipo() {
           <Stack.Screen name="coordinacion" options={{ title: "Coordinación" }} />
           <Stack.Screen name="coordinacion/grupos/[id]/carnes" options={{ title: "Carnés" }} />
           <Stack.Screen name="avisos-sistema" options={{ title: "Avisos del sistema" }} />
+          <Stack.Screen name="coordinacion/sesiones" options={{ title: "Domingos del ciclo" }} />
+          <Stack.Screen name="coordinacion/avisos-asistencia" options={{ title: "Avisos de asistencia" }} />
+        </Stack.Protected>
+        <Stack.Protected guard={coordinacion || (equipo && rolesEfectivos.includes("supervision"))}>
+          <Stack.Screen name="reportes/misa/[fecha]" options={{ title: "Reporte de misa" }} />
         </Stack.Protected>
         <Stack.Protected guard={equipo && rolesEfectivos.some((rol) => rol !== "familia")}>
           <Stack.Screen name="asistencia" options={{ title: "Pasar lista" }} />
           <Stack.Screen name="asistencia/lista/[grupoId]" options={{ title: "Lista de catequesis" }} />
+          <Stack.Screen name="asistencia/escanear" options={{ title: "Misa en curso" }} />
           <Stack.Screen name="asistencia/manual" options={{ title: "Registro manual" }} />
           <Stack.Screen name="asistencia/pendientes" options={{ title: "Por enviar" }} />
           <Stack.Screen

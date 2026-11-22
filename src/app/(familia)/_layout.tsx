@@ -13,6 +13,7 @@ export default function LayoutFamilia() {
       <Stack.Screen name="familia/index" options={{ title: "Inicio" }} />
       <Stack.Screen name="familia/justificar" options={{ title: "Justificar ausencia" }} />
       <Stack.Screen name="familia/anticipar" options={{ title: "Avisar evento escolar" }} />
+      <Stack.Screen name="familia/asistencia/[catequizandoId]" options={{ title: "Asistencia" }} />
       <Stack.Screen name="familia/enviada" options={{ title: "Justificación recibida", headerBackVisible: false }} />
     </Stack>
   );
