@@ -173,7 +173,8 @@ test("RF-307: al confirmar sin conexion la marca queda en el celular", async () 
   await screen.findByText("Mateo Vargas");
   fireEvent.press(screen.getByText("Confirmar lista"));
 
-  await waitFor(() => expect(screen.getByText("Lista guardada en el celular.")).toBeTruthy());
+  await waitFor(() => expect(screen.getByText("Lista confirmada")).toBeTruthy());
+  expect(screen.getByText("Se enviará cuando vuelva la señal")).toBeTruthy();
 
   const guardado = disco.leer();
   expect(guardado.pendientes.marcas).toHaveLength(1);

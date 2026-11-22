@@ -87,6 +87,7 @@ test("RF-307: el lote de push lleva cada marca y cada lista una sola vez", () =>
       },
     ],
     correcciones: [],
+    sesiones: [],
   };
 
   const lote = prepararLote(pendientes);
@@ -100,6 +101,7 @@ test("RF-307: el lote de push lleva cada marca y cada lista una sola vez", () =>
     marcas: 2,
     listas: 1,
     correcciones: 0,
+    sesiones: 0,
     total: 3,
   });
 });
@@ -107,7 +109,7 @@ test("RF-307: el lote de push lleva cada marca y cada lista una sola vez", () =>
 test("RF-307: el lote viaja con los nombres de tabla y las horas del servidor", () => {
   const idLista = idListaAsistencia(sesionId, "grupo-1");
   const pendientes = guardarLista(
-    { marcas: [crearMarca(datosMarca())], listas: [], correcciones: [] },
+    { marcas: [crearMarca(datosMarca())], listas: [], correcciones: [], sesiones: [] },
     {
       id: idLista,
       fila: {

@@ -1,14 +1,15 @@
-import { useCallback, useMemo, useState } from "react";
-import { router, useLocalSearchParams } from "expo-router";
+import { useMemo, useState } from "react";
+import { router, useLocalSearchParams, type Href } from "expo-router";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { FilaNino } from "@/components/asistencia/fila-nino";
-import { Aviso, Boton, Insignia } from "@/components/ui";
+import { Aviso, Boton, FilaNavegacion, Insignia, PantallaResultado } from "@/components/ui";
 import { confirmarListaEnLocal } from "@/lib/asistencia/confirmar-lista";
-import { abrirLista } from "@/lib/asistencia/lista";
+import { borradorGuardado, listaConfirmadaLocal, textoMotivo } from "@/lib/asistencia/estado-lista";
+import { abrirLista, alternar, type BorradorLista } from "@/lib/asistencia/lista";
 import { fechaEnLima } from "@/lib/asistencia/reloj";
+import { idBorradorLista } from "@/lib/asistencia/repositorio-asistencia";
 import { aSesion, elegirSesion } from "@/lib/asistencia/sesiones";
-import type { ValorAsistencia } from "@/lib/asistencia/tipos";
 import { filasDe } from "@/lib/sincronizacion/almacen-local";
 import { useAsistencia } from "@/plataforma/asistencia/contexto-asistencia";
 import { useInstante } from "@/plataforma/asistencia/use-instante";
@@ -30,6 +31,10 @@ type GrupoLocal = {
   ciclo_id?: string;
 };
 
+function primero(valor: string | string[] | undefined): string | undefined {
+  return Array.isArray(valor) ? valor[0] : valor;
+}
+
 export default function ListaCatequesis({
   grupoId: grupoIdProp,
   ahora,
@@ -39,9 +44,8 @@ export default function ListaCatequesis({
   ahora?: number;
 }) {
   const { contexto } = useSesion();
-  const { almacen, conConexion, repositorio, sincronizarAhora, sincronizando } = useAsistencia();
-  const [valores, setValores] = useState<Record<string, ValorAsistencia>>({});
-  const [confirmado, setConfirmado] = useState(false);
+  const { almacen, conConexion, repositorio, sincronizarAhora } = useAsistencia();
+  const [corrigiendo, setCorrigiendo] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const reloj = useInstante();
   const instante = ahora ?? reloj;
@@ -49,17 +53,9 @@ export default function ListaCatequesis({
   // El identificador del grupo llega como prop de la ruta; en el navegador se
   // lee tambien de los parametros de navegacion.
   const parametros = useLocalSearchParams<{ grupoId?: string | string[]; sesionId?: string | string[] }>();
-  const grupoId = useMemo(() => {
-    const deParametros = parametros?.grupoId;
-    const valor = Array.isArray(deParametros) ? deParametros[0] : deParametros;
-    return valor ?? grupoIdProp;
-  }, [parametros, grupoIdProp]);
+  const grupoId = primero(parametros?.grupoId) ?? grupoIdProp;
+  const sesionIdPedida = primero(parametros?.sesionId) ?? null;
 
-  const sesionIdPedida = useMemo(() => {
-    const pedida = parametros?.sesionId;
-    if (Array.isArray(pedida)) return pedida[0] ?? null;
-    return pedida ?? null;
-  }, [parametros]);
   const ninos: NinoLocal[] = useMemo(
     () =>
       filasDe(almacen, "catequizandos").filter(
@@ -84,30 +80,24 @@ export default function ListaCatequesis({
     });
   }, [almacen, grupo?.ciclo_id, instante, sesionIdPedida]);
 
-  const valorDe = useCallback(
-    (ninoId: string): ValorAsistencia => valores[ninoId] ?? "presente",
-    [valores]
-  );
+  const borradorId = sesion ? idBorradorLista(sesion.id, grupoId) : null;
+  const confirmada = sesion ? listaConfirmadaLocal(almacen, sesion.id, grupoId) : null;
 
-  const alternar = (ninoId: string) => {
-    setConfirmado(false);
-    setValores((actuales) => ({
-      ...actuales,
-      [ninoId]: valorDe(ninoId) === "presente" ? "ausente" : "presente",
-    }));
+  // Cada toque queda en el celular: cerrar la app o perder la batería no
+  // borra lo marcado (RF-306). Los ninos que nadie toco van presentes. Se lee
+  // en cada render porque cada toque guardado cambia el almacen y redibuja.
+  const borrador: BorradorLista = abrirLista(ninos);
+  const guardado = borradorId ? borradorGuardado(almacen, borradorId) : null;
+  for (const [ninoId, valor] of Object.entries(guardado ?? {})) {
+    if (ninoId in borrador) borrador[ninoId] = valor;
+  }
+
+  const alAlternar = (ninoId: string) => {
+    if (!borradorId) return;
+    repositorio.guardarBorrador(borradorId, alternar(borrador, ninoId));
   };
 
-  // El borrador son todos los ninos del grupo: los que nadie toco van
-  // presentes.
-  const borrador = useMemo(() => {
-    const inicial = abrirLista(ninos.map((nino) => ({ id: nino.id })));
-    return Object.entries(valores).reduce(
-      (actual, [ninoId, valor]) => (ninoId in actual ? { ...actual, [ninoId]: valor } : actual),
-      inicial
-    );
-  }, [ninos, valores]);
-
-  const confirmar = async () => {
+  const confirmar = () => {
     if (!sesion || !contexto) return;
     setError(null);
     const hora = new Date(instante).toISOString();
@@ -122,12 +112,82 @@ export default function ListaCatequesis({
         hora,
         desfaseRelojMs: 0,
       });
-      setConfirmado(true);
-      if (conConexion) await sincronizarAhora();
+      // La lista ya esta en el celular; el envio va aparte y no se espera.
+      if (conConexion) void sincronizarAhora();
     } catch (fallo) {
       setError(fallo instanceof Error ? fallo.message : "No pudimos guardar la lista.");
     }
   };
+
+  const nombreGrupo = grupo?.nombre ?? "este grupo";
+
+  if (sesion && confirmada && !corrigiendo) {
+    return (
+      <PantallaResultado
+        tono={confirmada.rechazada ? "error" : "exito"}
+        icono={
+          <Text style={[estilos.icono, confirmada.rechazada ? estilos.iconoError : null]}>
+            {confirmada.rechazada ? "!" : "✓"}
+          </Text>
+        }
+        titulo={confirmada.rechazada ? "Lista no aceptada" : "Lista confirmada"}
+        mensaje={`${confirmada.totalPresentes} ${confirmada.totalPresentes === 1 ? "presente" : "presentes"} y ${
+          confirmada.totalAusentes
+        } ${confirmada.totalAusentes === 1 ? "ausente" : "ausentes"} en ${nombreGrupo}.`}
+        acciones={
+          <>
+            <Boton etiqueta="Volver al inicio" alPresionar={() => router.replace("/asistencia" as Href)} />
+            {confirmada.rechazada ? null : (
+              <Boton etiqueta="Corregir a alguien" variante="secundario" alPresionar={() => setCorrigiendo(true)} />
+            )}
+            <Boton
+              etiqueta="Pasar lista de otro grupo"
+              variante="secundario"
+              alPresionar={() => router.replace("/asistencia" as Href)}
+            />
+          </>
+        }
+      >
+        <View style={estilos.insignia}>
+          {confirmada.rechazada ? (
+            <Insignia texto={textoMotivo(confirmada.motivoRechazo ?? "")} tono="error" />
+          ) : confirmada.porEnviar ? (
+            <Insignia texto="Se enviará cuando vuelva la señal" tono="advertencia" />
+          ) : (
+            <Insignia texto="Enviada" tono="solido" />
+          )}
+        </View>
+      </PantallaResultado>
+    );
+  }
+
+  if (sesion && confirmada && corrigiendo) {
+    return (
+      <ScrollView contentContainerStyle={estilos.contenido}>
+        <Text style={[tipografia.titulo, estilos.titulo]}>Corregir a alguien</Text>
+        <Aviso
+          tono="informativo"
+          mensaje="La lista ya está confirmada. Toca al niño cuya asistencia quieres corregir."
+        />
+        <View style={estilos.lista}>
+          {ninos.map((nino) => {
+            const valor = confirmada.valores[nino.id];
+            return (
+              <FilaNavegacion
+                key={nino.id}
+                titulo={`${nino.nombres} ${nino.apellidos}`}
+                subtitulo={valor === "ausente" ? "Ausente" : valor === "presente" ? "Presente" : "Sin registro"}
+                alPresionar={() =>
+                  router.push(`/asistencia/correccion/${sesion.id}/${nino.id}` as Href)
+                }
+              />
+            );
+          })}
+        </View>
+        <Boton etiqueta="Volver" variante="enlace" alPresionar={() => setCorrigiendo(false)} />
+      </ScrollView>
+    );
+  }
 
   return (
     <ScrollView contentContainerStyle={estilos.contenido}>
@@ -140,7 +200,9 @@ export default function ListaCatequesis({
           tono={conConexion ? "solido" : "advertencia"}
         />
         {sesion ? (
-          <Text style={[tipografia.nota, estilos.nota]}>Sesión del {sesion.fecha}</Text>
+          <Text style={[tipografia.nota, estilos.nota]}>
+            Sesión del {sesion.fecha} · todos empiezan presentes; toca a quien faltó.
+          </Text>
         ) : null}
       </View>
 
@@ -155,10 +217,6 @@ export default function ListaCatequesis({
         />
       ) : null}
 
-      {confirmado ? (
-        <Aviso tono="informativo" mensaje="Lista guardada en el celular." />
-      ) : null}
-
       {error ? <Aviso tono="error" mensaje={error} /> : null}
 
       <View style={estilos.lista}>
@@ -167,8 +225,8 @@ export default function ListaCatequesis({
             key={nino.id}
             nombres={nino.nombres}
             apellidos={nino.apellidos}
-            valor={valorDe(nino.id)}
-            onAlternar={() => alternar(nino.id)}
+            valor={borrador[nino.id] ?? "presente"}
+            onAlternar={() => alAlternar(nino.id)}
           />
         ))}
       </View>
@@ -182,14 +240,13 @@ export default function ListaCatequesis({
 
       <Boton
         etiqueta="Confirmar lista"
-        alPresionar={() => void confirmar()}
-        cargando={sincronizando}
+        alPresionar={confirmar}
         deshabilitado={ninos.length === 0 || !sesion}
       />
       <Boton
         etiqueta="Volver"
         variante="enlace"
-        alPresionar={() => router.replace("/asistencia" as never)}
+        alPresionar={() => router.replace("/asistencia" as Href)}
       />
     </ScrollView>
   );
@@ -201,4 +258,7 @@ const estilos = StyleSheet.create({
   titulo: { color: colores.texto },
   nota: { color: colores.textoTenue },
   lista: { gap: espacio.s },
+  icono: { ...tipografia.titulo, color: colores.primarioTexto },
+  iconoError: { color: colores.errorTexto },
+  insignia: { flexDirection: "row" },
 });

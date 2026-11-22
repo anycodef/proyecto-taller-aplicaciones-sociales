@@ -18,7 +18,7 @@ import {
   type ResumenPendientes,
 } from "@/lib/asistencia/pendientes";
 import type { RepositorioAsistencia } from "@/lib/asistencia/repositorio-asistencia";
-import type { AlmacenLocal } from "@/lib/sincronizacion/almacen-local";
+import { fusionarTrasSincronizar, type AlmacenLocal } from "@/lib/sincronizacion/almacen-local";
 import { crearAlmacenLocal, type AlmacenLocalDisco } from "@/plataforma/asistencia/almacen-local";
 import { crearRepositorioLocal } from "@/plataforma/asistencia/repositorio-local";
 import { sincronizar } from "@/plataforma/asistencia/sincronizador";
@@ -55,7 +55,9 @@ export function ProveedorAsistencia({
   children: ReactNode;
   disco?: AlmacenLocalDisco;
 }) {
-  const { cliente } = useSesion();
+  const { cliente, contexto } = useSesion();
+  const cuentaId = contexto?.cuentaId ?? null;
+  const cuentaRef = useRef(cuentaId);
   const { conConexion } = useConectividad();
   const [sincronizando, setSincronizando] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -80,25 +82,17 @@ export function ProveedorAsistencia({
     setError(null);
 
     const snapshot = repositorio.estado();
+    const cuentaAlEmpezar = cuentaRef.current;
     try {
       const { estado, resultado } = await sincronizar({ almacen: snapshot, cliente });
-      // Se aplica sobre el estado mas reciente: una marca registrada durante el
-      // push no se pierde.
-      const actuales = repositorio.estado();
-      const actualesIds = new Set(actuales.pendientes.marcas.map((marca) => marca.id));
-      const conserva = snapshot.pendientes.marcas.filter(
-        (marca) => !actualesIds.has(marca.id) && !resultado.idsEnviados.includes(marca.id)
-      );
-      repositorio.escribir({
-        ...estado,
-        pendientes: {
-          ...estado.pendientes,
-          marcas: [...estado.pendientes.marcas, ...conserva],
-        },
-      });
+      // Si la sesion se cerro mientras tanto, la nomina descargada no se guarda.
+      if (cuentaRef.current !== cuentaAlEmpezar) return;
+      // Se aplica sobre el estado mas reciente: lo registrado durante el push
+      // (marcas, listas, correcciones) no se pierde.
+      repositorio.escribir(fusionarTrasSincronizar(snapshot, estado, repositorio.estado()));
 
       if (resultado.rechazados > 0) {
-        setError("El servidor rechazó algunas marcas. Se reintentarán al reconectar.");
+        setError("El servidor no aceptó algunos registros. Revisa el motivo en «Por enviar».");
       }
     } catch {
       setError("No pudimos sincronizar. Los registros siguen en el celular.");
@@ -107,6 +101,14 @@ export function ProveedorAsistencia({
       setSincronizando(false);
     }
   }, [cliente, repositorio]);
+
+  // Al cerrar sesion la nomina sale del celular; quedan solo los pendientes de
+  // la cuenta que salio (planCierreSesion, RNF-306).
+  useEffect(() => {
+    const anterior = cuentaRef.current;
+    cuentaRef.current = cuentaId;
+    if (anterior && anterior !== cuentaId) repositorio.purgarExceptoPendientes(anterior);
+  }, [cuentaId, repositorio]);
 
   // Al abrir la app se baja la nomina una vez, para no esperar al primer
   // toque del usuario.
@@ -132,8 +134,7 @@ export function ProveedorAsistencia({
   // plano (T003-74).
   const pendientesActuales = almacen.pendientes;
   useEffect(() => {
-    const hayPendientes =
-      pendientesActuales.marcas.length + pendientesActuales.listas.length + pendientesActuales.correcciones.length > 0;
+    const hayPendientes = resumenPendientes(pendientesActuales).total > 0;
     if (!hayPendientes) return;
     const suscripcion = AppState.addEventListener("change", estado => {
       if (estado === "active") void sincronizarAhora();

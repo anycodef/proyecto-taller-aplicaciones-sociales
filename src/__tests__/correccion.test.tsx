@@ -89,6 +89,7 @@ function nomina(): AlmacenLocal {
       ],
       listas: [],
       correcciones: [],
+      sesiones: [],
     },
   };
 }

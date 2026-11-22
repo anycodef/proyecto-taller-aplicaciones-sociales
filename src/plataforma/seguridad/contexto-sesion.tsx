@@ -4,6 +4,8 @@ import { rolesEfectivos, type ContextoAcceso, type Rol } from "@/lib/seguridad/c
 import { crearApiSeguridad, type ApiSeguridad, type ClienteHttp } from "@/lib/seguridad/api";
 import { crearApiCatequizandos, type ApiCatequizandos } from "@/lib/catequizandos/api";
 
+import { purgarAlmacenAlCerrarSesion } from "@/plataforma/asistencia/almacen-local";
+
 import { obtenerAlmacenSesion, type SesionAlmacenada } from "./almacen-seguro";
 import {
   cerrarSesionViva,
@@ -106,11 +108,14 @@ export function ProveedorSesion({
   cargar = cargarSesionGuardada,
   gestor: gestorExterno,
   cliente: clienteExterno,
+  alCerrarSesion = purgarSinRomper,
 }: {
   children: ReactNode;
   cargar?: () => Promise<SesionCargada | null>;
   gestor?: GestorSesion;
   cliente?: ClienteHttp;
+  /** Se ejecuta con la cuenta que sale: purga el almacen local (planCierreSesion). */
+  alCerrarSesion?: (cuentaId: string) => void;
 }) {
   const [estado, setEstado] = useState<EstadoSesionApp>({ ...ESTADO_VACIO, cargando: true });
   const [activacion, setActivacion] = useState<ActivacionPendiente | null>(null);
@@ -212,14 +217,25 @@ export function ProveedorSesion({
       },
       cerrarSesion: () => {
         revision.current += 1;
+        const cuentaId = estado.contexto?.cuentaId;
         cerrarSesionViva();
+        if (cuentaId) alCerrarSesion(cuentaId);
         setEstado(ESTADO_VACIO);
       },
     }),
-    [estado, gestor, cliente, api, apiCatequizandos, activacion]
+    [estado, gestor, cliente, api, apiCatequizandos, activacion, alCerrarSesion]
   );
 
   return <ContextoSesion.Provider value={valor}>{children}</ContextoSesion.Provider>;
+}
+
+/** Un fallo del disco no puede impedir cerrar la sesion. */
+function purgarSinRomper(cuentaId: string): void {
+  try {
+    purgarAlmacenAlCerrarSesion(cuentaId);
+  } catch {
+    // El proveedor de asistencia vuelve a purgar al ver la sesion cerrada.
+  }
 }
 
 export function useSesion(): ContextoSesionValor {

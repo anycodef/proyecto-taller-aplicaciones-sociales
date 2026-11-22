@@ -4,6 +4,7 @@ import { File, Paths } from "expo-file-system";
 import {
   almacenVacio,
   deserializarAlmacen,
+  purgarExceptoPendientes,
   serializarAlmacen,
   type AlmacenLocal,
 } from "@/lib/sincronizacion/almacen-local";
@@ -60,4 +61,16 @@ function crearAlmacenNavegador(nombreArchivo: string): AlmacenLocalDisco {
       if (disponible) localStorage.removeItem(nombreArchivo);
     },
   };
+}
+
+/**
+ * Purga el almacen del disco al cerrar sesion, aunque la pantalla de
+ * asistencia no este montada: la nomina no puede quedar en el celular
+ * (RF-307, RNF-306; RNF-102 de la spec 001).
+ */
+export function purgarAlmacenAlCerrarSesion(
+  cuentaId: string,
+  disco: AlmacenLocalDisco = crearAlmacenLocal()
+): void {
+  disco.guardar(purgarExceptoPendientes(disco.leer(), cuentaId));
 }

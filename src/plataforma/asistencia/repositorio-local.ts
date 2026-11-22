@@ -3,13 +3,15 @@ import {
   guardarCorreccion,
   guardarLista,
   guardarMarca,
+  guardarSesion,
   type FilaCorreccion,
   type FilaMarca,
+  type FilaSesionPendiente,
 } from "@/lib/asistencia/pendientes";
 import type { ConfirmarListaLocal, RepositorioAsistencia } from "@/lib/asistencia/repositorio-asistencia";
 import { aSesion } from "@/lib/asistencia/sesiones";
 import type { NinoNomina } from "@/lib/asistencia/tipos";
-import { filasDe, type AlmacenLocal } from "@/lib/sincronizacion/almacen-local";
+import { filasDe, purgarExceptoPendientes, type AlmacenLocal } from "@/lib/sincronizacion/almacen-local";
 
 export type AlmacenLocalDisco = {
   leer(): AlmacenLocal;
@@ -30,6 +32,10 @@ export type RepositorioLocal = RepositorioAsistencia & {
   suscribir(oyente: () => void): () => void;
   /** Reemplaza el estado y lo persiste. */
   escribir(estado: AlmacenLocal): void;
+  /** Guarda el cambio de una sesion hecho por la coordinacion (RF-301). */
+  registrarSesion(sesion: FilaSesionPendiente): void;
+  /** Al cerrar sesion: borra la nomina y conserva solo lo que la cuenta no envio (RNF-306). */
+  purgarExceptoPendientes(cuentaId: string): void;
 };
 
 /** Tabla local, nunca sincronizada: el borrador de la lista en el celular. */
@@ -122,6 +128,18 @@ export function crearRepositorioLocal(disco: AlmacenLocalDisco): RepositorioLoca
         ...estado,
         pendientes: guardarCorreccion(estado.pendientes, { id: correccion.id, fila: correccion }),
       });
+    },
+
+    registrarSesion(sesion: FilaSesionPendiente): void {
+      const estado = leer();
+      escribir({
+        ...estado,
+        pendientes: guardarSesion(estado.pendientes, { id: sesion.id, fila: sesion }),
+      });
+    },
+
+    purgarExceptoPendientes(cuentaId: string): void {
+      escribir(purgarExceptoPendientes(leer(), cuentaId));
     },
 
     confirmarLista(entrada: ConfirmarListaLocal): void {

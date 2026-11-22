@@ -54,6 +54,7 @@ function repositorioFalso(): RepositorioFalso {
     },
     registrarMarca: () => undefined,
     registrarCorreccion: () => undefined,
+    registrarSesion: () => undefined,
     confirmarLista: (entrada) => {
       confirmaciones.push(entrada);
       borradores.delete(entrada.borradorId);

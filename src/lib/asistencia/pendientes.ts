@@ -39,6 +39,8 @@ export type FilaMarca = {
   valor: ValorAsistencia;
   tipo_registro: TipoRegistro;
   lista_id: string | null;
+  /** Solo en escaneos: el texto leido del carné, para validarlo en el servidor (RF-303). */
+  codigo_leido?: string | null;
   registrado_por: string;
   cuenta_id: string;
   credencial_id: string;
@@ -70,7 +72,11 @@ export type MarcaPendiente = {
 
 /** Traduce una marca del dominio a la fila que queda pendiente de enviar. */
 export function marcaALocal(marca: MarcaAsistencia): FilaMarca {
+  // La columna solo viaja cuando hay codigo: asi la huella de las marcas de
+  // lista y manuales no cambia respecto de las ya enviadas.
+  const codigo = marca.codigoLeido ? { codigo_leido: marca.codigoLeido } : {};
   return {
+    ...codigo,
     id: marca.id,
     ciclo_id: marca.cicloId,
     sesion_id: marca.sesionId,
@@ -132,13 +138,42 @@ export type CorreccionPendiente = {
   fila: FilaCorreccion;
 };
 
+/** Cambio de una sesion hecho por la coordinacion: domingo sin misa o ventana distinta (RF-301). */
+export type FilaSesionPendiente = {
+  id: string;
+  ciclo_id: string;
+  fecha: string;
+  tipo: "misa" | "catequesis" | "actividad";
+  actividad_id: string | null;
+  ventana_inicio: string | null;
+  ventana_fin: string | null;
+  cancelada: boolean;
+  motivo_cancelacion: string | null;
+  actualizado_por: string;
+  cuenta_id: string;
+  credencial_id: string;
+  dispositivo_id: string;
+};
+
+export type SesionPendiente = {
+  id: string;
+  fila: FilaSesionPendiente;
+};
+
 export type Pendientes = {
   marcas: MarcaPendiente[];
   listas: ListaPendiente[];
   correcciones: CorreccionPendiente[];
+  sesiones: SesionPendiente[];
 };
 
-export const PENDIENTES_VACIOS: Pendientes = { marcas: [], listas: [], correcciones: [] };
+export const PENDIENTES_VACIOS: Pendientes = { marcas: [], listas: [], correcciones: [], sesiones: [] };
+
+/** El ultimo cambio de la misma sesion reemplaza al anterior: viaja uno solo. */
+export function guardarSesion(pendientes: Pendientes, sesion: SesionPendiente): Pendientes {
+  const sesiones = pendientes.sesiones.filter((existente) => existente.id !== sesion.id);
+  return { ...pendientes, sesiones: [...sesiones, { id: sesion.id, fila: { ...sesion.fila, id: sesion.id } }] };
+}
 
 export type DatosMarca = {
   sesionId: string;
@@ -248,13 +283,25 @@ export type ResumenPendientes = {
   marcas: number;
   listas: number;
   correcciones: number;
+  sesiones: number;
   total: number;
 };
 export function resumenPendientes(pendientes: Pendientes): ResumenPendientes {
   const marcas = pendientes.marcas.length;
   const listas = pendientes.listas.length;
   const correcciones = pendientes.correcciones.length;
-  return { marcas, listas, correcciones, total: marcas + listas + correcciones };
+  const sesiones = pendientes.sesiones.length;
+  return { marcas, listas, correcciones, sesiones, total: marcas + listas + correcciones + sesiones };
+}
+
+/** Ids de todo lo que viaja en el siguiente push. */
+export function idsPendientes(pendientes: Pendientes): string[] {
+  return [
+    ...pendientes.sesiones.map((sesion) => sesion.id),
+    ...pendientes.listas.map((lista) => lista.id),
+    ...pendientes.marcas.map((marca) => marca.id),
+    ...pendientes.correcciones.map((correccion) => correccion.id),
+  ];
 }
 
 /**
@@ -264,11 +311,18 @@ export function resumenPendientes(pendientes: Pendientes): ResumenPendientes {
  * aqui se convierte el formato del dispositivo al del transporte.
  */
 export function prepararLote(pendientes: Pendientes): {
+  sesiones?: { created: Record<string, unknown>[]; updated: Record<string, unknown>[]; deleted: string[] };
   marcas_asistencia: { created: Record<string, unknown>[]; updated: Record<string, unknown>[]; deleted: string[] };
   listas_asistencia: { created: Record<string, unknown>[]; updated: Record<string, unknown>[]; deleted: string[] };
   correcciones_asistencia: { created: Record<string, unknown>[]; updated: Record<string, unknown>[]; deleted: string[] };
 } {
+  // Las sesiones ya existen en el servidor (las genera el temporizador): la
+  // coordinacion solo las actualiza. Sin cambios de sesion no se envia la tabla.
+  const sesiones = pendientes.sesiones.length
+    ? { sesiones: { created: [], updated: pendientes.sesiones.map((sesion) => ({ ...sesion.fila })), deleted: [] } }
+    : {};
   return {
+    ...sesiones,
     marcas_asistencia: {
       created: pendientes.marcas.map((marca) => ({
         ...marca.fila,
@@ -304,7 +358,7 @@ export type ResultadoPush = {
 };
 
 /**
- * Retira del local lo que el servidor ya acepto. Lo demas sigue pendiente
+ * Retira del local lo que el servidor ya guardo. Lo demas sigue pendiente
  * para el siguiente intento, con el mismo id: reenviar no duplica.
  */
 export function aplicarResultadoPush(
@@ -316,5 +370,6 @@ export function aplicarResultadoPush(
     marcas: pendientes.marcas.filter((marca) => !aceptadas.has(marca.id)),
     listas: pendientes.listas.filter((lista) => !aceptadas.has(lista.id)),
     correcciones: pendientes.correcciones.filter((correccion) => !aceptadas.has(correccion.id)),
+    sesiones: pendientes.sesiones.filter((sesion) => !aceptadas.has(sesion.id)),
   };
 }

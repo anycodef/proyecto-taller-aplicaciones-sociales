@@ -1,6 +1,7 @@
 import { aplicarPull, filasDe, type AlmacenLocal } from "@/lib/sincronizacion/almacen-local";
 import {
   aplicarResultadoPush,
+  idsPendientes,
   prepararLote,
   resumenPendientes,
   type ResultadoPush,
@@ -14,7 +15,7 @@ export type ClienteSync = {
 export type ResultadoSincronizacion = {
   /** Filas que el servidor confirmo. */
   aceptados: number;
-  /** Filas que el servidor rechazo. */
+  /** Filas que el servidor guardo como rechazadas, con su motivo. */
   rechazados: number;
   /** Filas que llegaron cuando el ciclo ya estaba cerrado. */
   descartadosCierre: number;
@@ -22,7 +23,7 @@ export type ResultadoSincronizacion = {
   pendientes: number;
   /** Si se logro bajar la nomina. */
   nominaActualizada: boolean;
-  /** Identificadores enviados en este push. */
+  /** Identificadores que el servidor ya guardo en este push. */
   idsEnviados: string[];
 };
 
@@ -31,13 +32,37 @@ export type OpcionesSincronizacion = {
   cliente: ClienteSync;
   /** Si es false, solo se envia lo pendiente. */
   pulling?: boolean;
+  /** Reloj inyectable para el resumen del push. */
+  ahora?: () => number;
 };
+
+/** Ruta del pull: con el pulso y la huella, el servidor responde solo lo que cambio. */
+export function rutaPull(almacen: AlmacenLocal): string {
+  if (almacen.ultimoPulso === null || !almacen.huellaAlcance) return "/sincronizacion/cambios";
+  const consulta = `ultimoPulso=${almacen.ultimoPulso}&huellaAlcance=${encodeURIComponent(almacen.huellaAlcance)}`;
+  return `/sincronizacion/cambios?${consulta}`;
+}
+
+async function bajar(estado: AlmacenLocal, cliente: ClienteSync): Promise<AlmacenLocal | null> {
+  try {
+    const pull = await cliente.solicitar<RespuestaPull>("GET", rutaPull(estado));
+    return aplicarPull(estado, pull);
+  } catch {
+    // Sin red el pull falla: se conserva lo ya descargado.
+    return null;
+  }
+}
 
 /**
  * Baja la nomina y envia lo pendiente. El push lleva ids deterministas y el
  * servidor ignora los repetidos, asi que reenviar no duplica marcas
- * (RF-307). Si el servidor rechaza algo, se conserva en el celular para el
- * siguiente intento.
+ * (RF-307).
+ *
+ * Una respuesta 200 del push significa que el servidor guardo cada fila en la
+ * misma transaccion, aceptada o rechazada con su motivo. Por eso todo lo
+ * enviado sale de pendientes: reenviar una fila rechazada solo la volveria a
+ * rechazar y el contador nunca bajaria. Los rechazados vuelven en el pull con
+ * su estado y quedan visibles en «Por enviar» (RF-303).
  *
  * No guarda: devuelve el estado resultante y quien lo llama decide, para que
  * una marca registrada durante el push no se pierda.
@@ -46,67 +71,58 @@ export async function sincronizar(
   opciones: OpcionesSincronizacion
 ): Promise<{ estado: AlmacenLocal; resultado: ResultadoSincronizacion }> {
   const { almacen, cliente } = opciones;
+  const ahora = opciones.ahora ?? Date.now;
   let estado = almacen;
   let nominaActualizada = false;
 
   if (opciones.pulling !== false) {
-    try {
-      const pull = await cliente.solicitar<RespuestaPull>("GET", "/sincronizacion/cambios");
-      estado = aplicarPull(estado, pull);
+    const bajado = await bajar(estado, cliente);
+    if (bajado) {
+      estado = bajado;
       nominaActualizada = true;
-    } catch {
-      // Sin red el pull falla: se conservan lo ya descargado.
     }
   }
 
   const pendientes = resumenPendientes(estado.pendientes);
-  if (pendientes.total === 0) {
-    return {
-      estado,
-      resultado: {
-        aceptados: 0,
-        rechazados: 0,
-        descartadosCierre: 0,
-        pendientes: 0,
-        nominaActualizada,
-        idsEnviados: [],
-      },
-    };
-  }
+  const sinEnviar = (): ResultadoSincronizacion => ({
+    aceptados: 0,
+    rechazados: 0,
+    descartadosCierre: 0,
+    pendientes: pendientes.total,
+    nominaActualizada,
+    idsEnviados: [],
+  });
+  if (pendientes.total === 0) return { estado, resultado: sinEnviar() };
 
   const lote = prepararLote(estado.pendientes);
-  const idsEnviados = [
-    ...estado.pendientes.marcas.map((marca) => marca.id),
-    ...estado.pendientes.listas.map((lista) => lista.id),
-    ...estado.pendientes.correcciones.map((correccion) => correccion.id),
-  ];
+  const idsEnviados = idsPendientes(estado.pendientes);
 
-  let resumen: ResultadoPush = { aceptados: 0, rechazados: 0, descartadosCierre: 0 };
-
+  let resumen: ResultadoPush;
   try {
     resumen = await cliente.solicitar<ResultadoPush>("POST", "/sincronizacion/cambios", {
       changes: lote,
     });
   } catch {
-    // Sin red el push falla: las marcas siguen en el celular.
-    return {
-      estado,
-      resultado: {
-        aceptados: 0,
-        rechazados: 0,
-        descartadosCierre: 0,
-        pendientes: pendientes.total,
-        nominaActualizada,
-        idsEnviados: [],
-      },
-    };
+    // Sin red, o el servidor no acepto el lote entero: todo sigue en el celular.
+    return { estado, resultado: sinEnviar() };
   }
 
-  if (resumen.rechazados === 0) {
-    estado = {
-      ...estado,
-      pendientes: aplicarResultadoPush(estado.pendientes, idsEnviados),
-    };
+  estado = {
+    ...estado,
+    pendientes: aplicarResultadoPush(estado.pendientes, idsEnviados),
+    ultimoResumen: {
+      aceptados: resumen.aceptados,
+      rechazados: resumen.rechazados,
+      descartadosCierre: resumen.descartadosCierre,
+      en: ahora(),
+    },
+  };
+
+  // Un segundo pull trae lo que el servidor consolido: la lista ya confirmada,
+  // las marcas aceptadas y las rechazadas con su motivo.
+  if (opciones.pulling !== false) {
+    const bajado = await bajar(estado, cliente);
+    if (bajado) estado = bajado;
   }
 
   return {

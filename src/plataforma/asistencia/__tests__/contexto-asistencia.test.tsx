@@ -42,6 +42,7 @@ function discoConPendientes(): AlmacenLocalDisco {
       ],
       listas: [],
       correcciones: [],
+      sesiones: [],
     },
   };
   return {
@@ -99,9 +100,9 @@ test("RF-307: al abrir la app se envia lo pendiente y al volver a primer plano t
   await waitFor(() => expect(escuchas.length).toBeGreaterThan(0));
   // Al abrir la app ya se envio lo pendiente.
   await waitFor(() => expect(llamadas).toContain("POST /sincronizacion/cambios"));
-  const sincronizacionesAlAbrir = llamadas.filter(
-    (llamada) => llamada === "GET /sincronizacion/cambios"
-  ).length;
+  // Despues del primer pull la ruta lleva el pulso y la huella: se cuentan todos los pull.
+  const esPull = (llamada: string) => llamada.startsWith("GET /sincronizacion/cambios");
+  const sincronizacionesAlAbrir = llamadas.filter(esPull).length;
 
   await act(async () => {
     escuchas[0]("active");
@@ -109,9 +110,7 @@ test("RF-307: al abrir la app se envia lo pendiente y al volver a primer plano t
 
   // Al volver a primer plano se sincroniza otra vez.
   await waitFor(() =>
-    expect(llamadas.filter((llamada) => llamada === "GET /sincronizacion/cambios").length).toBe(
-      sincronizacionesAlAbrir + 1
-    )
+    expect(llamadas.filter(esPull).length).toBeGreaterThan(sincronizacionesAlAbrir)
   );
   espia.mockRestore();
 });

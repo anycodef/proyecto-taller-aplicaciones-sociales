@@ -1,5 +1,5 @@
 import type { BorradorLista } from "./lista";
-import type { FilaCorreccion, FilaLista, FilaMarca } from "./pendientes";
+import type { FilaCorreccion, FilaLista, FilaMarca, FilaSesionPendiente } from "./pendientes";
 import type { NinoNomina, Sesion } from "./tipos";
 
 /** Identificador del borrador de una lista: la sesion y el grupo. */
@@ -33,6 +33,8 @@ export interface RepositorioAsistencia {
   guardarBorrador(borradorId: string, borrador: BorradorLista): void;
   /** Guarda una marca suelta, de escaneo o de registro manual, para enviarla. */
   registrarMarca(marca: FilaMarca): void;
+  /** Guarda el cambio de una sesion hecho por la coordinacion, para enviarlo (RF-301). */
+  registrarSesion(sesion: FilaSesionPendiente): void;
   /** Guarda una correccion para enviarla. */
   registrarCorreccion(correccion: FilaCorreccion): void;
   /**

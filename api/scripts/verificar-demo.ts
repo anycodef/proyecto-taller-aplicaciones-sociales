@@ -101,6 +101,7 @@ async function main(): Promise<void> {
     marcas: marcas.map(marca => ({ id: marca.id, fila: marcaALocal(marca) })),
     listas: [{ id: lista.id, fila: listaALocal(lista) }],
     correcciones: [],
+    sesiones: [],
   });
   console.info(`3. Lista preparada: ${lista.totalPresentes} presentes, ${lista.totalAusentes} ausente(s), ${marcas.length} marcas`);
 

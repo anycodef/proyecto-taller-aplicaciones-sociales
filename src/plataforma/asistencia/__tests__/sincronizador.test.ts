@@ -97,16 +97,31 @@ test("RF-307: el push envia cada marca una sola vez y no duplica al reintentar",
   expect(resultado.idsEnviados).toEqual([marca.id]);
 });
 
-test("RF-307: si el servidor rechaza algo, la marca se conserva para el siguiente intento", async () => {
+test("RF-303: una fila rechazada sale de pendientes y el resumen guarda rechazados y descartados", async () => {
   const cliente = clienteFalso({
     "POST /sincronizacion/cambios": { aceptados: 0, rechazados: 1, descartadosCierre: 0 },
   });
 
   const almacen = { ...almacenVacio(), pendientes: guardarMarca(PENDIENTES_VACIOS, marcaDePrueba()) };
 
+  const { estado, resultado } = await sincronizar({ almacen, cliente, pulling: false, ahora: () => 42 });
+
+  // El servidor ya la guardo como rechazada con su motivo: reenviarla solo la
+  // volveria a rechazar y el contador nunca bajaria. Vuelve en el pull.
+  expect(resultado.rechazados).toBe(1);
+  expect(resultado.pendientes).toBe(0);
+  expect(estado.pendientes.marcas).toHaveLength(0);
+  expect(estado.ultimoResumen).toEqual({ aceptados: 0, rechazados: 1, descartadosCierre: 0, en: 42 });
+});
+
+test("RF-307: si el push falla, todo sigue pendiente con el mismo id", async () => {
+  const cliente = clienteFalso({ "POST /sincronizacion/cambios": new Error("Network request failed") });
+  const marca = marcaDePrueba();
+  const almacen = { ...almacenVacio(), pendientes: guardarMarca(PENDIENTES_VACIOS, marca) };
+
   const { estado, resultado } = await sincronizar({ almacen, cliente, pulling: false });
 
-  expect(resultado.rechazados).toBe(1);
   expect(resultado.pendientes).toBe(1);
-  expect(estado.pendientes.marcas).toHaveLength(1);
+  expect(estado.pendientes.marcas.map((pendiente) => pendiente.id)).toEqual([marca.id]);
+  expect(estado.ultimoResumen).toBeNull();
 });

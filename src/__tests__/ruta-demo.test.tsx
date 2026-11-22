@@ -121,7 +121,8 @@ test("RF-306: la lista se confirma sin conexión y deja la lista y las marcas pe
   fireEvent.press(screen.getByLabelText("Niño 2 Demo, presente. Toca para cambiar"));
   fireEvent.press(screen.getByText("Confirmar lista"));
 
-  await waitFor(() => expect(screen.getByText("Lista guardada en el celular.")).toBeTruthy());
+  await waitFor(() => expect(screen.getByText("Lista confirmada")).toBeTruthy());
+  expect(screen.getByText("7 presentes y 1 ausente en Grupo Demo.")).toBeTruthy();
 
   const guardado = disco.leer();
   expect(guardado.pendientes.listas).toHaveLength(1);

@@ -1,0 +1,21 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-22",
+  "agente": "Claude Code",
+  "modelo": "claude-opus-5-5",
+  "comprobaciones": [
+    "npm test (app y API con PostgreSQL y Azurite locales)",
+    "npm run typecheck",
+    "npm run lint"
+  ],
+  "resultados": {
+    "tests": "App: 85 suites y 380 tests en verde. API: 53 suites y 348 tests en verde",
+    "typecheck": "Pasa raíz y API",
+    "lint": "Pasa sin errores"
+  },
+  "tarea": "T003-71, T003-72, T003-73, T003-82, T003-83, T003-84",
+  "solicitud": "Terminar el flujo de asistencia: abrir la lista, marcar sin internet, que quede en la app, volver la conexión y sincronizar sin duplicados",
+  "commitPrevisto": "fix(asistencia): sincronizar sin duplicados, borrador persistente y purga al cerrar sesion",
+  "criterio": "RF-306/RF-307/RF-303/RNF-302/RNF-306: cada toque de la lista queda en el celular; la lista confirmada no se vuelve a confirmar; tras un push aceptado salen de pendientes incluso los rechazados, que vuelven por pull con su motivo; lo registrado durante el push no se pierde; al cerrar sesión se purga la nómina y quedan solo los pendientes de la cuenta.",
+  "notas": "Test e2e flujo-sin-red: un push cuya respuesta se pierde se reenvía con los mismos ids y el servidor queda con 1 lista y 3 marcas."
+}
