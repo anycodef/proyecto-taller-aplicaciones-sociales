@@ -55,6 +55,39 @@ el PIN como siempre.
 > rechaza el enlace con "acceso denegado". La solucion es volver a sembrar
 > (`npm run sembrar-demo`) y reiniciar la app.
 
+### 0.1 Recorrido completo de la spec 003 en el celular (2026-11-22)
+
+La siembra crea también la **misa de hoy** (ventana de todo el día) y guarda
+`api/demo-carnes.html` con el QR de los ocho carnés ficticios. Ábrelo en la PC
+para escanearlos con el celular.
+
+| # | Dónde | Qué probar |
+| --- | --- | --- |
+| 1 | Menú `/asistencia` | «Misa en curso», enlaces a Escanear, Registrar a mano, Por enviar y los grupos |
+| 2 | **Escanear carnés** | Permite la cámara y apunta a un QR de `demo-carnes.html`: banner verde con el nombre. El mismo carné otra vez: «Ya estaba registrado». Botón de linterna |
+| 3 | Modo avión, escanea otro carné | Se registra igual; «N por enviar» sube |
+| 4 | **Grupo demo** (lista) | Toca un niño (Ausente), sal de la pantalla y vuelve: el toque sigue. **Confirmar lista** → «Lista confirmada · Se enviará cuando vuelva la señal» |
+| 5 | **Por enviar** | La lista, los escaneos y lo que el servidor no aceptó, con motivo |
+| 6 | Quita el modo avión | Se envía solo; la lista pasa a «Enviada» y «Por enviar» queda vacío |
+| 7 | Lista confirmada → **Corregir a alguien** | Abre la corrección del niño |
+
+Para ver además **Domingos del ciclo**, **Avisos de asistencia** y **Reporte
+de misa** (solo coordinación), prepara la demo con delegación: la coordinación
+delega en el catequista de demo y el mismo celular ve esas opciones en el menú.
+
+```powershell
+$env:DEMO_DELEGACION="1"
+npm run preparar-demo
+```
+
+Después **borra los datos de Expo Go** (Ajustes → Apps → Expo Go →
+Almacenamiento → Borrar datos) para que la app use el enlace nuevo, y vuelve a
+abrir con `npm run demo:app`.
+
+> **No toques «Cerrar sesión» en la demo.** Cierra la sesión y borra la nómina
+> del celular, como pide la spec; el enlace de demo ya se usó y la app vuelve a
+> la portada. Para recuperarla: `npm run sembrar-demo` y reinicia `demo:app`.
+
 ---
 
 ## 1. Requisitos de esta PC
@@ -74,8 +107,9 @@ SDK 57): `expo-file-system` 57.0.7, `expo-crypto` 57.0.4,
 `@react-native-community/netinfo` 12.0.1, `expo-secure-store`,
 `expo-router`, `expo-linking`, `expo-clipboard`, `react-native` 0.86.3.
 
-**No se usan** en la demo (requieren build nativo o aprobación): `expo-camera`
-(escáner APP-20), `expo-dev-client`, `@nozbe/watermelondb`, `expo-sqlite`.
+`expo-camera` (escáner APP-20) también funciona en Expo Go. **No se usan** en
+la demo (requieren build nativo): `expo-dev-client`, `@nozbe/watermelondb`,
+`expo-sqlite`.
 El almacén local de la demo es el archivo `sigecat-asistencia.json` que escribe
 `expo-file-system`.
 
@@ -139,7 +173,7 @@ Crea `api/local.settings.json` (no se versiona) con este contenido:
 cd D:\Documents\proyecto-taller-aplicaciones-sociales
 npm --prefix api run build
 cd api
-func start --address 0.0.0.0 --port 7071 --cors * --functions activarEquipo renovarSesion yo sincronizacionPull sincronizacionPush
+func start --address 0.0.0.0 --port 7071 --cors * --functions activarEquipo renovarSesion yo sincronizacionPull sincronizacionPush validarCarne reporteMisa listarAvisosAsistencia atenderAvisoAsistencia asistenciaDeCatequizando listarAusenciasJustificables
 ```
 
 - `--address 0.0.0.0` hace que la API escuche en **todas las interfaces**, para
@@ -149,7 +183,9 @@ func start --address 0.0.0.0 --port 7071 --cors * --functions activarEquipo reno
   celular (Expo Go) no hace falta, pero con la misma orden funciona en los dos.
   Ojo: una lista de orígenes separada por comas hace que el host no arranque;
   usa `*`.
-- `--functions ...` carga **solo las cinco rutas de la demo**. Es la decisión
+- `--functions ...` carga **solo las rutas de la demo**: activación, sincronización
+  y, desde el 2026-11-22, validación de carné, reporte de misa, avisos de
+  asistencia y asistencia de la familia. Es la decisión
   tomada para esta demo: los temporizadores del servidor exigen
   `AzureWebJobsStorage` (Azurite) y, sin contenedor y sin Azurite por npm, el
   host no arranca. Con `--functions` no se registra ningún temporizador, así que
@@ -324,8 +360,8 @@ Debe dar **8** (una por niño), y `select count(*) from lista_asistencia;` da **
 - **El teléfono real**: activación, PIN, modo avión, reconexión y el conteo en
   pantalla se han probado contra la API real y con las pruebas automáticas del
   cliente, pero no en un dispositivo físico.
-- El escáner de carnés (APP-20) y sus cuatro resultados: fuera de la demo
-  porque `expo-camera` necesita aprobación.
+- El escáner de carnés (APP-20) en un teléfono real: probado con pruebas
+  automáticas (cámara simulada), falta la lectura física de los QR.
 - La base local con WatermelonDB o `expo-sqlite`: fuera de la demo; el
   almacén actual es el archivo local con `expo-file-system`.
 - APP-30 (elegir grupo) como pantalla propia: el guion usa la lista de grupos

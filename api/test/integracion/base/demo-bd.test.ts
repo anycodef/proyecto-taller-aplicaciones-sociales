@@ -41,6 +41,11 @@ test("RF-102 RF-110 RF-111: demo crea cinco roles, cuenta mixta, hermanos y enla
   expect(sesionDemo.tipo).toBe("catequesis");
   expect(sesionDemo.ventana_inicio).toBe("00:00:00");
   expect(sesionDemo.ventana_fin).toBe("23:59:59");
+  // RF-302: la demo trae misa de todo el dia y un carné por niño para probar el escáner.
+  const misaDemo = (await pool.query<{ ventana_inicio: string; ventana_fin: string }>("SELECT ventana_inicio::text,ventana_fin::text FROM sesion WHERE fecha=$1::date AND tipo='misa'", [resultado.demo.fechaSesion])).rows[0];
+  expect(misaDemo).toEqual({ ventana_inicio: "00:00:00", ventana_fin: "23:59:59" });
+  expect(resultado.demo.carnes).toHaveLength(8);
+  expect(resultado.demo.carnes.every(carne => /^SGC1:[0-9a-f-]{36}:[1-9]\d*$/.test(carne.codigo))).toBe(true);
   const mixta = (await pool.query<{ cuenta_id: string; credencial_id: string }>("SELECT c.id cuenta_id,cr.id credencial_id FROM cuenta c JOIN credencial cr ON cr.cuenta_id=c.id WHERE c.identidad_operativa='Cuenta mixta demo' AND cr.tipo='familia'")).rows[0];
   await pool.query("UPDATE credencial SET estado='activa' WHERE id=$1", [mixta.credencial_id]);
   const contexto = await cargarContexto({ cuentaId: mixta.cuenta_id, credencialId: mixta.credencial_id, tipo: "familia" });

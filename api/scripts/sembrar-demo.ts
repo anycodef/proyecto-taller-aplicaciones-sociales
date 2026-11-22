@@ -4,6 +4,7 @@ import { join } from "node:path";
 import type { ContextoAcceso, Rol } from "@/lib/seguridad/contexto-acceso";
 import { fechaEnLima } from "@/lib/asistencia/reloj";
 import { idSesion } from "@/lib/asistencia/sesiones";
+import { matrizQr } from "@/lib/catequizandos/carne";
 import { enTransaccion } from "../src/compartido/bd/transaccion";
 import { cerrarPool } from "../src/compartido/bd/pool";
 import { crearAdministracionInicial } from "./crear-administracion-inicial";
@@ -26,6 +27,7 @@ export type ResultadoDemo = {
     fechaSesion: string;
     enlace: string;
     enlaceExpo: string | null;
+    carnes: { nombre: string; codigo: string }[];
   };
 };
 
@@ -69,6 +71,7 @@ export async function sembrarDemo(): Promise<ResultadoDemo> {
     enlaceCatequista = emitido.url;
   }
   let grupoDemo = "";
+  let carnesDemo: { nombre: string; codigo: string }[] = [];
   let fechaSesion = "";
   await enTransaccion(async tx => {
     await tx.query("INSERT INTO rol_cuenta(cuenta_id,rol) VALUES($1,'coordinacion') ON CONFLICT DO NOTHING", [ctx.cuentaId]);
@@ -103,16 +106,30 @@ export async function sembrarDemo(): Promise<ResultadoDemo> {
       "INSERT INTO sesion(id,ciclo_id,fecha,tipo,ventana_inicio,ventana_fin,cancelada,actualizado_por,cuenta_id,credencial_id,dispositivo_id) VALUES($1,$2,$3,'catequesis','00:00:00','23:59:59',false,$4,$4,$5,$6) ON CONFLICT(id) DO UPDATE SET ventana_inicio=EXCLUDED.ventana_inicio,ventana_fin=EXCLUDED.ventana_fin",
       [idSesionDemo, actual.id, fechaSesion, ctx.cuentaId, ctx.credencialId, DISPOSITIVO_DEMO]
     );
+    // Misa de hoy, tambien de todo el dia: sin ella el escaner dice que no
+    // hay misa y no se puede probar el registro por carné.
+    const idMisaDemo = idSesion(actual.id, fechaSesion, "misa");
+    await tx.query(
+      "INSERT INTO sesion(id,ciclo_id,fecha,tipo,ventana_inicio,ventana_fin,cancelada,actualizado_por,cuenta_id,credencial_id,dispositivo_id) VALUES($1,$2,$3,'misa','00:00:00','23:59:59',false,$4,$4,$5,$6) ON CONFLICT(id) DO UPDATE SET ventana_inicio=EXCLUDED.ventana_inicio,ventana_fin=EXCLUDED.ventana_fin,cancelada=false,motivo_cancelacion=NULL",
+      [idMisaDemo, actual.id, fechaSesion, ctx.cuentaId, ctx.credencialId, DISPOSITIVO_DEMO]
+    );
     grupoDemo = "Grupo demo";
+    const carnes = await tx.query<{ nombre: string; codigo: string }>(
+      `SELECT n.nombres || ' ' || n.apellidos AS nombre, 'SGC1:' || n.id::text || ':' || max(e.emision)::text AS codigo
+       FROM catequizando n JOIN carne_emision e ON e.catequizando_id=n.id WHERE n.id = ANY($1::uuid[]) GROUP BY n.id,n.nombres,n.apellidos ORDER BY n.nombres`,
+      [Array.from({ length: NINOS_DEMO }, (_, indice) => id(`nino:${indice + 1}`))]
+    );
+    carnesDemo = carnes.rows;
 
     // La sesion de demo arranca limpia: las marcas son inmutables y un
     // intento rechazado con otro momento dejaria el id bloqueado para siempre.
     await tx.query("SET LOCAL ROLE sigecat_retencion");
     await tx.query("SELECT set_config('sigecat.contexto','retencion',true)");
-    await tx.query("DELETE FROM aviso_asistencia WHERE sesion_id=$1", [idSesionDemo]);
-    await tx.query("DELETE FROM asistencia WHERE sesion_id=$1", [idSesionDemo]);
-    await tx.query("DELETE FROM marca_asistencia WHERE sesion_id=$1", [idSesionDemo]);
-    await tx.query("DELETE FROM lista_asistencia WHERE sesion_id=$1", [idSesionDemo]);
+    const sesionesLimpias = [idSesionDemo, idMisaDemo];
+    await tx.query("DELETE FROM aviso_asistencia WHERE sesion_id=ANY($1::uuid[])", [sesionesLimpias]);
+    await tx.query("DELETE FROM asistencia WHERE sesion_id=ANY($1::uuid[])", [sesionesLimpias]);
+    await tx.query("DELETE FROM marca_asistencia WHERE sesion_id=ANY($1::uuid[])", [sesionesLimpias]);
+    await tx.query("DELETE FROM lista_asistencia WHERE sesion_id=ANY($1::uuid[])", [sesionesLimpias]);
     await tx.query("RESET ROLE");
   });
   return {
@@ -125,8 +142,27 @@ export async function sembrarDemo(): Promise<ResultadoDemo> {
       fechaSesion,
       enlace: enlaceCatequista,
       enlaceExpo: enlaceExpo(enlaceCatequista),
+      carnes: carnesDemo,
     },
   };
+}
+
+/** Carnés de los niños de demo en una pagina para abrir en la PC y escanear con el celular. */
+export function guardarCarnesDemo(carnes: { nombre: string; codigo: string }[]): string {
+  const svg = (codigo: string): string => {
+    const matriz = matrizQr(codigo);
+    const lado = matriz.length + 8;
+    const cuadros = matriz.flatMap((fila, y) => fila.map((oscuro, x) => (oscuro ? `<rect x="${x + 4}" y="${y + 4}" width="1" height="1"/>` : ""))).join("");
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${lado} ${lado}" width="220" height="220" shape-rendering="crispEdges"><rect width="${lado}" height="${lado}" fill="#fff"/>${cuadros}</svg>`;
+  };
+  const tarjetas = carnes.map(carne => `<figure>${svg(carne.codigo)}<figcaption>${carne.nombre}</figcaption></figure>`).join("");
+  const ruta = join(__dirname, "..", "demo-carnes.html");
+  writeFileSync(ruta, `<!doctype html><meta charset="utf-8"><title>Carnés de demo</title>
+<style>body{font-family:sans-serif;display:flex;flex-wrap:wrap;gap:24px;padding:24px}figure{margin:0;text-align:center}</style>
+<p style="width:100%">Carnés ficticios de la demo. Escanéalos con la pantalla «Escanear carnés».</p>
+${tarjetas}
+`);
+  return ruta;
 }
 /** El enlace lleva el token y solo se muestra una vez: se guarda en un archivo local para `verificar:demo` y el guion. */
 export function guardarDemoLocal(resultado: ResultadoDemo): void {
@@ -135,6 +171,7 @@ export function guardarDemoLocal(resultado: ResultadoDemo): void {
     join(__dirname, "..", "demo-local.json"),
     JSON.stringify({ ...resultado.demo, token, grupoId: id("grupo"), cuentaCatequista: resultado.demo.cuentaCatequista }, null, 2)
   );
+  if (resultado.demo.carnes.length) guardarCarnesDemo(resultado.demo.carnes);
 }
 if (require.main === module) {
   sembrarDemo()

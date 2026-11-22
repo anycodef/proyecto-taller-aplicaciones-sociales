@@ -1,0 +1,20 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-22",
+  "agente": "Claude Code",
+  "modelo": "claude-opus-5-5",
+  "comprobaciones": [
+    "npm test (app y API con PostgreSQL y Azurite locales)",
+    "npm run typecheck",
+    "npm run lint"
+  ],
+  "resultados": {
+    "tests": "demo-bd.test.ts en verde contra PostgreSQL local",
+    "typecheck": "Pasa raíz y API",
+    "lint": "Pasa sin errores"
+  },
+  "tarea": "T003-82 (demo)",
+  "solicitud": "Cómo probar la spec 003 desde el celular con Expo Go",
+  "commitPrevisto": "docs(demo): misa de hoy, carnes de demo y recorrido completo de la spec 003",
+  "criterio": "La siembra crea la misa de hoy de todo el día y deja api/demo-carnes.html con los QR; la guía lista las rutas de la API y el recorrido."
+}

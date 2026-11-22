@@ -46,6 +46,7 @@ example
 /.log4brains
 api/local.settings.json
 api/demo-local.json
+api/demo-carnes.html
 api/coverage/
 coverage/
 infra/*.bicepparam
