@@ -54,6 +54,13 @@
       ],
       "expo-image",
       [
+        "expo-camera",
+        {
+          "cameraPermission": "SIGECAT usa la cámara para leer el código QR del carné en la misa. No graba ni guarda imágenes.",
+          "recordAudioAndroid": false
+        }
+      ],
+      [
         "expo-image-picker",
         {
           "cameraPermission": "SIGECAT usa la cámara para fotografiar el comprobante de una justificación. La foto no se guarda en el celular.",

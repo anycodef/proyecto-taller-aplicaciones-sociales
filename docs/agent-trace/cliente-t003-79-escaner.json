@@ -1,0 +1,21 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-22",
+  "agente": "Claude Code",
+  "modelo": "claude-opus-5-5",
+  "comprobaciones": [
+    "npm test (app y API con PostgreSQL y Azurite locales)",
+    "npm run typecheck",
+    "npm run lint"
+  ],
+  "resultados": {
+    "tests": "App: 85 suites y 380 tests en verde. API: 53 suites y 348 tests en verde",
+    "typecheck": "Pasa raíz y API",
+    "lint": "Pasa sin errores"
+  },
+  "tarea": "T003-79, T003-80",
+  "solicitud": "Pantalla de escaneo pendiente de la spec 003",
+  "commitPrevisto": "feat(asistencia): pantalla de escaneo de carnes con expo-camera",
+  "criterio": "RF-302/RNF-305/RNF-307/RF-303: solo QR, linterna, lectura repetida en 2 s ignorada, la marca se guarda sin esperar la red y validarCarne solo con red y carné ausente de la nómina.",
+  "notas": "expo-camera ~57.0.6 ya estaba justificada en la sección Dependencias de spec.md; instalada con npx expo install tras consultar la documentación del SDK 57. Sin medición física de lectura QR (T003-04/T003-99)."
+}
