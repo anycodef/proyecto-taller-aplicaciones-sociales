@@ -1,0 +1,20 @@
+{
+  "version": "1.0",
+  "fecha": "2026-11-22",
+  "agente": "Claude Code",
+  "modelo": "claude-opus-5-5",
+  "comprobaciones": [
+    "npm test (app y API con PostgreSQL y Azurite locales)",
+    "npm run typecheck",
+    "npm run lint"
+  ],
+  "resultados": {
+    "tests": "App: 85 suites y 380 tests en verde. API: 53 suites y 348 tests en verde",
+    "typecheck": "Pasa raíz y API",
+    "lint": "Pasa sin errores"
+  },
+  "tarea": "T003-77",
+  "solicitud": "Navegación rota: manual y corrección solo se alcanzaban desde navegacion.tsx",
+  "commitPrevisto": "feat(asistencia): menu de asistencia con escaner, grupos, coordinacion y cierre de sesion",
+  "criterio": "RF-301/RF-306/RF-307: el menú muestra la sesión en curso desde la base local, grupos propios primero y luego todos, pendientes, y enlaza escáner, manual, coordinación y cierre de sesión."
+}

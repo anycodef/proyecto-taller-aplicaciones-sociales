@@ -126,6 +126,36 @@ const SECCIONES: {
         ruta: "/asistencia/correccion/sesion-1/nino-1",
         movil: true,
       },
+      {
+        titulo: "Misa en curso",
+        subtitulo: "Escáner de carnés con linterna",
+        ruta: "/asistencia/escanear",
+        movil: true,
+      },
+      {
+        titulo: "Domingos del ciclo",
+        subtitulo: "Domingo sin misa o con otra ventana",
+        ruta: "/coordinacion/sesiones",
+        movil: true,
+      },
+      {
+        titulo: "Avisos de asistencia",
+        subtitulo: "Carnés inválidos, conflictos y revisión cruzada",
+        ruta: "/coordinacion/avisos-asistencia",
+        movil: true,
+      },
+      {
+        titulo: "Reporte de misa",
+        subtitulo: "Presentes frente a activos, en línea",
+        ruta: "/reportes/misa/2026-10-11",
+        movil: true,
+      },
+      {
+        titulo: "Asistencia de mi hijo",
+        subtitulo: "Familia: misa y catequesis por domingo",
+        ruta: "/familia/asistencia/nino-1",
+        movil: false,
+      },
     ],
   },
   {
